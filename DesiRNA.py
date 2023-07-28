@@ -14,6 +14,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 from datetime import datetime
+import multiprocessing as mp
 
 
 from utils import functions_classes as func
@@ -27,8 +28,8 @@ def argument_parser():
                         help="Name of a file that contains secondary structures and constraints.")
     parser.add_argument("-R", "--replicas", required=False, dest="replicas", default=10, type=int,
                             help="Number of replicas. [default = 10]")
-    parser.add_argument("-e", "--exchange", required=False, dest="exchange", default=10, type=int,
-                            help="TBA. [default = 10]")
+    parser.add_argument("-e", "--exchange", required=False, dest="exchange", default=100, type=int,
+                            help="TBA. [default = 100]")
     parser.add_argument("-t", "--timelimit", required=False, default=3600, dest="timlim", type=int,
                             help="Timelimit for running the program [s]. [default = 60s]")
     parser.add_argument("-n", "--number_of_sequences", required=False, dest="number_seq", default=10, type=int,
@@ -601,10 +602,10 @@ def mutate_sequence(sequence_obj, nt_list):
 
 #    nt_pos = random.choice(range_pos)
     nt_pos = get_mutation_position(sequence_obj, range_pos)
-    mmm = " "*len(sequence_obj.sequence)
-    mmm = mmm[:nt_pos]+"*"+mmm[nt_pos:]
-    print(mmm)
-    print(sequence_obj.sequence)
+#    mmm = " "*len(sequence_obj.sequence)
+#    mmm = mmm[:nt_pos]+"*"+mmm[nt_pos:]
+#    print(mmm)
+#    print(sequence_obj.sequence)
     nt2_pos = None
 
     if (nt_list[nt_pos].pairs_with == None) and (len(nt_list[nt_pos].letters_allowed) != 1):
@@ -794,7 +795,7 @@ def mc_delta(deltaF_o, deltaF_m,  T_replica):
 #    print(accept)
 
     
-    return accept, accept_d
+    return accept
 
 
 def metropolis_score(temp, dE):
@@ -923,13 +924,13 @@ def score_sequence(seq):
 
     mfe_energy, mfe_structure = get_mfe_e_ss(seq)
     
-    print(mfe_energy, mfe_structure)
+#    print(mfe_energy, mfe_structure)
     scored_sequence.get_mfe_e(mfe_energy)
     scored_sequence.get_mfe_ss(mfe_structure)
 
 
     scored_sequence.get_target_e(RNA.energy_of_struct(seq, input.sec_struct.replace("&","")))
-    print(scored_sequence.target_e, "target_energy")
+#    print(scored_sequence.target_e, "target_energy")
 
     scored_sequence.get_d_mfe_target(scored_sequence.mfe_e, scored_sequence.target_e)
 
@@ -978,6 +979,54 @@ def round_floats(obj):
     return obj
 
 
+
+
+
+def single_replica_design(sequence_o, nt_list, replica_step):
+    
+    best_score = sequence_o
+        
+    for i in range(0, RE_attempt):
+        sequence_m = mutate_sequence(sequence_o, nt_list)
+        print(sequence_m.sequence, sequence_m.temp_shelf, i)
+
+
+        sequence_o.get_sim_step(replica_step)
+        sequence_m.get_sim_step(replica_step)
+
+        deltaF_o = sequence_o.scoring_function
+        deltaF_m = sequence_m.scoring_function
+
+        accept = mc_delta(deltaF_o, deltaF_m, sequence_o.temp_shelf)
+        if accept ==True:
+            sequence_o = sequence_m 
+            print("True")
+            if sequence_o.scoring_function < best_score.scoring_function:
+                best_score = sequence_o
+                print("best")
+
+    return best_score
+#    return sequence_m;
+
+
+
+
+def par_wrapper(args):
+    return single_replica_design(*args);
+
+def mutate_sequence_re(lst_seq_obj, nt_list, replica_step):
+
+    with mp.Pool(replicas) as pool:
+
+        inputs = [(seq_obj, nt_list,replica_step) for seq_obj in lst_seq_obj]
+        results = []
+
+        for result in pool.imap(par_wrapper,inputs):
+            results.append(result)
+
+        return results 
+
+
 def run_functions():
     
 #    input = read_input()
@@ -1022,15 +1071,26 @@ def run_functions():
         c +=1
 
 #        print(c,end="\r")
-        print("\n",c, "step")
-        print(position, "position")
+#        print("\n",c, "step")
+#        print(position, "position")
 
 #        sequence_o =  get_seq_to_mutate(seqence_score_list,position)
         sequence_o = seqence_score_list[position]
 
 #        sequence_m = mutate_sequence(sequence_o, nt_list)
         
+
+        kk = seqence_score_list.copy()
+        seqence_score_list = mutate_sequence_re(seqence_score_list, nt_list, replica_step)
         
+        print(kk)
+        for i in range(0, len(kk)):
+            print(vars(kk[i]))
+        
+        for i in range(0, len(kk)):
+            print(vars(seqence_score_list[i]))
+        
+        quit()        
         if mutations == "one": 
             sequence_m = mutate_sequence(sequence_o, nt_list)
         else:

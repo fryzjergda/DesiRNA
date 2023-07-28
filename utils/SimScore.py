@@ -29,13 +29,12 @@ def pairing_positions(s1):
                 del(l_opens[i][-1])
                 del(l_closes[j][-1])
 
-    print(final_pairs)
     return(dict(sorted(final_pairs)));
 
 class SimScore:
     def __init__(self,ref_ss,query_ss):
-        print(ref_ss, "target ss")
-        print(query_ss)
+#        print(ref_ss, "target ss")
+#        print(query_ss)
         self.ref_ss = ref_ss
         self.query_ss = query_ss
         # truth.AssertThat(len(self.ref_ss)).Named("size of ref_ss").IsEqualTo(len(self.query_ss));
@@ -59,7 +58,6 @@ class SimScore:
                     fp += 1;
                 else:
                     fn += 1;
-        print(tp, fp, fn, tn)
         self.conf_mat = (tp, fp, fn, tn);
 
     def mcc(self):
