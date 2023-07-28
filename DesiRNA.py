@@ -423,7 +423,23 @@ def get_rep_temps():
 
     if replicas ==1:
         rep_temps = [T_max]
+
+
+    print(rep_temps)
     
+    pot= 1.3
+    rep_temps_mod = []
+    
+    for i in range(0, len(rep_temps)): 
+        if i == 0:
+            rep_temps_mod.append(rep_temps[i])
+        else:
+            rep_temps_mod.append((1-(1-(rep_temps[i]/T_max)**pot)**(1/pot))*T_max)
+
+
+    una = False
+    if una == True:
+        rep_temps = rep_temps_mod    
     
     return rep_temps
 
@@ -1425,8 +1441,8 @@ if __name__ == '__main__':
 
     T_re = 10
 
-    rep_temps_shelfs = get_rep_temps()
-    print(rep_temps_shelfs)
+#    rep_temps_shelfs = get_rep_temps()
+#    print(rep_temps_shelfs)
     
     L = 504.12
     #L = 5000
@@ -1452,7 +1468,13 @@ if __name__ == '__main__':
         pks = "off"
     
     outname = get_outname()
-    
+
+    rep_temps_shelfs = get_rep_temps()
+    print(rep_temps_shelfs)
+
+    #outname+="sehlfs"
+
+
     print(command)
     with open(outname+".command", 'w') as f:
         print(command, file=f)
