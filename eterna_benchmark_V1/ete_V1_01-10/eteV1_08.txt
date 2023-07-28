@@ -1,0 +1,6 @@
+>name
+Ete_8
+>seq_restr
+NNNNNNNNNNNN
+>sec_struct
+((((...)))).

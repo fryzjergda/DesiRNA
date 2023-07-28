@@ -1,0 +1,6 @@
+>name
+RF00002.2.ss
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+.......................................(((((((......)))).......(((....((.....))........)))......)))....(((...)))(((((((((.....)))))..)))).............

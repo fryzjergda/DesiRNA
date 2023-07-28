@@ -1,0 +1,6 @@
+>name
+Ete_43
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+.....(((((..((..((..(((..(((..((..((...)).)).))).))).)).)).))))).....................

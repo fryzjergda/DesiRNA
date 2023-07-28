@@ -1,0 +1,6 @@
+>name
+RF00004.126.ss
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+.....(((.((((....)))).))).....................((((((........)))))).(((((((...)))))))............................((((((((....((((....)))).))))))))..((((((.((((((...........))))))..)))))).......

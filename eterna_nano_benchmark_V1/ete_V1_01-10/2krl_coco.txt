@@ -1,0 +1,8 @@
+>name
+2krl
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+(((((((....))))))).......(((((((((..[.[[...)))))))))...(.((.(((((.....((.(....).).)....))))).)).)]].]
+
+

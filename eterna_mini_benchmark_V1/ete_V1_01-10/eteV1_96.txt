@@ -1,0 +1,6 @@
+>name
+Ete_96
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+(..(..(....)..(((..(.(.(((...)))..)..)..)))..(..(....)..).(..(....)..).....(....)..)..)..(..(..(....)..(((..(.(.(((...)))..)..)..)))..(..(....)..).(..(....)..).....(....)..)..)..((..(..(....)..(((..(.(.(((...)))..)..)..)))..(..(....)..).(..(....)..).....(....)..)..))..((..(..(....)..(((..(.(.(((...)))..)..)..)))..(..(....)..).(..(....)..).....(....)..)..))

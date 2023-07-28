@@ -1,0 +1,6 @@
+>name
+RF00020.107.ss
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+.((((..(((((((((((..........((((((((...........))))))))...))))))))))).......)))).................(.((((((......)))))))

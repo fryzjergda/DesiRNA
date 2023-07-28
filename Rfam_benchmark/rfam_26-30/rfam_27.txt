@@ -1,0 +1,6 @@
+>name
+RF00027.7.ss
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+((((((.(((((((((((((((((((((..((((...))))...........)))))))))))))))))))))))))))
