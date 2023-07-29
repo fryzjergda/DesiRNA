@@ -505,7 +505,7 @@ class ScoreSeq:
         elif scoring_f == 'mix':
             self.scoring_function = self.d_mfe_target +self.mcc + self.web
         elif scoring_f == 'mix2':
-            self.scoring_function = self.d_mfe_target + 8*self.mcc 
+            self.scoring_function = self.d_mfe_target + 2*self.mcc 
             
 def get_first_suboptimal_structure_and_energy(sequence):
     """

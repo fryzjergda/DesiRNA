@@ -438,7 +438,7 @@ def get_rep_temps():
             rep_temps_mod.append((1-(1-(rep_temps[i]/T_max)**pot)**(1/pot))*T_max)
 
 
-    una =True
+    una =False
     if una == True:
         rep_temps = rep_temps_mod    
     
