@@ -1234,11 +1234,6 @@ def run_functions():
 #        else:
 #            sortedlist[i][1] = str(round(sortedlist[i][1],5))
 
-    if sum_mc ==0:
-        sum_mc =1
-    
-    acc_perc  = round(acc_ratio[0]/sum_mc, 3)
-    acc_perc_metro = round((acc_ratio[0]-acc_ratio[2])/sum_mc, 3)
 
 #    with open(outname+'_final_P'+str(replicas)+"_t"+str(timlim)+"_pk"+str(pks)+'.csv', 'w', newline='\n') as myfile:
 #    with open(outname+'_final.csv', 'w', newline='\n') as myfile:
@@ -1275,6 +1270,14 @@ def run_functions():
 #    print(replica_stats,"re stats")
     
 #    print(str(round(replica_stats[1]/(replica_stats[1]+replica_stats[2]), 3)))
+
+    if sum_mc ==0:
+        sum_mc =1
+
+    acc_perc  = round(acc_ratio[0]/sum_mc, 3)
+    acc_perc_metro = round((acc_ratio[0]-acc_ratio[2])/sum_mc, 3)
+
+
     if replica_stats[1]+replica_stats[2] == 0:
         replica_stats[1] = 999
     sum_mc_metro = sum_mc-acc_ratio[2]
