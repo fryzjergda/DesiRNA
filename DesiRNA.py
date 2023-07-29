@@ -428,7 +428,7 @@ def get_rep_temps():
 
     print(rep_temps)
     
-    pot= 1.2
+    pot= 1.5
     rep_temps_mod = []
     
     for i in range(0, len(rep_temps)): 
@@ -438,7 +438,7 @@ def get_rep_temps():
             rep_temps_mod.append((1-(1-(rep_temps[i]/T_max)**pot)**(1/pot))*T_max)
 
 
-    una = False
+    una =True
     if una == True:
         rep_temps = rep_temps_mod    
     
@@ -822,9 +822,9 @@ def replica_exchange_attempt(T0, T1, dE0, dE1):
         accept_e = True
     else:
         rand_num = random.random()
-        p = math.exp(L*(1/T0 -1/T1)*(dE0-dE1))
+#        p = math.exp(L*(1/T0 -1/T1)*(dE0-dE1))
 #        T_re = 10
-#        p = math.exp(L*(1/T_re)*(dE0-dE1)) # bardziej rownomierne wymiany replik
+        p = math.exp(L*(1/T_re)*(dE0-dE1)) # bardziej rownomierne wymiany replik
         #p = math.exp((1/T_re)*(dE0-dE1))
 #        print(L*(1/T0 -1/T1))
 #        print(1/T_re)
@@ -851,7 +851,7 @@ def replica_exchange(replicas, stats_obj):
     
     temps = sorted(temps)
     
-    if stats_obj.global_step % (2*RE_attempt) ==0:
+    if stats_obj.global_step % 2 ==0:
     
         for i in range(0, len(num_shelfs)-1, 2):
             re_pairs.append([i+1, i+2])
