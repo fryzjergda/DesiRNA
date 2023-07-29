@@ -15,7 +15,7 @@ import os
 import matplotlib.pyplot as plt
 from datetime import datetime
 import multiprocessing as mp
-
+import pandas as pd
 
 from utils import functions_classes as func
 from utils.SimScore import SimScore
