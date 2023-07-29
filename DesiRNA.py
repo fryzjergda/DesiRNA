@@ -428,7 +428,7 @@ def get_rep_temps():
 
     print(rep_temps)
     
-    pot= 1.3
+    pot= 1.2
     rep_temps_mod = []
     
     for i in range(0, len(rep_temps)): 
@@ -822,9 +822,9 @@ def replica_exchange_attempt(T0, T1, dE0, dE1):
         accept_e = True
     else:
         rand_num = random.random()
-#        p = math.exp(L*(1/T0 -1/T1)*(dE0-dE1))
+        p = math.exp(L*(1/T0 -1/T1)*(dE0-dE1))
 #        T_re = 10
-        p = math.exp(L*(1/T_re)*(dE0-dE1)) # bardziej rownomierne wymiany replik
+#        p = math.exp(L*(1/T_re)*(dE0-dE1)) # bardziej rownomierne wymiany replik
         #p = math.exp((1/T_re)*(dE0-dE1))
 #        print(L*(1/T0 -1/T1))
 #        print(1/T_re)
@@ -1023,7 +1023,7 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
 
 
     return best_score, worker_stats
-#    return sequence_m;
+#    return sequence_m, worker_stats
 
 
 
