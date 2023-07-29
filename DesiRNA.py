@@ -776,10 +776,10 @@ def delta_MFE_EOS(struct, seq):
 def mc_delta(deltaF_o, deltaF_m,  T_replica):
 
 #    mut_score = metropolis_standard_score( deltaF_m) 
-    accept_d = False
+    accept_e = False
     if deltaF_m <= deltaF_o:
         accept = True
-        accept_d = True
+        accept_e = True
 #        accept = False
     else:
         diff= deltaF_m - deltaF_o
@@ -795,7 +795,7 @@ def mc_delta(deltaF_o, deltaF_m,  T_replica):
 #    print(accept)
 
     
-    return accept
+    return accept, accept_e
 
 
 def metropolis_score(temp, dE):
@@ -816,9 +816,10 @@ def metropolis_standard_score(dE):
 
 def replica_exchange_attempt(T0, T1, dE0, dE1):
 
-    
+    accept_e = False
     if dE1 <= dE0:
         accept = True
+        accept_e = True
     else:
         rand_num = random.random()
 #        p = math.exp(L*(1/T0 -1/T1)*(dE0-dE1))
@@ -832,14 +833,13 @@ def replica_exchange_attempt(T0, T1, dE0, dE1):
         accept = p > rand_num   
 
 
-    return accept
+    return accept, accept_e
 
 
-def replica_exchange(replicas, c):
+def replica_exchange(replicas, stats_obj):
 
     sec_struct = input.sec_struct
     re_pairs = []
-    stats = [0,0]
 
     num_shelfs = [i for i in range(1, len(replicas))]
     
@@ -851,7 +851,7 @@ def replica_exchange(replicas, c):
     
     temps = sorted(temps)
     
-    if c % (2*RE_attempt) ==0:
+    if stats_obj.global_step % (2*RE_attempt) ==0:
     
         for i in range(0, len(num_shelfs)-1, 2):
             re_pairs.append([i+1, i+2])
@@ -865,7 +865,7 @@ def replica_exchange(replicas, c):
     for i in range(len(re_pairs)):
         rep_i = re_pairs[i][0] #replica temporary number
         rep_j = re_pairs[i][1] #replica temporary number
-        print(rep_i, rep_j)
+#        print(rep_i, rep_j)
     
         T_i = replicas[rep_i].temp_shelf
         T_j = replicas[rep_j].temp_shelf
@@ -875,19 +875,22 @@ def replica_exchange(replicas, c):
         dE_i = replicas[rep_i].scoring_function
         dE_j = replicas[rep_j].scoring_function
         
-        accept = replica_exchange_attempt(T_i, T_j, dE_i, dE_j)
+        accept, accept_e = replica_exchange_attempt(T_i, T_j, dE_i, dE_j)
         
         if accept == True:
             replicas[rep_i].get_temp_shelf(T_j)
             replicas[rep_j].get_temp_shelf(T_i)
-            stats[0] += 1
+            stats_obj.update_acc_re_step()
+            if accept_e == True:
+                stats_obj.update_acc_re_better_e()
         else:
-            stats[1] += 1
-        print("Replica exchange:" , accept, replicas[rep_i].replica_num, replicas[rep_j].replica_num, T_i, T_j)
+            stats_obj.update_rej_re_step()
+
+#        print("Replica exchange:" , accept, replicas[rep_i].replica_num, replicas[rep_j].replica_num, T_i, T_j)
     replicas = sorted(replicas, key=lambda obj: obj.replica_num)
 
 
-    return replicas, stats
+    return replicas, stats_obj
 
 
 
@@ -982,30 +985,44 @@ def round_floats(obj):
 
 
 
-def single_replica_design(sequence_o, nt_list, replica_step):
+def single_replica_design(sequence_o, nt_list, worker_stats):
     
     best_score = sequence_o
-        
+    
+    worker_stats.reset_mc_stats()
+    
     for i in range(0, RE_attempt):
         sequence_m = mutate_sequence(sequence_o, nt_list)
-        print(sequence_m.sequence, sequence_m.temp_shelf, i)
+#        print(sequence_m.sequence, sequence_m.temp_shelf, i)
 
 
-        sequence_o.get_sim_step(replica_step)
-        sequence_m.get_sim_step(replica_step)
+#        sequence_o.get_sim_step(replica_step)
+#        sequence_m.get_sim_step(replica_step)
 
         deltaF_o = sequence_o.scoring_function
         deltaF_m = sequence_m.scoring_function
 
-        accept = mc_delta(deltaF_o, deltaF_m, sequence_o.temp_shelf)
+        accept, accept_e = mc_delta(deltaF_o, deltaF_m, sequence_o.temp_shelf)
+
+        if accept == True and oligo == "on":
+            if sequence_m.oligomerization == True:
+                accept = False
+
         if accept ==True:
             sequence_o = sequence_m 
-            print("True")
-            if sequence_o.scoring_function < best_score.scoring_function:
-                best_score = sequence_o
-                print("best")
+#            print("True")
+            worker_stats.update_acc_mc_step()
+            if accept_e == True:
+                worker_stats.update_acc_mc_better_e()
+            
+        if accept == True and (sequence_o.scoring_function < best_score.scoring_function):
+            best_score = sequence_o
+#	                print("best")
+        if accept == False:
+            worker_stats.update_rej_mc_step()
 
-    return best_score
+
+    return best_score, worker_stats
 #    return sequence_m;
 
 
@@ -1014,17 +1031,30 @@ def single_replica_design(sequence_o, nt_list, replica_step):
 def par_wrapper(args):
     return single_replica_design(*args);
 
-def mutate_sequence_re(lst_seq_obj, nt_list, replica_step):
+def mutate_sequence_re(lst_seq_obj, nt_list, stats_obj):
 
     with mp.Pool(replicas) as pool:
-
-        inputs = [(seq_obj, nt_list,replica_step) for seq_obj in lst_seq_obj]
-        results = []
+        
+        inputs = [(seq_obj, nt_list, stats_obj) for seq_obj in lst_seq_obj]
+        lst_seq_obj_res_new = []
+        workers_stats =[]
 
         for result in pool.imap(par_wrapper,inputs):
-            results.append(result)
+            lst_seq_obj_res_new.append(result[0])
+            workers_stats.append(result[1])
 
-        return results 
+        attributes_to_update = ['acc_mc_step', 'acc_mc_better_e', 'rej_mc_step']
+
+        stats_obj.update_step(RE_attempt)
+        
+        for stats in workers_stats:
+            for attr in attributes_to_update:
+                current_value = getattr(stats_obj, attr)
+                additional_value = getattr(stats, attr)
+                setattr(stats_obj, attr, current_value + additional_value)
+                
+                 
+        return lst_seq_obj_res_new, stats_obj
 
 
 def run_functions():
@@ -1044,164 +1074,49 @@ def run_functions():
     seqence_score_list_random = generate_initial_list_random(nt_list, input)
 
     start_time = time.time()
-    print(seqence_score_list)
     
-    c =0
-    graph= ""
-    
-    acc_ratio = [0,0,0] # accepted all, rejceted, accepted default(lower energy)
     
     seqence_score_list_new = seqence_score_list.copy()
 
-    position =0
-        
     simulation_data=[]    
 
-    pp = 0
-
-    replica_step = 1
-    
-    replica_stats = [0,0,0]
-    
     for i in range(len(seqence_score_list)):
         simulation_data.append(vars(seqence_score_list[i]))
                 
-
+    stats = func.Stats()
+    
     while time.time() - start_time < timlim:
-        c +=1
+        stats.update_global_step()
 
-#        print(c,end="\r")
-#        print("\n",c, "step")
-#        print(position, "position")
-
-#        sequence_o =  get_seq_to_mutate(seqence_score_list,position)
-        sequence_o = seqence_score_list[position]
-
-#        sequence_m = mutate_sequence(sequence_o, nt_list)
-        
-
-        kk = seqence_score_list.copy()
-        seqence_score_list = mutate_sequence_re(seqence_score_list, nt_list, replica_step)
-        
-        print(kk)
-        for i in range(0, len(kk)):
-            print(vars(kk[i]))
-        
-        for i in range(0, len(kk)):
-            print(vars(seqence_score_list[i]))
-        
-        quit()        
-        if mutations == "one": 
-            sequence_m = mutate_sequence(sequence_o, nt_list)
-        else:
-#            sequence_m = mutate_sequence(sequence_o, nt_list)
-
-            sequence_m = mutate_sequence_re(sequence_o, nt_list)
-
-        sequence_o.get_sim_step(replica_step)
-        sequence_m.get_sim_step(replica_step)
-
-        print(vars(sequence_o), "original")
-        print(vars(sequence_m), "mutant")
-
-        deltaF_o = sequence_o.scoring_function
-        deltaF_m = sequence_m.scoring_function
+        seqence_score_list, stats = mutate_sequence_re(seqence_score_list, nt_list, stats)
 
 
-        print(deltaF_o,"deltaF_o")
-        print(deltaF_m, "deltaF_m")
+        print("\nAttempting Replica Exchange\n")
 
 
-
-        accept, accept_def = mc_delta(deltaF_o, deltaF_m, sequence_o.temp_shelf)
-        
-        if oligo == "on":
-            if sequence_m.oligomerization == True:
-                accept = False
-#        score_mutant = [mutated_sequence, score]
-
-#        score_mutant, accept, acc_ratio = scoring_function(seq_to_mutate, mutated_sequence, rep_num, acc_ratio)
-#        score_mutant.append(rep_num)
-        
-#        print(seqence_score_list,"seq score")
-#        if c== 301:
-#            quit()
-        
-
-        if accept == True:
-            print(True)
-            print(acc_ratio[0])
-            print(replica_step, "replica_setp")
-            #if replica_step ==1:
-            #    simulation_data.append(vars(sequence_o))
-            #    print("kupka")
-            #    quit()
-            simulation_data.append(vars(sequence_m))
-            """
-            Ap = score_mutant[0].count("A")
-            Cp = score_mutant[0].count("C")
-            Gp = score_mutant[0].count("G")
-            Up = score_mutant[0].count("U")
-            """
-            #lenseq= len(score_mutant[0])
-            #score_mutant.append(["A:"+str(round(Ap/lenseq,3)), "C:"+str(round(Cp/lenseq,3)),"G:"+str(round(Gp/lenseq,3)),"U:"+str(round(Up/lenseq,3))])
-            '''
-            if pks == 'on':
-                score_mutant.append(cons_m)
-            '''
-#            print(seqence_score_list)
-#            print(seqence_score_list[position])
-            seqence_score_list[position] = sequence_m
-            if replica_step % RE_attempt == 0 and position == replicas-1:
-                print("\nAttempting Replica Exchange\n")
-                
-                seqence_score_list, curr_stats = replica_exchange(seqence_score_list,replica_step)
-                replica_stats[0] +=1
-                replica_stats[1] +=curr_stats[0]
-                replica_stats[2] +=curr_stats[1]
-#            print(seqence_score_list)
-#            quit()
-#            sequence_m.get_deltafm(deltaF_m)
-#            if c==1:
-#                simulation_data.append(vars(sequence_o))
-#            simulation_data.append(vars(sequence_m))
-#            sequence_o = sequence_m
-            acc_ratio[0]+= 1
-            position+=1
-            if accept_def == True:
-                acc_ratio[2] +=1
-            if position == replicas:
-                position = 0
-                replica_step += 1
-            if "[" in sequence_m.mfe_ss:
-                pp+=1          
+        seqence_score_list, stats = replica_exchange(seqence_score_list, stats)
 
 
-        else:
-            print(False)
-            print(acc_ratio[0])
-            acc_ratio[1]+=1
-                    
-        #if replica_step % RE_attempt == 0:
-        #    print("\nAttempting Replica Exchange\n")
-        #    seqence_score_list = replica_exchange(seqence_score_list,replica_step, input.sec_struct)        
-        
+        print(vars(stats))
 
-        if accepted_steps == acc_ratio[0]:
+
+        for i in range(len(seqence_score_list)):
+            seqence_score_list[i].get_sim_step(stats.step)
+            simulation_data.append(vars(seqence_score_list[i]))
+
+        if stats.step == accepted_steps:
             break
         
-    sum_mc = acc_ratio[0] + acc_ratio[1]
         
 
     
-    # convert objects to dictionaries using vars(), and sort by 'mcc' property
-#    print(simulation_data[0])
 
     # write dictionaries to csv file
-    if len(simulation_data) > replicas*3:
-        simulation_data = simulation_data[:-replicas*2]
+#    if len(simulation_data) > replicas*3:
+#        simulation_data = simulation_data[:-replicas*2]
 
     print(simulation_data, "s data")   
+
     sorted_dicts = sorted(round_floats(simulation_data), key=lambda d: (d['sim_step'], d['replica_num']))
 
     with open(outname+'_traj.csv', 'w', newline='') as csvfile:
@@ -1212,9 +1127,6 @@ def run_functions():
         for data in sorted_dicts:
             writer.writerow(data)
 
-
-    import pandas as pd
-    import numpy as np
 
 
     fasta_txt = ""

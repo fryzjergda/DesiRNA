@@ -348,7 +348,69 @@ def plot_simulation_data(simulation_data, outname, scoring_f):
     plt.savefig(outname + '.png')
 
 
+class Stats:
+    def __init__(self):
+        self.global_step = 0
+        self.step = 0
+        self.acc_mc_step = 0
+        self.acc_mc_better_e = 0
+        self.rej_mc_step = 0
+        self.acc_re_step = 0
+        self.acc_re_better_e = 0
+        self.rej_re_step = 0
+        
+    def update_global_step(self):
+        self.global_step += 1
+    
+    def update_step(self, steps):
+        self.step += steps
+    
+    def update_acc_mc_step(self):
+        self.acc_mc_step += 1
 
+    def update_acc_mc_better_e(self):
+        self.acc_mc_better_e += 1
+
+    def update_rej_mc_step(self):
+        self.rej_mc_step += 1
+
+    def reset_mc_stats(self):
+        self.acc_mc_step = 0
+        self.acc_mc_better_e = 0
+        self.rej_mc_step = 0
+
+
+    def update_acc_re_step(self):
+        self.acc_re_step += 1
+
+    def update_acc_re_better_e(self):
+        self.acc_re_better_e += 1
+
+    def update_rej_re_step(self):
+        self.rej_re_step += 1
+
+    
+        
+    def get_tot_mc_steps(self):
+        self.tot_mc_steps = self.acc_mc_step + self.rej_mc_step
+    
+    def get_mc_acc_ratio(self):
+        self.mc_acc_ratio = round(self.acc_mc_step/self.tot_mc_steps, 3)
+    
+    def get_mc_rand_acc_ratio(self):
+        self.mc_rand_acc_ratio = round(self.acc_mc_better_e/self.acc_mc_step, 3)
+    
+    
+    def get_tot_re_steps(self):
+        self.tot_re_steps = self.acc_re_step + self.rej_re_step
+ 
+    def get_re_acc_ratio(self):
+        self.re_acc_ratio = round(self.acc_re_step/self.tot_re_steps, 3)
+
+    def get_re_rand_acc_ratio(self):
+        self.re_rand_acc_ratio = round(self.acc_re_better_e/self.acc_re_step, 3)
+
+    
 
 
 class ScoreSeq:
