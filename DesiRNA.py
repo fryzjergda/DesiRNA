@@ -1271,23 +1271,24 @@ def run_functions():
     
 #    print(str(round(replica_stats[1]/(replica_stats[1]+replica_stats[2]), 3)))
 
-    if sum_mc ==0:
-        sum_mc =1
-
-    acc_perc  = round(acc_ratio[0]/sum_mc, 3)
-    acc_perc_metro = round((acc_ratio[0]-acc_ratio[2])/sum_mc, 3)
+    print(vars(stats))
 
 
-    if replica_stats[1]+replica_stats[2] == 0:
-        replica_stats[1] = 999
-    sum_mc_metro = sum_mc-acc_ratio[2]
-    acc_metro = acc_ratio[0]-acc_ratio[2]
-    stats_txt = ">"+outname+" time="+str(timlim)+"s\n"+'Acc_ratio= '+str(acc_perc)+', Iterations='+str(c)+', Accepted='\
-                        +str(acc_ratio[0])+'/'+str(sum_mc)+', Rejected='+str(acc_ratio[1])+'/'+str(sum_mc) + '\n'\
+    sum_mc = stats.acc_mc_step + stats.rej_mc_step
+    acc_perc  = round(stats.acc_mc_step/sum_mc, 3)
+    acc_perc_metro = round((stats.acc_mc_step-stats.acc_mc_better_e)/sum_mc, 3)
+
+
+    sum_mc_metro = sum_mc-stats.acc_mc_better_e
+    acc_metro = stats.acc_mc_step-stats.acc_mc_better_e
+
+
+    stats_txt = ">"+outname+" time="+str(timlim)+"s\n"+'Acc_ratio= '+str(acc_perc)+', Iterations='+str(stats.step)+', Accepted='\
+                        +str(stats.acc_mc_step)+'/'+str(sum_mc)+', Rejected='+str(stats.rej_mc_step)+'/'+str(sum_mc) + '\n'\
                         +'Accepted Metropolis='+str(acc_metro)+'/'+str(sum_mc_metro)+', Rejected Metropolis='+str(sum_mc_metro-acc_metro)+'/'+str(sum_mc_metro) + '\n'\
-                        +"Replica exchange attempts: "+str(replica_stats[0])+"\nReplica swaps accepted: "+str(replica_stats[1])\
-                        +"\nReplica swaps rejected: "+str(replica_stats[2]) + "\nReplica exchange acc_ratio: "\
-                        + str( round(replica_stats[1]/(replica_stats[1]+replica_stats[2]) , 3))+'\n'
+                        +"Replica exchange attempts: "+str(stats.global_step)+"\nReplica swaps accepted: "+str(stats.acc_re_step)\
+                        +"\nReplica swaps rejected: "+str(stats.rej_re_step) + "\nReplica exchange acc_ratio: "\
+                        + str( round(stats.acc_re_step/(stats.acc_re_step+stats.rej_re_step) , 3))+'\n'
     
     print('\n' + stats_txt)
     with open(outname+'_stats', 'w', newline='\n') as myfile:
