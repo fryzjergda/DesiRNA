@@ -57,7 +57,7 @@ def argument_parser():
     parser.add_argument("-pm", "--point_mutations", required=False, dest="pm", default='off', choices=['off','on'],
                             help="TBA")
 
-    parser.add_argument("-s", "--steps", required=False, default=100000000, dest="steps", type=int,
+    parser.add_argument("-s", "--steps", required=False, default=10000000000000000, dest="steps", type=int,
                             help="Number of steps")
 
 
@@ -1104,6 +1104,22 @@ def run_functions():
             seqence_score_list[i].get_sim_step(stats.step)
             simulation_data.append(vars(seqence_score_list[i]))
 
+        
+        if stats.global_step % 10 == 0:
+            sorted_results_mid = sorted(round_floats(simulation_data), key=lambda d: (-d['mcc'], -d['d_mfe_target'], -d['mfe_e']), reverse = True)
+            sorted_results_mid = sorted_results_mid[:100]
+
+            with open(outname+'_mid_results.csv', 'w', newline='') as csvfile:
+                fieldnames = sorted_results_mid[0].keys()  # header from keys of the first dictionary
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+                writer.writeheader()
+                for data in sorted_results_mid:
+                    writer.writerow(data)
+
+        
+        
+        
         if stats.step == accepted_steps:
             break
         
