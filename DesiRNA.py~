@@ -22,7 +22,13 @@ from utils.SimScore import SimScore
 from utils.pcofold_dimer_multichain_energy import mfe_e_dimer
 
 def argument_parser():
+    """
+    Parses command-line arguments.
 
+    Returns:
+        A Namespace containing the parsed command-line arguments.
+    """
+    
     parser = argparse.ArgumentParser(description=__doc__, prog='2DesignRNA')
     parser.add_argument("-f", "--filename", required=True, dest="name",
                         help="Name of a file that contains secondary structures and constraints.")
@@ -89,6 +95,12 @@ def argument_parser():
 
 
 def read_input():
+    """
+    Reads the input file and returns an InputFile object.
+
+    Returns:
+        input (InputFile): An InputFile object containing the data from the input file.
+    """
     
     string = ""
     with open(infile) as f:
@@ -115,6 +127,20 @@ def read_input():
 
 
 def check_dot_bracket(ss):
+    """
+    Checks if the given secondary structure string is in the correct dot-bracket notation.
+    It ensures that every opening bracket has a matching closing bracket, and vice versa.
+
+    Args:
+        ss (str): The secondary structure string in dot-bracket notation.
+
+    Returns:
+        pairs_list (list): A list of pairs, where each pair is a list of two indices representing a base pair.
+
+    Raises:
+        SystemExit: If the secondary structure string is not in the correct dot-bracket notation.
+    """
+    
     
     db_list = [['(',')'],['[',']'],['<','>'],['{','}'],['A','a'],['B','b'],['C','c'],['D','d'],['E','e']]
     allowed_characters = '()[]<>{}AaBbCcDdEe.&'
@@ -146,6 +172,16 @@ def check_dot_bracket(ss):
 
 
 def check_seq_restr(restr):
+     """
+    Checks if the given sequence restraints string only contains allowed characters.
+
+    Args:
+        restr (str): The sequence restraints string.
+
+    Raises:
+        SystemExit: If the sequence restraints string contains not allowed characters.
+    """
+    
     allowed_characters = 'ACGUWSMKRYBDHVN-&'
     for i in range(0, len(restr)):
         if restr[i] not in allowed_characters:
@@ -153,11 +189,31 @@ def check_seq_restr(restr):
 
 
 def check_length(ss, restr):
+    """
+    Checks if the secondary structure string and the sequence restraints string are of the same length.
+
+    Args:
+        ss (str): The secondary structure string.
+        restr (str): The sequence restraints string.
+
+    Raises:
+        SystemExit: If the secondary structure string and the sequence restraints string are of different lengths.
+    """
+    
     if len(ss) != len(restr):
         sys.exit("Secondary structure and sequence restraints are of different length. Check input file.")
 
 
 def get_nt_list(input):
+    """
+    Constructs a list of Nucleotide objects from the given InputFile object.
+
+    Args:
+        input (InputFile): The InputFile object containing the data from the input file.
+
+    Returns:
+        list_of_nt (list): A list of Nucleotide objects.
+    """
 
     pair_list = input.pairs
     restr_seq = input.seq_restr
@@ -196,6 +252,16 @@ def get_nt_list(input):
 
 
 def nt_dictionary(nt):
+    """
+    Maps a nucleotide character to a list of nucleotide characters based on the IUPAC convention.
+
+    Args:
+        nt (str): The nucleotide character.
+
+    Returns:
+        nt_all (list): A list of nucleotide characters.
+    """
+
     constraints_dict = {
             'N': ['A', 'C', 'G', 'U'],
             'W': ['A', 'U'],
@@ -221,6 +287,15 @@ def nt_dictionary(nt):
 
 
 def check_input_logic(nt_list):
+    """
+    Checks if the logic of the input is correct, specifically if the pairing restrictions make sense.
+
+    Args:
+        nt_list (list): A list of Nucleotide objects.
+
+    Raises:
+        SystemExit: If the logic of the input is incorrect.
+    """
     
     for i in range(0, len(nt_list)):
         if nt_list[i].pairs_with != None:
@@ -228,6 +303,16 @@ def check_input_logic(nt_list):
 
     
 def if_pair(nt1, nt2):
+    """
+    Checks if two nucleotide characters can form a base pair.
+
+    Args:
+        nt1 (str): The first nucleotide character.
+        nt2 (str): The second nucleotide character.
+
+    Raises:
+        SystemExit: If the two nucleotide characters cannot form a base pair.
+    """
     
     pair_dict = {'A': ['U'], 'U': ['G','A'], 'G': ['U','C'], 'C': ['G'] }
     
@@ -248,6 +333,15 @@ def if_pair(nt1, nt2):
 
 
 def wc_pair(nt1):
+    """
+    Returns the Watson-Crick pair of a given nucleotide character.
+
+    Args:
+        nt1 (str): The nucleotide character.
+
+    Returns:
+        nt2 (str): The Watson-Crick pair of the nucleotide character.
+    """
 
     pair_dict = {'A': 'U', 'U': 'A', 'G': 'C', 'C': 'G' }
     
@@ -257,6 +351,15 @@ def wc_pair(nt1):
 
 
 def can_pair(nt):
+    """
+    Returns a list of nucleotide characters that can form a base pair with a given nucleotide character.
+
+    Args:
+        nt (str): The nucleotide character.
+
+    Returns:
+        pairing_l (list): A list of nucleotide characters.
+    """
     
     pair_dict = {'A': ['U'], 'U': ['G','A'], 'G': ['U','C'], 'C': ['G'] }
     
@@ -266,7 +369,17 @@ def can_pair(nt):
 
 
 def random_sequence_generator(nt_list,input):
+    """
+    Generates a random sequence that satisfies the sequence restraints.
 
+    Args:
+        nt_list (list): A list of Nucleotide objects.
+        input (InputFile): The InputFile object containing the data from the input file.
+
+    Returns:
+        result_sequence (str): The randomly generated sequence.
+    """
+    
     seq_l = list(input.seq_restr).copy()
     pair_list = sorted(input.pairs.copy())
 
@@ -300,6 +413,19 @@ def random_sequence_generator(nt_list,input):
 
     
 def initial_sequence_generator(nt_list, input):
+    """
+    Generates the initial RNA sequence. The function iterates over the secondary structure
+    of the RNA (input.sec_struct) and generates a corresponding sequence based on the type
+    of structure at each position (e.g., pair, unpair). The generated sequence is returned
+    as a string.
+
+    Args:
+        input (object): An InputFile object that contains the secondary structure of the RNA.
+
+    Returns:
+        str: The generated initial RNA sequence.
+    """
+
 
     seq_l = list(input.seq_restr).copy()
     pair_list = sorted(input.pairs.copy())
@@ -382,6 +508,16 @@ def initial_sequence_generator(nt_list, input):
 
 
 def allowed_choice(allowed, percs):
+    """
+    Determines the allowed mutations based on nucleotide percentages.
+
+    Args:
+        available_mutations (list): List of available mutations.
+        nt_percentages (dict): Dictionary with the percentage of each nucleotide.
+
+    Returns:
+        list: List of weights for the available mutations.
+    """
     
     percs_allowed = percs.copy()
     
@@ -399,7 +535,17 @@ def allowed_choice(allowed, percs):
 
 
 def get_rep_temps():
+    """
+    Generates the temperature shelves for each replica in the simulation. 
 
+    The function generates a list of temperatures using a geometric progression, 
+    with the first temperature being T_min and the last being T_max. The generated 
+    list of temperatures is returned.
+
+    Returns:
+        list: List of temperatures for each replica.
+    """
+    
     if replicas != 1:
         delta = (T_max-T_min)/(replicas-1)
     else:
@@ -460,7 +606,17 @@ def generate_initial_list(nt_list, input):
 
 
 def generate_initial_list_random(nt_list, input):
+    """
+    Generate an initial list of random RNA sequences.
 
+    Args:
+        nt_list (list): List of nucleotide objects.
+        input (object): An InputFile object that contains the secondary structure of the RNA.
+
+    Returns:
+        list: List of ScoreSeq objects each representing a random RNA sequence.
+    """
+    
     seq_list = []
     for i in range(0,replicas):
         sequence = random_sequence_generator(nt_list, input)
@@ -481,6 +637,15 @@ def generate_initial_list_random(nt_list, input):
 
 
 def get_seq_to_mutate(sequence_list, step):
+    """
+    Select a sequence to mutate from the list of nucleotides.
+
+    Args:
+        nt_list (list): List of nucleotide objects.
+
+    Returns:
+        list: List of selected nucleotides to mutate.
+    """
 
     sequence = sequence_list[step]
     
@@ -488,6 +653,17 @@ def get_seq_to_mutate(sequence_list, step):
 
 
 def mutate_sequence_re(sequence_obj, nt_list):
+    """
+    Mutate a list of sequences in parallel.
+
+    Args:
+        lst_seq_obj (list): List of ScoreSeq objects each representing an RNA sequence.
+        nt_list (list): List of nucleotide objects.
+        stats_obj (object): A Stats object containing statistics of the simulation.
+
+    Returns:
+        tuple: A tuple containing the list of mutated ScoreSeq objects and the updated Stats object.
+    """
     
     sequence_mutated_re = sequence_obj
 
@@ -509,6 +685,16 @@ def mutate_sequence_re(sequence_obj, nt_list):
 
 
 def get_mutation_position(seq_obj, available_positions):
+    """
+    Determine the position of a mutation in the sequence.
+
+    Args:
+        sequence_obj (object): A ScoreSeq object representing an RNA sequence.
+        nt_list (list): List of nucleotide objects.
+
+    Returns:
+        int: Position of the mutation in the sequence.
+    """
 
     if point_mutations == "off":
         mutation_position = random.choice(available_positions)
@@ -550,6 +736,16 @@ def get_mutation_position(seq_obj, available_positions):
 
 
 def mutate_sequence(sequence_obj, nt_list):
+    """
+    Mutate the given sequence and return the mutated sequence.
+
+    Args:
+        sequence_obj (object): A ScoreSeq object representing an RNA sequence.
+        nt_list (list): List of nucleotide objects.
+
+    Returns:
+        object: A ScoreSeq object representing the mutated RNA sequence.
+    """
     
     sequence = sequence_obj.sequence
     sequence_list = list(sequence)
@@ -617,6 +813,16 @@ def mutate_sequence(sequence_obj, nt_list):
 
 
 def get_pk_struct(seq, ss_nopk):
+    """
+    Get the pseudoknot structure of the sequence.
+
+    Args:
+        seq (str): RNA sequence.
+        ss_nopk (str): Secondary structure of the RNA sequence without pseudoknots.
+
+    Returns:
+        str: Pseudoknot structure of the RNA sequence.
+    """
 
     constraints = ss_nopk.replace("(","x").replace(")","x")
 
@@ -873,7 +1079,10 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
             if accept_e == True:
                 worker_stats.update_acc_mc_better_e()
             
-        if accept == True and (sequence_o.scoring_function < best_score.scoring_function):
+        if accept == True and (sequence_o.scoring_function < best_score.scoring_function) and (worker_stats.global_step % 1000 !=0):
+            best_score = sequence_o
+        elif accept == True and (sequence_o.scoring_function >= best_score.scoring_function) and (worker_stats.global_step % 1000 ==0): 
+            print("kupka")
             best_score = sequence_o
 
         if accept == False:
@@ -942,7 +1151,7 @@ def run_functions():
     while time.time() - start_time < timlim:
 
         print('ETA', round((timlim - (time.time() - start_time)), 0), 'seconds', end='\r')
-#        print(vars(stats))
+        print(vars(stats))
         
         stats.update_global_step()
 
@@ -959,7 +1168,7 @@ def run_functions():
         if stats.global_step % 10 == 0:
             sorted_results_mid = sorted(round_floats(simulation_data), key=lambda d: (-d['mcc'], -d['d_mfe_target'], -d['mfe_e']), reverse = True)
             sorted_results_mid = sorted_results_mid[:100]
-
+#            sorted_results_mid = round_floats(simulation_data)
             with open(outname+'_mid_results.csv', 'w', newline='') as csvfile:
                 fieldnames = sorted_results_mid[0].keys()  # header from keys of the first dictionary
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
