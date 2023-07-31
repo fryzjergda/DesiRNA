@@ -50,7 +50,7 @@ def argument_parser():
 
     parser.add_argument("-p", "--param", required=False, dest="param", default='1999', choices=['2004','1999'],
                             help="TBA")
-    parser.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", default='dmt', choices=['dmt','mcc', 'mfe', 'mix', 'mix2'],
+    parser.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", default='dmt', choices=['dmt','mcc', 'mfe', 'mix', 'mix2', 'alt'],
                             help="TBA")
     parser.add_argument("-m", "--mutations", required=False, dest="mutations", default='one', choices=['one','multi'],
                             help="TBA")    
@@ -59,6 +59,8 @@ def argument_parser():
 
     parser.add_argument("-s", "--steps", required=False, default=10000000000000000, dest="steps", type=int,
                             help="Number of steps")
+    parser.add_argument("-a", "--alt_ss", required=False, dest="alt_ss", default='off', choices=['off','on'],
+                            help="TBA")
 
 
                             
@@ -80,9 +82,10 @@ def argument_parser():
     mutations = args.mutations
     pm = args.pm
     steps = args.steps
+    alt_ss = args.alt_ss
     
     
-    return infile, replicas, timlim, num_results, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, mutations, pm, steps
+    return infile, replicas, timlim, num_results, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, mutations, pm, steps, alt_ss
 
 
 def read_input():
@@ -99,10 +102,14 @@ def read_input():
         key, values = type[0], type[1:]
         data_dict[key] = values
     
+
+    input = InputFile(data_dict['name'][0], data_dict['sec_struct'][0], data_dict['seq_restr'][0])
+    
     if 'seed_seq' in data_dict:
-        input = InputFile(data_dict['name'][0], data_dict['sec_struct'][0], data_dict['seq_restr'][0], data_dict['seed_seq'][0])
-    else:
-        input = InputFile(data_dict['name'][0], data_dict['sec_struct'][0], data_dict['seq_restr'][0], None)
+        input.add_seed_seq(data_dict['seed_seq'][0]) 
+    
+    if 'alt_sec_struct' in data_dict:
+        input.add_alt_sec_struct(data_dict['alt_sec_struct'][0])
     
     return input
 
@@ -937,13 +944,15 @@ def score_sequence(seq):
 
     scored_sequence.get_d_mfe_target(scored_sequence.mfe_e, scored_sequence.target_e)
 
-    if dimer== "off":
+    if dimer== "off" and input.alt_sec_struct == None:
         scored_sequence.get_subopt_ss(func.get_first_suboptimal_structure_and_energy(seq)[0])
         scored_sequence.get_subopt_e(func.get_first_suboptimal_structure_and_energy(seq)[1])
-    elif dimer == "on":
+    elif dimer == "on" and input.alt_sec_struct == None:
         scored_sequence.get_subopt_ss(mfe_structure)
         scored_sequence.get_subopt_e(mfe_energy)
-
+    elif input.alt_sec_struct != None: 
+        scored_sequence.get_subopt_ss(input.alt_sec_struct.replace("&",""))
+        scored_sequence.get_subopt_e(RNA.energy_of_struct(seq, input.alt_sec_struct.replace("&","")))
 
     scored_sequence.get_d_mfe_subopt(scored_sequence.mfe_e, scored_sequence.subopt_e)    
     
@@ -1066,6 +1075,9 @@ def run_functions():
     nt_list = get_nt_list(input)
     check_input_logic(nt_list)
     
+#    if input.alt_sec_struct != None:
+        
+    
     
     global target_pairs_tupl
     target_pairs_tupl = {tuple(pair) for pair in input.pairs}
@@ -1131,7 +1143,7 @@ def run_functions():
 #    if len(simulation_data) > replicas*3:
 #        simulation_data = simulation_data[:-replicas*2]
 
-    print(simulation_data, "s data")   
+#    print(simulation_data, "s data")   
 
     sorted_dicts = sorted(round_floats(simulation_data), key=lambda d: (d['sim_step'], d['replica_num']))
 
@@ -1397,15 +1409,19 @@ class Nucleotide:
         
         
 class InputFile:
-    def __init__(self, name, sec_struct, seq_restr, seed_seq):
+    def __init__(self, name, sec_struct, seq_restr):
         self.name = name
         self.sec_struct = sec_struct
         self.seq_restr = seq_restr 
-        self.seed_seq = seed_seq
         self.pairs = []
+        self.seed_seq = None
+        self.alt_sec_struct = None
 
+    def add_seed_seq(self, seed_seq):
+        self.seed_seq = seed_seq
 
-
+    def add_alt_sec_struct(self, alt_sec_struct):
+        self.alt_sec_struct = alt_sec_struct
 
 
 if __name__ == '__main__':
@@ -1424,8 +1440,12 @@ if __name__ == '__main__':
     now = datetime.now()
     now = now.strftime("%Y%m%d.%H%M%S")
     
-    infile, replicas, timlim, num_results, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, mutations, point_mutations, accepted_steps = argument_parser()
+    infile, replicas, timlim, num_results, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, mutations, point_mutations, accepted_steps, alt_ss = argument_parser()
 
+    
+    if alt_ss == 'on':
+        scoring_f = 'alt'
+    
     if param == '1999':
 #        RNA.params_load_RNA_Turner1999()
         RNA.params_load(script_path+"/rna_turner1999.par")
@@ -1446,7 +1466,7 @@ if __name__ == '__main__':
     nt_percentages = {"A":15, "C":30, "G":30,"U":15}
     
     input = read_input()
-
+    print(vars(input))
 
     if "&" in input.sec_struct:
         dimer = "on"

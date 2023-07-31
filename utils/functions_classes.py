@@ -506,6 +506,10 @@ class ScoreSeq:
             self.scoring_function = self.d_mfe_target +self.mcc + self.web
         elif scoring_f == 'mix2':
             self.scoring_function = self.d_mfe_target + 2*self.mcc 
+        elif scoring_f == 'alt':
+            self.scoring_function = self.d_mfe_target +self.d_mfe_subopt 
+
+
             
 def get_first_suboptimal_structure_and_energy(sequence):
     """
