@@ -938,8 +938,11 @@ def score_sequence(seq):
     scored_sequence.get_d_mfe_target(scored_sequence.mfe_e, scored_sequence.target_e)
 
     if dimer== "off":
-        scored_sequence.get_subopt_ss(func.get_first_suboptimal_structure_and_energy(seq)[0])
-        scored_sequence.get_subopt_e(func.get_first_suboptimal_structure_and_energy(seq)[1])
+#        scored_sequence.get_subopt_ss(func.get_first_suboptimal_structure_and_energy(seq)[0])
+#        scored_sequence.get_subopt_e(func.get_first_suboptimal_structure_and_energy(seq)[1])
+        scored_sequence.get_subopt_ss(mfe_structure)
+        scored_sequence.get_subopt_e(mfe_energy)
+
     elif dimer == "on":
         scored_sequence.get_subopt_ss(mfe_structure)
         scored_sequence.get_subopt_e(mfe_energy)
@@ -955,12 +958,12 @@ def score_sequence(seq):
     scored_sequence.get_recall(ssc.recall())
     scored_sequence.get_mcc(ssc.mcc())
     
-    scored_sequence.get_reb()
-    scored_sequence.get_web()
+#    scored_sequence.get_reb()
+#    scored_sequence.get_web()
     
-    scored_sequence.get_reb_subopt()
+#    scored_sequence.get_reb_subopt()
 #    scored_sequence.get_web_subopt()
-    scored_sequence.get_d_mfe_subopt_norm()
+#    scored_sequence.get_d_mfe_subopt_norm()
     
     scored_sequence.get_score()
     

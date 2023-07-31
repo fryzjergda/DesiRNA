@@ -422,6 +422,11 @@ class ScoreSeq:
 #        self.d_mfe_target = None
 #        self.subopt_e = 0
 #        self.d_mfe_subopt = 0
+        self.reb = 0
+        self.web = 0
+        self.reb_subopt = 0
+        self.web_subopt = 0
+        self.d_mfe_subopt_norm =0
 
     def get_replica_num(self, rep_num):
         self.replica_num = rep_num
