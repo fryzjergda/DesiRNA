@@ -873,10 +873,7 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
             if accept_e == True:
                 worker_stats.update_acc_mc_better_e()
             
-        if accept == True and (sequence_o.scoring_function < best_score.scoring_function) and (worker_stats.global_step % 1000 !=0):
-            best_score = sequence_o
-        elif accept == True and (sequence_o.scoring_function >= best_score.scoring_function) and (worker_stats.global_step % 1000 ==0): 
-            print("kupka")
+        if accept == True and (sequence_o.scoring_function < best_score.scoring_function):
             best_score = sequence_o
 
         if accept == False:
@@ -945,7 +942,7 @@ def run_functions():
     while time.time() - start_time < timlim:
 
         print('ETA', round((timlim - (time.time() - start_time)), 0), 'seconds', end='\r')
-        print(vars(stats))
+#        print(vars(stats))
         
         stats.update_global_step()
 
@@ -962,7 +959,7 @@ def run_functions():
         if stats.global_step % 10 == 0:
             sorted_results_mid = sorted(round_floats(simulation_data), key=lambda d: (-d['mcc'], -d['d_mfe_target'], -d['mfe_e']), reverse = True)
             sorted_results_mid = sorted_results_mid[:100]
-#            sorted_results_mid = round_floats(simulation_data)
+
             with open(outname+'_mid_results.csv', 'w', newline='') as csvfile:
                 fieldnames = sorted_results_mid[0].keys()  # header from keys of the first dictionary
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
