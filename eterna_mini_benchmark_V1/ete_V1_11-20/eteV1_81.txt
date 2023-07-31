@@ -1,6 +1,0 @@
->name
-Ete_81
->seq_restr
-NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
->sec_struct
-....((((..(((((..((((..((((.....))))((((((...))).)))))))((((((.((.((.(((((....)).)))))))(((((.((.((.((....))))))((((.(((....)).)).)))..)).)))))).))))))))(((.(((.(((.((((....))))))))))((((((((...))).)).))).)))))))

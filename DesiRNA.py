@@ -113,19 +113,6 @@ def read_input():
     
     return input
 
-'''
-def psudoknot_specifier(structure):
-    counter=0
-    OB_list = ['(','[','<','{','A','B','C','D','E']
-    for open_bracket in OB_list:
-        if open_bracket in structure:
-            counter+=1
-    if counter >1:
-        flag=1
-    else:
-        flag=0
-    return (flag)
-'''
 
 def check_dot_bracket(ss):
     
@@ -155,8 +142,8 @@ def check_dot_bracket(ss):
 
     pairs_list_clean = [x for x in pairs_list if x != []]
 
-
     return pairs_list
+
 
 def check_seq_restr(restr):
     allowed_characters = 'ACGUWSMKRYBDHVN-&'
@@ -164,9 +151,11 @@ def check_seq_restr(restr):
         if restr[i] not in allowed_characters:
             sys.exit("Not allowed characters in sequence restraints. Check input file.")
 
+
 def check_length(ss, restr):
     if len(ss) != len(restr):
         sys.exit("Secondary structure and sequence restraints are of different length. Check input file.")
+
 
 def get_nt_list(input):
 
@@ -203,7 +192,6 @@ def get_nt_list(input):
         if list_of_nt[i].letters_allowed == None:
             list_of_nt[i].letters_allowed = list_of_nt[i].letters
 
-    
     return list_of_nt
 
 
@@ -228,6 +216,7 @@ def nt_dictionary(nt):
         }
 
     nt_all = constraints_dict[nt]
+
     return nt_all
 
 
@@ -236,6 +225,7 @@ def check_input_logic(nt_list):
     for i in range(0, len(nt_list)):
         if nt_list[i].pairs_with != None:
             if_pair(nt_list[i], nt_list[nt_list[i].pairs_with])
+
     
 def if_pair(nt1, nt2):
     
@@ -258,9 +248,11 @@ def if_pair(nt1, nt2):
 
 
 def wc_pair(nt1):
+
     pair_dict = {'A': 'U', 'U': 'A', 'G': 'C', 'C': 'G' }
     
     nt2 = pair_dict[nt1]
+
     return nt2
 
 
@@ -269,8 +261,8 @@ def can_pair(nt):
     pair_dict = {'A': ['U'], 'U': ['G','A'], 'G': ['U','C'], 'C': ['G'] }
     
     pairing_l = pair_dict[nt]
-    return pairing_l
 
+    return pairing_l
 
 
 def random_sequence_generator(nt_list,input):
@@ -298,15 +290,12 @@ def random_sequence_generator(nt_list,input):
 
     for i in range(0, len(seq_l)):
         if seq_l[i] not in ["A","C","G","U"]:
-            #print(nt_dictionary(seq_l[i]))
             seq_l[i] = random.choice(nt_dictionary(seq_l[i]))  
 
 
     result_sequence = ''.join(seq_l)
 
-#    mutated_nucleotide_count = {nt: result_sequence.count(nt) for nt in ['A', 'U', 'C', 'G']}
-    
-    
+
     return result_sequence    
 
     
@@ -385,11 +374,9 @@ def initial_sequence_generator(nt_list, input):
 
 
     result_sequence = ''.join(seq_l)
-#    result_sequence = "CCAGUGGAGGAAACAGGAAACAUUGCAGGAAACAGG"
 
     if input.seed_seq:
         result_sequence = input.seed_seq
-
 
     return result_sequence
 
@@ -409,6 +396,7 @@ def allowed_choice(allowed, percs):
     list_percs_allowed = [i for i in list_percs_allowed if i != 0]
     
     return list_percs_allowed
+
 
 def get_rep_temps():
 
@@ -432,9 +420,6 @@ def get_rep_temps():
     if replicas ==1:
         rep_temps = [T_max]
 
-
-    print(rep_temps)
-    
     pot= 1.5
     rep_temps_mod = []
     
@@ -444,39 +429,17 @@ def get_rep_temps():
         else:
             rep_temps_mod.append((1-(1-(rep_temps[i]/T_max)**pot)**(1/pot))*T_max)
 
-
     una =False
     if una == True:
         rep_temps = rep_temps_mod    
     
     return rep_temps
 
+
 def generate_initial_list(nt_list, input):
     
     sequence = initial_sequence_generator(nt_list, input)
     
-#    T_min = 1
-#    T_max = 313
-    '''
-    if replicas != 1:
-        delta = (T_max-T_min)/(replicas-1)
-    else:
-        delta = (T_max-T_min)/2
-    #rep_temps = np.arange(T_min, T_max, delta)
-    rep_temps = []
-
-    T_curr = T_min
- 
-    for i in range(replicas):
-        if replicas != 1:
-            rep_temps.append(round(T_curr))
-            T_curr +=delta
-        else:
-            T_curr +=delta
-            rep_temps.append(round(T_curr))
-    print(rep_temps)
-    '''
-
     seq_list = []
     
     for i in range(0,replicas):
@@ -485,16 +448,13 @@ def generate_initial_list(nt_list, input):
         sequence_object.get_temp_shelf(rep_temps_shelfs[i])
         sequence_object.get_sim_step(0)
         
-        print(vars(sequence_object))
         seq_list.append(sequence_object)        
     
-    print(seq_list)
     
     init_sequences_txt =""
     for i in range(0, len(seq_list)):
         init_sequences_txt += str(vars(seq_list[i]))+"\n"
     
-    print(init_sequences_txt)
     
     return seq_list
 
@@ -519,28 +479,21 @@ def generate_initial_list_random(nt_list, input):
 
     return result_list
 
-    
-
 
 def get_seq_to_mutate(sequence_list, step):
 
-#    print(sequence_list)
     sequence = sequence_list[step]
-#    score = sequence_list[step][1]
-#    rep_num = sequence_list[step][2]
     
     return sequence
+
 
 def mutate_sequence_re(sequence_obj, nt_list):
     
     sequence_mutated_re = sequence_obj
-#    rep_temp_shelfs = get_rep_temps()
-    print(rep_temps_shelfs, "rep_temp_shelfs")
 
     part_size = len(rep_temps_shelfs) // 3
 
     rep_temps_shelfs_sliced = [rep_temps_shelfs[i*part_size:i*part_size + part_size if i != 2 else None] for i in range(3)]
-    print(rep_temps_shelfs_sliced)
 
     if sequence_obj.temp_shelf in rep_temps_shelfs_sliced[0]:
         
@@ -591,7 +544,6 @@ def get_mutation_position(seq_obj, available_positions):
         else:
             range_pos = random.choices([false_cases, available_positions], weights=[mutat_point_prob, 1-mutat_point_prob])[0]
 
-
         mutation_position = random.choice(range_pos)
         
     return mutation_position
@@ -606,13 +558,7 @@ def mutate_sequence(sequence_obj, nt_list):
         if len(nt_list[i].letters_allowed) != 1:
             range_pos.append(i)
 
-
-#    nt_pos = random.choice(range_pos)
     nt_pos = get_mutation_position(sequence_obj, range_pos)
-#    mmm = " "*len(sequence_obj.sequence)
-#    mmm = mmm[:nt_pos]+"*"+mmm[nt_pos:]
-#    print(mmm)
-#    print(sequence_obj.sequence)
     nt2_pos = None
 
     if (nt_list[nt_pos].pairs_with == None) and (len(nt_list[nt_pos].letters_allowed) != 1):
@@ -670,34 +616,7 @@ def mutate_sequence(sequence_obj, nt_list):
     return sequence_mutated
 
 
-def run_cons_maker(seq,s1,s2,s3):
-
-    cons_struct = '.'*len(seq)
-    
-    name = outname+'_final_P'+str(replicas)+"_t"+str(timlim)+"_pk"+str(pks)
-
-    cons_temp = open(name+'.cons','w')
-    cons_temp.write(s1+'\n'+s2+'\n'+s3)
-    cons_temp.close()    
-
-
-    cmd = 'RNA_Consensus '+" "+name+".cons .5  | grep -A1 'consensus_pairs_unique_single_line' | tail -1 >"+name+".SS"
-    os.system(cmd)
-
-    cons_result = open(name+".SS",'r')
-    cons_struct= cons_result.read().rstrip()
-    cons_result.close()
-
-    
-    print(seq,cons_struct, "cons_maker")
-
-    return cons_struct
-
-
 def get_pk_struct(seq, ss_nopk):
-
-
-    print(ss_nopk, "nopk")
 
     constraints = ss_nopk.replace("(","x").replace(")","x")
 
@@ -706,8 +625,6 @@ def get_pk_struct(seq, ss_nopk):
     fc.hc_add_from_db(constraints)
 
     mfe_structure, mfe_energy = fc.mfe()
-    print(mfe_structure, "mfe pk")
-
     
     l_ss_nopk = list(ss_nopk)
     l_mfe = list(mfe_structure)
@@ -718,17 +635,14 @@ def get_pk_struct(seq, ss_nopk):
         if l_mfe[i] == ")":
             l_ss_nopk[i] = "]"
 
-
     ss_pk = ''.join(l_ss_nopk)
 
     if "(" in mfe_structure:
         constraints = ss_pk.replace("(","x").replace(")","x").replace("[","x").replace("]","x")        
-        print(constraints, "cons pk2")
         fc = RNA.fold_compound(seq)
         fc.hc_add_from_db(constraints)
 
         mfe_structure, mfe_energy = fc.mfe()
-        print(mfe_structure, "mfe pk2")
         l_ss_pk = list(ss_pk)
         l_mfe_pk2 = list(mfe_structure)
         
@@ -740,32 +654,7 @@ def get_pk_struct(seq, ss_nopk):
 
         ss_pk = ''.join(l_ss_pk)
     
-    print(ss_pk,"mfe_wpk")
-
-
-#    return ipknot_struct.replace('\n','')
     return ss_pk
-
-
-def delta_MFE_EOS_w_psk(seq):
-
-#    dotknot_struct=run_dotknot(seq)
-#    hotknot_struct=run_Hotknot(seq)
-    ipknot_struct=run_ipknot(seq)
- 
-#    cons_struct=run_cons_maker(seq,dotknot_struct,hotknot_struct,ipknot_struct)
-
-    F0 = energy_of_pk(seq, input.sec_struct)
-    F1 = energy_of_pk(seq, ipknot_struct)
-    print(F0, "\n", F1)
-
-    
-#    delta_F = abs(F0 - F1)
-    delta_F = abs(F0 - F1)
-
-
-    return delta_F, ipknot_struct
-
 
 
 def delta_MFE_EOS(struct, seq):
@@ -779,28 +668,18 @@ def delta_MFE_EOS(struct, seq):
     return delta_F
 
 
-
 def mc_delta(deltaF_o, deltaF_m,  T_replica):
 
-#    mut_score = metropolis_standard_score( deltaF_m) 
     accept_e = False
     if deltaF_m <= deltaF_o:
         accept = True
         accept_e = True
-#        accept = False
     else:
         diff= deltaF_m - deltaF_o
         p_dE = metropolis_score(T_replica, diff)
         rand_num = random.random()
 
         accept = p_dE > rand_num
-
-#        if accept:
-#            acc[0]+=1
-#        else:
-#            acc[1]+=1
-#    print(accept)
-
     
     return accept, accept_e
 
@@ -812,15 +691,6 @@ def metropolis_score(temp, dE):
     return score
 
 
-
-def metropolis_standard_score(dE):
-
-    score = math.exp((-504.12/310) * (dE))
-
-    return score
-
-
-
 def replica_exchange_attempt(T0, T1, dE0, dE1):
 
     accept_e = False
@@ -830,15 +700,8 @@ def replica_exchange_attempt(T0, T1, dE0, dE1):
     else:
         rand_num = random.random()
 #        p = math.exp(L*(1/T0 -1/T1)*(dE0-dE1))
-#        T_re = 10
         p = math.exp(L*(1/T_re)*(dE0-dE1)) # bardziej rownomierne wymiany replik
-        #p = math.exp((1/T_re)*(dE0-dE1))
-#        print(L*(1/T0 -1/T1))
-#        print(1/T_re)
-#        print(p)
-        #quit()
         accept = p > rand_num   
-
 
     return accept, accept_e
 
@@ -849,7 +712,6 @@ def replica_exchange(replicas, stats_obj):
     re_pairs = []
 
     num_shelfs = [i for i in range(1, len(replicas))]
-    
 
     temps = []
     
@@ -872,7 +734,6 @@ def replica_exchange(replicas, stats_obj):
     for i in range(len(re_pairs)):
         rep_i = re_pairs[i][0] #replica temporary number
         rep_j = re_pairs[i][1] #replica temporary number
-#        print(rep_i, rep_j)
     
         T_i = replicas[rep_i].temp_shelf
         T_j = replicas[rep_j].temp_shelf
@@ -893,16 +754,12 @@ def replica_exchange(replicas, stats_obj):
         else:
             stats_obj.update_rej_re_step()
 
-#        print("Replica exchange:" , accept, replicas[rep_i].replica_num, replicas[rep_j].replica_num, T_i, T_j)
     replicas = sorted(replicas, key=lambda obj: obj.replica_num)
-
 
     return replicas, stats_obj
 
 
-
 def get_mfe_e_ss(seq):
-
 
     if dimer == "off":
         pf_struct = RNA.pf_fold(seq)
@@ -923,8 +780,8 @@ def get_mfe_e_ss(seq):
         structure = dimer_struct[3]
         energy = dimer_struct[0]
 
-
     return energy, structure
+
 
 def score_sequence(seq):
 
@@ -934,13 +791,11 @@ def score_sequence(seq):
 
     mfe_energy, mfe_structure = get_mfe_e_ss(seq)
     
-#    print(mfe_energy, mfe_structure)
     scored_sequence.get_mfe_e(mfe_energy)
     scored_sequence.get_mfe_ss(mfe_structure)
 
 
     scored_sequence.get_target_e(RNA.energy_of_struct(seq, input.sec_struct.replace("&","")))
-#    print(scored_sequence.target_e, "target_energy")
 
     scored_sequence.get_d_mfe_target(scored_sequence.mfe_e, scored_sequence.target_e)
 
@@ -985,7 +840,6 @@ def score_sequence(seq):
     return scored_sequence
 
 
-
 def round_floats(obj):
     """Round float values in an object to 3 decimal places."""
     if isinstance(obj, float):
@@ -993,9 +847,6 @@ def round_floats(obj):
     elif isinstance(obj, dict):
         return {k: round_floats(v) for k, v in obj.items()}
     return obj
-
-
-
 
 
 def single_replica_design(sequence_o, nt_list, worker_stats):
@@ -1006,11 +857,6 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
     
     for i in range(0, RE_attempt):
         sequence_m = mutate_sequence(sequence_o, nt_list)
-#        print(sequence_m.sequence, sequence_m.temp_shelf, i)
-
-
-#        sequence_o.get_sim_step(replica_step)
-#        sequence_m.get_sim_step(replica_step)
 
         deltaF_o = sequence_o.scoring_function
         deltaF_m = sequence_m.scoring_function
@@ -1023,26 +869,23 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
 
         if accept ==True:
             sequence_o = sequence_m 
-#            print("True")
             worker_stats.update_acc_mc_step()
             if accept_e == True:
                 worker_stats.update_acc_mc_better_e()
             
         if accept == True and (sequence_o.scoring_function < best_score.scoring_function):
             best_score = sequence_o
-#	                print("best")
+
         if accept == False:
             worker_stats.update_rej_mc_step()
 
 
     return best_score, worker_stats
-#    return sequence_m, worker_stats
-
-
 
 
 def par_wrapper(args):
     return single_replica_design(*args);
+
 
 def mutate_sequence_re(lst_seq_obj, nt_list, stats_obj):
 
@@ -1066,21 +909,16 @@ def mutate_sequence_re(lst_seq_obj, nt_list, stats_obj):
                 additional_value = getattr(stats, attr)
                 setattr(stats_obj, attr, current_value + additional_value)
                 
-                 
         return lst_seq_obj_res_new, stats_obj
 
 
 def run_functions():
     
-#    input = read_input()
     input.pairs = check_dot_bracket(input.sec_struct)  #check dotbracket correctness, assign as list of pairs 
     check_seq_restr(input.seq_restr)
     check_length(input.sec_struct, input.seq_restr)
     nt_list = get_nt_list(input)
     check_input_logic(nt_list)
-    
-#    if input.alt_sec_struct != None:
-        
     
     
     global target_pairs_tupl
@@ -1102,19 +940,16 @@ def run_functions():
     stats = func.Stats()
     
     while time.time() - start_time < timlim:
+
+        print('ETA', round((timlim - (time.time() - start_time)), 0), 'seconds', end='\r')
+#        print(vars(stats))
+        
         stats.update_global_step()
 
         seqence_score_list, stats = mutate_sequence_re(seqence_score_list, nt_list, stats)
 
 
-        print("\nAttempting Replica Exchange\n")
-
-
         seqence_score_list, stats = replica_exchange(seqence_score_list, stats)
-
-
-        print(vars(stats))
-
 
         for i in range(len(seqence_score_list)):
             seqence_score_list[i].get_sim_step(stats.step)
@@ -1132,23 +967,12 @@ def run_functions():
                 writer.writeheader()
                 for data in sorted_results_mid:
                     writer.writerow(data)
-
-        
         
         
         if stats.step == accepted_steps:
             break
         
         
-
-    
-
-    # write dictionaries to csv file
-#    if len(simulation_data) > replicas*3:
-#        simulation_data = simulation_data[:-replicas*2]
-
-#    print(simulation_data, "s data")   
-
     sorted_dicts = sorted(round_floats(simulation_data), key=lambda d: (d['sim_step'], d['replica_num']))
 
     with open(outname+'_traj.csv', 'w', newline='') as csvfile:
@@ -1159,8 +983,6 @@ def run_functions():
         for data in sorted_dicts:
             writer.writerow(data)
 
-
-
     fasta_txt = ""
 
     for i in range(0, len(sorted_dicts)):
@@ -1170,26 +992,17 @@ def run_functions():
     with open(outname+'_multifasta.fas', 'w') as fastafile:
         fastafile.write(fasta_txt)
 
-
-    
-    # Convert list of dicts to pandas DataFrame
-
-# Convert list of dicts to DataFrame
     
     df = pd.DataFrame(simulation_data)
 
-# Sort DataFrame
     df.sort_values(['sim_step', 'replica_num'], inplace=True)
 
-# Initialize an empty DataFrame for the final result
     
     final_df = pd.DataFrame()
 
     header = ['']
     header2 = ['']
     
-#    duplicates = df[df.duplicated(subset=['sim_step', 'replica_num'], keep=False)]
-#    print(duplicates.sort_values(by=['sim_step', 'replica_num']))
     df = df.drop_duplicates(subset=['sim_step', 'replica_num'])
 
 
@@ -1201,20 +1014,16 @@ def run_functions():
         header2.extend([f'replica{col}' for col in range(1, len(sub_df.columns) + 1)])
         header.append('')
         header2.append('')
-    # Concatenate the pivoted sub-DataFrame to the final DataFrame
-        #final_df = pd.concat([final_df, sub_df], pd.DataFrame(columns=[' '])], axis=1))
+        # Concatenate the pivoted sub-DataFrame to the final DataFrame
         final_df = pd.concat([final_df, sub_df, pd.DataFrame(columns=[' '])], axis=1)  # Add an empty column here
 
     with open(outname+'_replicas.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(header)
         writer.writerow(header2)
-# Save final DataFrame to csv
     final_df.to_csv(outname+'_replicas.csv',mode='a', header=False)
 
     
-    # Save to CSV
-
     sorted_scores = sorted(round_floats(simulation_data), key=lambda d: (-d['scoring_function']), reverse = True)
     sorted_scores = sorted_scores[:100]
     
@@ -1249,63 +1058,16 @@ def run_functions():
     
     correct_result_txt = ">"+infile+","+str(correct_bool)+","+str(correct)+","+sorted_results[0]['sequence']+','+sorted_results[0]['mfe_ss']+","+input.sec_struct+'\n'
     
-    print("\nDesign solved: ",correct_bool)
+    print("\n\nDesign solved: ",correct_bool)
     
     with open(outname+'_best_str', 'w', newline='') as myfile:
         myfile.write(correct_result_txt)
     
-    ####
-
-#    sortedlist = sorted(seqence_score_list, key=lambda x: x[1], reverse=True)
-    
-#    seqence_score_list = sortedlist
-    
-#    for i in range(0,len(sortedlist)):
-#        if "e" in str(sortedlist[i][1]):
-#            sortedlist[i][1] = '{:.3e}'.format(sortedlist[i][1])
-#        else:
-#            sortedlist[i][1] = str(round(sortedlist[i][1],5))
-
-
-#    with open(outname+'_final_P'+str(replicas)+"_t"+str(timlim)+"_pk"+str(pks)+'.csv', 'w', newline='\n') as myfile:
-#    with open(outname+'_final.csv', 'w', newline='\n') as myfile:
-#         myfile.write(">"+outname+" time="+str(timlim)+"s\n"+'Acc_ratio= '+str(acc_perc)+', Iterations='+str(c)+', Accepted='\
-#                         +str(acc_ratio[0])+'/'+str(sum_mc)+', Rejected='+str(acc_ratio[1])+'/'+str(sum_mc)+'\n"'+input.sec_struct+'"\n"'+input.seq_restr+'"\n')
-#         wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
-#         wr.writerows(seqence_score_list)
-
-#    compare_best_seq_to_struct(seqence_score_list, input.sec_struct, '')
-
-#    print(">"+outname+" time="+str(timlim)+"s\n"+'Acc_ratio= '+str(acc_perc)+', Iterations='+str(c)+', Accepted='\
-#                         +str(acc_ratio[0])+'/'+str(sum_mc)+', Rejected='+str(acc_ratio[1])+'/'+str(sum_mc))
-
-#    outname_plot = outname+'_final_P'+str(replicas)+"_t"+str(timlim)+"_pk"+str(pks) 
-    func.plot_simulation_data(simulation_data, outname, scoring_f)
-    func.plot_simulation_data_re(simulation_data, outname)
     func.plot_simulation_data_combined(simulation_data, outname, scoring_f)
 
 
     traj_txt = ""
     
-#    for i in range(0, len(simulation_data)):
-#        for key in simulation_data[i]:
-#            print(simulation_data[i][key], type(simulation_data[i][key]))
-#            if isinstance(simulation_data[i][key], float):
-#                simulation_data[i][key] = round(simulation_data[i][key], 3) 
-#        traj_txt += str(simulation_data[i])+"\n"
-        
-#    with open(outname+'_traj.csv', 'w', newline='\n') as myfile:
-#        myfile.write(str(traj_txt).replace(":",",").replace("}","").replace("{",""))
-    
-#    print(">"+outname+" time="+str(timlim)+"s\n"+'Acc_ratio= '+str(acc_perc)+', Iterations='+str(c)+', Accepted='\
-#                              +str(acc_ratio[0])+'/'+str(sum_mc)+', Rejected='+str(acc_ratio[1])+'/'+str(sum_mc))
-#    print(replica_stats,"re stats")
-    
-#    print(str(round(replica_stats[1]/(replica_stats[1]+replica_stats[2]), 3)))
-
-    print(vars(stats))
-
-
     sum_mc = stats.acc_mc_step + stats.rej_mc_step
     acc_perc  = round(stats.acc_mc_step/sum_mc, 3)
     acc_perc_metro = round((stats.acc_mc_step-stats.acc_mc_better_e)/sum_mc, 3)
@@ -1323,70 +1085,16 @@ def run_functions():
                         + str( round(stats.acc_re_step/(stats.acc_re_step+stats.rej_re_step) , 3))+'\n'
     
     print('\n' + stats_txt)
+
     with open(outname+'_stats', 'w', newline='\n') as myfile:
         myfile.write(stats_txt)
-        '''
-        myfile.write(">"+outname+" time="+str(timlim)+"s\n"+'Acc_ratio= '+str(acc_perc)+', Iterations='+str(c)+', Accepted='\
-                        +str(acc_ratio[0])+'/'+str(sum_mc)+', Rejected='+str(acc_ratio[1])+'/'+str(sum_mc) + '\n')
-        myfile.write("Replica exchange attempts: "+str(replica_stats[0])+"\nReplica swaps accepted: "+str(replica_stats[1])\
-                        +"\nReplica swaps rejected: "+str(replica_stats[2]) + "\nReplica exchange acc_ratio: "+ str( round(replica_stats[1]/(replica_stats[1]+replica_stats[2]) , 3))+'\n' )
-        '''
         
         
 def get_outname():
 
     outname = infile.split(".")[0]+'_R'+str(replicas)+"_e"+str(RE_attempt)+"_t"+str(timlim)+"_pk"+str(pks)+"_ACGU"+str(acgu_percentages)+\
                 "_Tmin"+str(T_min)+"_Tmax"+str(T_max)+"_p"+str(param)+"_SF"+str(scoring_f)+"_O"+(str(oligo))+"_D"+(str(dimer))+"_M"+(str(mutations))+"_PM"+(str(point_mutations))
-#    print(outname)
-#    quit()
     return outname
-
-
-def compare_best_seq_to_struct(seq_score_list, input_ss, suffix):
-    
-    name = outname
-    out_fa = name+'_best_seq'+suffix+'.seq'
-    out_str = name+suffix+'.best_str'
-    
-
-    num_solved = 0
-
-    for i in range(len(seq_score_list)-1, -1,-1):
-    
-        best_seq = seq_score_list[i][0]
-        score = seq_score_list[i][1]
-    
-        with open(out_fa, 'w')as myfile:
-            myfile.write(best_seq)
-
-
-        cmd = "RNAfold -p -d2 < %s" % (out_fa)
-        rnafold = os.popen(cmd).read().splitlines()[1].split(' ')[0]
-        #if pks == 'on':
-        #    rnafold = seq_score_list[i][-1]
- 
-        same = False
-    
-        if rnafold == input_ss:
-            same = True
-            num_solved += 1
-        else:
-            same = False
-        
-    
-    if num_solved > 0:
-        same = True
-    else:
-        same = False
-        
-    with open(out_str, 'w') as file:
-        file.write(">"+outname+","+str(same)+","+str(score)+","+str(num_solved)+","+best_seq+","+input_ss+","+rnafold+"\n")
-    
-        
-#    cmd = "rm *ps *.seq *efn2  *ct *SS *.cons  *ipknot *ipknot.fas"
-    cmd = "rm *ps *.seq"
-    os.system(cmd)
-
 
 
 class Nucleotide:
@@ -1428,18 +1136,16 @@ class InputFile:
         self.alt_sec_struct = alt_sec_struct
 
 
+
 if __name__ == '__main__':
 
 
     print("DesiRNA")
-    print(RNA.__version__)
-#    print(os.path.basename(sys.argv[0])+' '+' '.join(sys.argv[1:]))
+
     command = os.path.basename(sys.argv[0])+' '+' '.join(sys.argv[1:])
     
-#    script_path = os.path.dirname(__file__)
     script_path = os.path.dirname(os.path.abspath(__file__))
 
-    print(script_path)
 
     now = datetime.now()
     now = now.strftime("%Y%m%d.%H%M%S")
@@ -1451,26 +1157,17 @@ if __name__ == '__main__':
         scoring_f = 'alt'
     
     if param == '1999':
-#        RNA.params_load_RNA_Turner1999()
-        RNA.params_load(script_path+"/rna_turner1999.par")
-
+        RNA.params_load(os.path.join(script_path, "rna_turner1999.par"))
 
     T_re = 10
 
-#    rep_temps_shelfs = get_rep_temps()
-#    print(rep_temps_shelfs)
     
     L = 504.12
-    #L = 5000
-    #L = t_lambda
     
     
-    print(acgu_percentages)
-
     nt_percentages = {"A":15, "C":30, "G":30,"U":15}
     
     input = read_input()
-    print(vars(input))
 
     if "&" in input.sec_struct:
         dimer = "on"
@@ -1486,19 +1183,14 @@ if __name__ == '__main__':
     outname = get_outname()
 
     rep_temps_shelfs = get_rep_temps()
-    print(rep_temps_shelfs)
-
-    #outname+="sehlfs"
 
 
-    print(command)
     with open(outname+".command", 'w') as f:
         print(command, file=f)
 
     
     random.seed(2137)
-#    if num_results != replicas:
-#        num_results = replicas
+
     
     run_functions()
     
