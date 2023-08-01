@@ -1387,7 +1387,7 @@ def run_functions():
     df = df.drop_duplicates(subset=['sim_step', 'replica_num'])
 
 
-    for metric in ['mfe_e', 'd_mfe_target', 'subopt_e', 'd_mfe_subopt', 'precision', 'recall', 'mcc', 'reb','temp_shelf', 'web', 'reb_subopt', 'd_mfe_subopt_norm', 'score', 'scoring_function']:
+    for metric in ['sequence', 'mfe_e', 'd_mfe_target', 'subopt_e', 'd_mfe_subopt', 'precision', 'recall', 'mcc', 'reb','temp_shelf', 'web', 'reb_subopt', 'd_mfe_subopt_norm', 'score', 'scoring_function']:
     # For each metric, create a sub-DataFrame and pivot it
         sub_df = df[['sim_step', 'replica_num', metric]].pivot(index='sim_step', columns='replica_num', values=metric)
         sub_df.columns = [f'replica{col}' for col in sub_df.columns]
