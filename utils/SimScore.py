@@ -73,12 +73,12 @@ class SimScore:
 
     def recall(self):
         tp, fp, fn, tn = self.conf_mat;
-        return round((tp/(tp + fp + 0.001)), 3);
+        return round((tp/(tp + fn + 0.001)), 3);
 
 
     def precision(self):
         tp, fp, fn, tn = self.conf_mat;
-        return round((tp/(tp + fn + 0.001)), 3);
+        return round((tp/(tp + fp + 0.001)), 3);
 
     def fscore(self):
         makhraj=self.precision() + self.recall()
