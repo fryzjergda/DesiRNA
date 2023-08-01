@@ -35,47 +35,56 @@ def argument_parser():
     parser.add_argument("-R", "--replicas", required=False, dest="replicas", default=10, type=int,
                             help="Number of replicas. [default = 10]")
     parser.add_argument("-e", "--exchange", required=False, dest="exchange", default=100, type=int,
-                            help="TBA. [default = 100]")
-    parser.add_argument("-t", "--timelimit", required=False, default=3600, dest="timlim", type=int,
-                            help="Timelimit for running the program [s]. [default = 60s]")
-    parser.add_argument("-n", "--number_of_sequences", required=False, dest="number_seq", default=10, type=int,
-                            help="Number of best sequences to return. [default = 10]")
+                            help="Frequency of replixa exchange attempt. [default = 100]")
+    parser.add_argument("-t", "--timelimit", required=False, default=60, dest="timlim", type=int,
+                            help="Timelimit for running the program [s]. [default = 60]")
     parser.add_argument("-acgu", "--ACGU", required=False, dest="percs", default='off', choices=['off','on'],
-                            help="TBA")
+                            help="Keep 'natural' ACGU content. [default = off]")
     parser.add_argument("-pk", "--PK", required=False, dest="pks", default='off', choices=['off','on'],
-                            help="TBA")
+                            help="Design of pseudoknotted structures. [default = off, turns on automatically if pseudoknot detected in the input file]")
     parser.add_argument("-tmin", "--tmin", required=False, dest="t_min", default=0.05, type=float,
-                            help="Minimal Replica Temperature. [default = 2]")
+                            help="Minimal Replica Temperature. [default = 0.05]")
     parser.add_argument("-tmax", "--tmax", required=False, dest="t_max", default=30, type=float,
-                            help="Maximal Replica Temperature. [default = 620]")
+                            help="Maximal Replica Temperature. [default = 30]")
+    parser.add_argument("-ts", "--tshelves", required=False, dest="tshelves", type=str, default='',
+                            help="Custom temperature shelves for replicas in replica exchange simulation. Provide comma-separated values.")
+    parser.add_argument("-tr", "--treplicaexchange", required=False, dest="t_re", default=10, type=float,
+                            help="Temperature of replica exchange attempt. [default = 10]")
 
     parser.add_argument("-o", "--oligomerization", required=False, dest="oligo", default='off', choices=['off','on'],
-                            help="TBA")
+                            help="Check if the designed sequence tends to oligomerize. Slows down the simulation. [default = off]")
     parser.add_argument("-d", "--dimer", required=False, dest="dimer", default='off', choices=['off','on'],
                             help="TBA")
 
     parser.add_argument("-p", "--param", required=False, dest="param", default='1999', choices=['2004','1999'],
-                            help="TBA")
+                            help="Turner energy parameter for calculating MFE. [default = 1999]")
     parser.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", default='dmt', choices=['dmt','mcc', 'mfe', 'mix', 'mix2', 'alt'],
-                            help="TBA")
+                            help="Scoring function used to guide the design process. [default = dmt]")
     parser.add_argument("-m", "--mutations", required=False, dest="mutations", default='one', choices=['one','multi'],
-                            help="TBA")    
-    parser.add_argument("-pm", "--point_mutations", required=False, dest="pm", default='off', choices=['off','on'],
-                            help="TBA")
+                            help="More mutatuions pre one MC step in higher temperature replicas. Slows down the simulation. [default = off]")    
+    parser.add_argument("-tm", "--target_mutations", required=False, dest="pm", default='on', choices=['off','on'],
+                            help="Targeted mutations. Targets mostly False Negativeas and False Positives. [default = on]")
 
     parser.add_argument("-s", "--steps", required=False, default=10000000000000000, dest="steps", type=int,
-                            help="Number of steps")
+                            help="Number of steps after the simulation ends. [default = a lot]")
     parser.add_argument("-a", "--alt_ss", required=False, dest="alt_ss", default='off', choices=['off','on'],
-                            help="TBA")
+                            help="Design of sequences folding into two structures. [default = off]")
 
 
                             
     args = parser.parse_args() 
     
+    if args.tshelves:
+        temperature_shelves = [float(temp) for temp in args.tshelves.split(",")]
+
+        # Check if the number of temperatures matches the number of replicas
+        if len(temperature_shelves) != args.replicas:
+            parser.error("The number of temperatures provided in -ts/--tshelves must match the number of replicas set by -R.")
+
+    
     infile = args.name
     replicas = args.replicas
     timlim = args.timlim
-    num_results = args.number_seq
     acgu_percs = args.percs
     pks = args.pks
     t_max = args.t_max
@@ -89,9 +98,10 @@ def argument_parser():
     pm = args.pm
     steps = args.steps
     alt_ss = args.alt_ss
+    tshelves = args.tshelves
+    t_re = args.t_re
     
-    
-    return infile, replicas, timlim, num_results, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, mutations, pm, steps, alt_ss
+    return infile, replicas, timlim, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, mutations, pm, steps, alt_ss, tshelves, t_re
 
 
 def read_input():
@@ -172,7 +182,7 @@ def check_dot_bracket(ss):
 
 
 def check_seq_restr(restr):
-     """
+    """
     Checks if the given sequence restraints string only contains allowed characters.
 
     Args:
@@ -183,6 +193,7 @@ def check_seq_restr(restr):
     """
     
     allowed_characters = 'ACGUWSMKRYBDHVN-&'
+
     for i in range(0, len(restr)):
         if restr[i] not in allowed_characters:
             sys.exit("Not allowed characters in sequence restraints. Check input file.")
@@ -627,7 +638,7 @@ def generate_initial_list_random(nt_list, input):
     seq_list.sort(key = lambda x: x[1], reverse = True)
 
 
-    result_list = seq_list[:num_results]
+    result_list = seq_list[:replicas]
 
     with open(outname+'_random.csv', 'w', newline='\n') as myfile:
          wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
@@ -1275,7 +1286,6 @@ def run_functions():
     input (object): An object that encapsulates the input parameters.
     temps (list): A list of temperature values to use in the design process.
     steps (int): The number of steps to run in the design process.
-    num_results (int): The number of results to return.
     scoring_f (str): The scoring function to use.
     mutations (str): The type of mutations to use.
     exchange_rate (int): The rate at which to attempt exchanges between replicas.
@@ -1580,7 +1590,7 @@ if __name__ == '__main__':
     now = datetime.now()
     now = now.strftime("%Y%m%d.%H%M%S")
     
-    infile, replicas, timlim, num_results, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, mutations, point_mutations, accepted_steps, alt_ss = argument_parser()
+    infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, mutations, point_mutations, accepted_steps, alt_ss, tshelves, T_re = argument_parser()
 
     
     if alt_ss == 'on':
@@ -1588,8 +1598,6 @@ if __name__ == '__main__':
     
     if param == '1999':
         RNA.params_load(os.path.join(script_path, "rna_turner1999.par"))
-
-    T_re = 10
 
     
     L = 504.12
@@ -1612,12 +1620,13 @@ if __name__ == '__main__':
     
     outname = get_outname()
 
-    rep_temps_shelfs = get_rep_temps()
-
+    if tshelves == '':
+        rep_temps_shelfs = get_rep_temps()
+    else: 
+        rep_temps_shelfs = [float(temp) for temp in tshelves.split(",")]
 
     with open(outname+".command", 'w') as f:
         print(command, file=f)
-
     
     random.seed(2137)
 
