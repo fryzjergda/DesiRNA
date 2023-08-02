@@ -71,6 +71,9 @@ def argument_parser():
                             help="Design of sequences folding into two structures. [default = off]")
     parser.add_argument("-seed", "--seed", required=False, default=0, dest="in_seed", type=int,
                             help="User defined seed number for simulation. [default = 0]")
+    parser.add_argument("-rand_seed", "--random_seed", required=False, dest="rand_seed", default='off', choices=['off','on'],
+                            help="Use random seed number for simulation. [default = on]")
+
 
                             
     args = parser.parse_args() 
@@ -102,8 +105,9 @@ def argument_parser():
     tshelves = args.tshelves
     t_re = args.t_re
     in_seed = args.in_seed
+    rand_seed = args.rand_seed
     
-    return infile, replicas, timlim, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, mutations, pm, steps, alt_ss, tshelves, t_re, in_seed
+    return infile, replicas, timlim, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, mutations, pm, steps, alt_ss, tshelves, t_re, in_seed, rand_seed
 
 
 def read_input():
@@ -1617,7 +1621,7 @@ if __name__ == '__main__':
     now = datetime.now()
     now = now.strftime("%Y%m%d.%H%M%S")
     
-    infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, mutations, point_mutations, accepted_steps, alt_ss, tshelves, T_re, in_seed = argument_parser()
+    infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, mutations, point_mutations, accepted_steps, alt_ss, tshelves, T_re, in_seed, rand_seed = argument_parser()
 
     
     if alt_ss == 'on':
@@ -1659,6 +1663,9 @@ if __name__ == '__main__':
         original_seed = 2137+in_seed
     else:
         original_seed = 2137
+
+    if rand_seed == 'on':
+        original_seed = random.random()
     random.seed(original_seed)
     print(original_seed)
 
