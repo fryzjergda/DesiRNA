@@ -669,7 +669,7 @@ def get_seq_to_mutate(sequence_list, step):
     return sequence
 
 
-def mutate_sequence_re(sequence_obj, nt_list):
+def mutate_sequence_more(sequence_obj, nt_list):
     """
     Mutate a list of sequences in parallel.
 
@@ -1213,6 +1213,10 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
     
     for i in range(0, RE_attempt):
         sequence_m = mutate_sequence(sequence_o, nt_list)
+        if mutations == 'multi':
+            sequence_m = mutate_sequence(sequence_m, nt_list)
+            sequence_m = mutate_sequence(sequence_m, nt_list)
+            sequence_m = mutate_sequence(sequence_m, nt_list)
 
         deltaF_o = sequence_o.scoring_function
         deltaF_m = sequence_m.scoring_function
