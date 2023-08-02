@@ -1203,8 +1203,8 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
         Updated statistics of the worker.
     """
     
-    best_score = sequence_o
-    
+    best_score = ''
+    in_sequence = sequence_o
     worker_stats.reset_mc_stats()
     
     for i in range(0, RE_attempt):
@@ -1237,7 +1237,9 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
 
         if accept == False:
             worker_stats.update_rej_mc_step()
-
+            
+        if best_score == '':
+            best_score = in_sequence
 
     return best_score, worker_stats
 
