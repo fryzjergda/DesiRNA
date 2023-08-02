@@ -69,7 +69,8 @@ def argument_parser():
                             help="Number of steps after the simulation ends. [default = a lot]")
     parser.add_argument("-a", "--alt_ss", required=False, dest="alt_ss", default='off', choices=['off','on'],
                             help="Design of sequences folding into two structures. [default = off]")
-
+    parser.add_argument("-seed", "--seed", required=False, default=0, dest="in_seed", type=int,
+                            help="User defined seed number for simulation. [default = 0]")
 
                             
     args = parser.parse_args() 
@@ -100,8 +101,9 @@ def argument_parser():
     alt_ss = args.alt_ss
     tshelves = args.tshelves
     t_re = args.t_re
+    in_seed = args.in_seed
     
-    return infile, replicas, timlim, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, mutations, pm, steps, alt_ss, tshelves, t_re
+    return infile, replicas, timlim, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, mutations, pm, steps, alt_ss, tshelves, t_re, in_seed
 
 
 def read_input():
@@ -1236,7 +1238,9 @@ def par_wrapper(args):
     result : various
         The result of the function call.
     """
-    
+    args, seed = args[:-1], args[-1]
+    random.seed(seed)
+        
     return single_replica_design(*args);
 
 
@@ -1254,8 +1258,11 @@ def mutate_sequence_re(lst_seq_obj, nt_list, stats_obj):
     """
 
     with mp.Pool(replicas) as pool:
+        # Generate a unique seed for each worker based on original_seed
+        seeds = [original_seed + i for i in range(len(lst_seq_obj))]
         
-        inputs = [(seq_obj, nt_list, stats_obj) for seq_obj in lst_seq_obj]
+        #inputs = [(seq_obj, nt_list, stats_obj) for seq_obj in lst_seq_obj]
+        inputs = [(seq_obj, nt_list, stats_obj, seed) for seq_obj, seed in zip(lst_seq_obj, seeds)]
         lst_seq_obj_res_new = []
         workers_stats =[]
 
@@ -1590,7 +1597,7 @@ if __name__ == '__main__':
     now = datetime.now()
     now = now.strftime("%Y%m%d.%H%M%S")
     
-    infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, mutations, point_mutations, accepted_steps, alt_ss, tshelves, T_re = argument_parser()
+    infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, mutations, point_mutations, accepted_steps, alt_ss, tshelves, T_re, in_seed = argument_parser()
 
     
     if alt_ss == 'on':
@@ -1628,7 +1635,12 @@ if __name__ == '__main__':
     with open(outname+".command", 'w') as f:
         print(command, file=f)
     
-    random.seed(2137)
+    if in_seed != 0:
+        original_seed = 2137+in_seed
+    else:
+        original_seed = 2137
+    random.seed(original_seed)
+    print(original_seed)
 
     
     run_functions()
