@@ -980,8 +980,8 @@ def replica_exchange_attempt(T0, T1, dE0, dE1):
         accept_e = True
     else:
         rand_num = random.random()
-#        p = math.exp(L*(1/T0 -1/T1)*(dE0-dE1))
-        p = math.exp(L*(1/T_re)*(dE0-dE1)) # bardziej rownomierne wymiany replik
+        p = math.exp(L*(1/T0 -1/T1)*(dE0-dE1))
+#        p = math.exp(L*(1/T_re)*(dE0-dE1)) # bardziej rownomierne wymiany replik
         accept = p > rand_num   
 
     return accept, accept_e
@@ -1249,7 +1249,7 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
         if best_score == '':
             best_score = in_sequence
 
-    return best_score, worker_stats
+    return sequence_o, worker_stats
 
 
 def par_wrapper(args):
