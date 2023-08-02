@@ -738,14 +738,29 @@ def get_mutation_position(seq_obj, available_positions):
 
         mutat_point_prob = prob_shelfs[shelf]
 
-        if len(false_negatives) == 0:
+        if len(false_cases) == 0:
             range_pos = available_positions
         else:
+            false_cases = expand_cases(false_cases, len(seq_obj.sequence))
             range_pos = random.choices([false_cases, available_positions], weights=[mutat_point_prob, 1-mutat_point_prob])[0]
 
         mutation_position = random.choice(range_pos)
         
+        
     return mutation_position
+
+
+def expand_cases(cases, max_value, range_expansion=3):
+    expanded_cases = set()  # Using a set to avoid duplicates
+
+    for case in cases:
+        # Adding the cases in the range, taking care not to exceed the maximum value
+        for i in range(-range_expansion, range_expansion + 1):
+            expanded_value = case + i
+            if 0 < expanded_value <= max_value:  # Checking the boundaries
+                expanded_cases.add(expanded_value)
+
+    return sorted(list(expanded_cases))
 
 
 def mutate_sequence(sequence_obj, nt_list):

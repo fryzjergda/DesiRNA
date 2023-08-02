@@ -1240,7 +1240,6 @@ def par_wrapper(args):
     """
     args, seed = args[:-1], args[-1]
     random.seed(seed)
-    print(f"Starting worker with seed {seed}...")
         
     return single_replica_design(*args);
 
@@ -1266,14 +1265,8 @@ def mutate_sequence_re(lst_seq_obj, nt_list, stats_obj):
         inputs = [(seq_obj, nt_list, stats_obj, seed) for seq_obj, seed in zip(lst_seq_obj, seeds)]
         lst_seq_obj_res_new = []
         workers_stats =[]
-        print(seeds)
-        '''
+
         for result in pool.imap(par_wrapper,inputs):
-            lst_seq_obj_res_new.append(result[0])
-            workers_stats.append(result[1])
-        '''
-        for input_args in inputs:
-            result = pool.apply(par_wrapper, args=(input_args,))
             lst_seq_obj_res_new.append(result[0])
             workers_stats.append(result[1])
 
