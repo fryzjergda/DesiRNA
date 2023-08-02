@@ -741,11 +741,10 @@ def get_mutation_position(seq_obj, available_positions):
         if len(false_cases) == 0:
             range_pos = available_positions
         else:
-            false_cases = expand_cases(false_cases, len(seq_obj.sequence))
+            false_cases = expand_cases(false_cases, len(seq_obj.sequence)-1)
             range_pos = random.choices([false_cases, available_positions], weights=[mutat_point_prob, 1-mutat_point_prob])[0]
 
         mutation_position = random.choice(range_pos)
-        
         
     return mutation_position
 
