@@ -1219,18 +1219,22 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
         if accept == True and oligo == "on":
             if sequence_m.oligomerization == True:
                 accept = False
-
+        
+        if accept == True and (sequence_m.scoring_function < sequence_o.scoring_function):
+            best_score = sequence_m
+            
         if accept ==True:
             sequence_o = sequence_m 
             worker_stats.update_acc_mc_step()
             if accept_e == True:
                 worker_stats.update_acc_mc_better_e()
-            
+        '''    
         if accept == True and (sequence_o.scoring_function < best_score.scoring_function) and (worker_stats.global_step % 1000 !=0):
             best_score = sequence_o
         elif accept == True and (sequence_o.scoring_function >= best_score.scoring_function) and (worker_stats.global_step % 1000 ==0): 
             print("kupka")
             best_score = sequence_o
+        '''
 
         if accept == False:
             worker_stats.update_rej_mc_step()
