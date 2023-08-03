@@ -51,12 +51,15 @@ def argument_parser():
 
     parser.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", default='dmt', choices=['dmt','mcc', 'mfe', 'mix', 'mix2', 'alt'],
                             help="Scoring function used to guide the design process. [default = dmt]")
+    parser.add_argument("-nd", "--negative_design", required=False, dest="subopt", default='off', choices=['off','on'],
+                            help="Use negative design approach. [default = off]")
+
 
                             
     parser.add_argument("-acgu", "--ACGU", required=False, dest="percs", default='off', choices=['off','on'],
                             help="Keep 'natural' ACGU content. [default = off]")
     parser.add_argument("-pk", "--PK", required=False, dest="pks", default='off', choices=['off','on'],
-                            help="Design of pseudoknotted structures. [default = off, turns on automatically if pseudoknot detected in the input file]")
+                            help="Design of pseudoknotted structures. [default = off, turns on automatically if pseudoknot is detected in the input file]")
 #    parser.add_argument("-tr", "--treplicaexchange", required=False, dest="t_re", default=10, type=float,
 #                            help="Temperature of replica exchange attempt. [default = 10]")
 
@@ -73,7 +76,7 @@ def argument_parser():
 #    parser.add_argument("-s", "--steps", required=False, default=10000000000000000, dest="steps", type=int,
 #                            help="Number of steps after the simulation ends. [default = a lot]")
     parser.add_argument("-a", "--alt_ss", required=False, dest="alt_ss", default='off', choices=['off','on'],
-                            help="Design of sequences folding into two structures. [default = off]")
+                            help="Design of sequences folding into two structures. [default = off, turns on automatically if alternative structure is detected in the input file]")
     parser.add_argument("-seed", "--seed", required=False, default=0, dest="in_seed", type=int,
                             help="User defined seed number for simulation. [default = 0]")
 #    parser.add_argument("-rand_seed", "--random_seed", required=False, dest="rand_seed", default='on', choices=['off','on'],
@@ -111,8 +114,9 @@ def argument_parser():
 #    t_re = args.t_re
     in_seed = args.in_seed
 #    rand_seed = args.rand_seed
+    subopt = args.subopt
     
-    return infile, replicas, timlim, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, pm,  alt_ss, tshelves,  in_seed
+    return infile, replicas, timlim, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, pm,  alt_ss, tshelves,  in_seed, subopt
 
 
 def read_input():
@@ -1127,7 +1131,7 @@ def score_sequence(seq):
 
     scored_sequence.get_d_mfe_target(scored_sequence.mfe_e, scored_sequence.target_e)
 
-    if dimer== "off":
+    if dimer== "off" and input.alt_sec_struct == None:
 #        scored_sequence.get_subopt_ss(func.get_first_suboptimal_structure_and_energy(seq)[0])
 #        scored_sequence.get_subopt_e(func.get_first_suboptimal_structure_and_energy(seq)[1])
         scored_sequence.get_subopt_ss(mfe_structure)
@@ -1137,10 +1141,12 @@ def score_sequence(seq):
 
         scored_sequence.get_subopt_ss(mfe_structure)
         scored_sequence.get_subopt_e(mfe_energy)
-    elif input.alt_sec_struct != None: 
-        scored_sequence.get_subopt_ss(input.alt_sec_struct.replace("&",""))
-        scored_sequence.get_subopt_e(RNA.energy_of_struct(seq, input.alt_sec_struct.replace("&","")))
 
+    if input.alt_sec_struct != None:
+        scored_sequence.get_subopt_e(mfe_energy)
+        scored_sequence.get_alt_mfe_e(get_mfe_e_ss(seq)[0])
+        scored_sequence.get_alt_target_e(RNA.energy_of_struct(seq,input.alt_sec_struct))
+        scored_sequence.get_d_alt_mfe_target(scored_sequence.alt_mfe_e, scored_sequence.alt_target_e)
 #    scored_sequence.get_d_mfe_subopt(scored_sequence.mfe_e, scored_sequence.subopt_e)    
     
     ssc = SimScore(input.sec_struct.replace("&","Ee"), scored_sequence.mfe_ss.replace("&","Ee"))
@@ -1159,8 +1165,14 @@ def score_sequence(seq):
 #    scored_sequence.get_d_mfe_subopt_norm()
     
 #    scored_sequence.get_score()
-    
-    scored_sequence.get_scoring_function(scoring_f)
+    if subopt == "off":    
+        scored_sequence.get_scoring_function(scoring_f)
+    elif (subopt == "on") and (scored_sequence.mcc == 0):
+        scored_sequence.get_subopt_e(func.get_first_suboptimal_structure_and_energy(seq)[1])
+        scored_sequence.get_d_mfe_subopt(scored_sequence.mfe_e, scored_sequence.subopt_e)
+        scored_sequence.get_scoring_function_w_subopt()
+    elif (subopt == "on") and (scored_sequence.mcc != 0):
+        scored_sequence.get_scoring_function(scoring_f)
 
     if oligo == "on":
         scored_sequence.get_oligomerization()
@@ -1389,7 +1401,6 @@ def run_functions():
                 for data in sorted_results_mid:
                     writer.writerow(data)
         
-        
 #        if stats.step == accepted_steps:
 #            break
         
@@ -1483,8 +1494,8 @@ def run_functions():
     
     with open(outname+'_best_str', 'w', newline='') as myfile:
         myfile.write(correct_result_txt)
-    
-    func.plot_simulation_data_combined(simulation_data, outname, scoring_f)
+    print(input.alt_sec_struct)
+    func.plot_simulation_data_combined(simulation_data, outname, scoring_f, input.alt_sec_struct)
 
 
     traj_txt = ""
@@ -1630,7 +1641,7 @@ if __name__ == '__main__':
     now = datetime.now()
     now = now.strftime("%Y%m%d.%H%M%S")
     
-    infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, point_mutations,  alt_ss, tshelves, in_seed = argument_parser()
+    infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, point_mutations,  alt_ss, tshelves, in_seed, subopt = argument_parser()
 
     
     if alt_ss == 'on':
@@ -1647,13 +1658,17 @@ if __name__ == '__main__':
     
     input = read_input()
 
+    if input.alt_sec_struct != None:
+        alt_ss = "on"
+        scoring_f = "alt"
+
     if "&" in input.sec_struct:
         dimer = "on"
     else:
         dimer = "off"
 
 
-    if "[" in input.sec_struct:
+    if ("[" or "<" or "{") in input.sec_struct:
         pks = "on"
     else:
         pks = "off"

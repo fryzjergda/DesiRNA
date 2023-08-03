@@ -29,10 +29,12 @@ def get_replica_color(replica_num, num_replicas):
     
     return colors[color_index]
 
-def plot_simulation_data_combined(simulation_data, outname, scoring_f):
+def plot_simulation_data_combined(simulation_data, outname, scoring_f, alt):
     # Define the metrics to plot
-    metrics = ['mfe_e', 'precision', 'temp_shelf', 'target_e', 'recall', 'scoring_function',
-               'd_mfe_target', 'mcc']
+    if alt == None:
+        metrics = ['mfe_e', 'precision', 'd_mfe_subopt', 'target_e', 'recall','temp_shelf', 'd_mfe_target', 'mcc','scoring_function']
+    else:
+        metrics = ['mfe_e', 'precision', 'd_alt_mfe_target', 'target_e', 'recall','temp_shelf', 'd_mfe_target', 'mcc','scoring_function']
 
     # Create subplots
     num_plots = len(metrics)
@@ -89,7 +91,10 @@ def plot_simulation_data_combined(simulation_data, outname, scoring_f):
             ax.set_title('Target E')
         if metric == 'd_mfe_target':
             ax.set_title('dE MFE target')
-
+        if (metric == 'd_mfe_subopt') and (alt == None):
+            ax.set_title('dE MFE subopt')
+        if (metric == 'd_alt_mfe_target') and (alt != None):
+            ax.set_title('dE altMFE target')
 
 
         if metric == 'scoring_function':
@@ -326,7 +331,15 @@ class ScoreSeq:
 
 #    def get_web_subopt(self):
 #        self.web_subopt = (self.mcc**4)*self.reb_subopt*0.25
+    def get_alt_mfe_e(self, altmfe):
+        self.alt_mfe_e = altmfe
     
+    def get_alt_target_e(self, e_alt_target):
+        self.alt_target_e = e_alt_target
+
+    
+    def get_d_alt_mfe_target(self, alt_mfe, e_alt_target):
+        self.d_alt_mfe_target = e_alt_target -alt_mfe
 
     def get_score(self):
         self.score = self.d_mfe_target +self.mcc + self.web
@@ -346,8 +359,10 @@ class ScoreSeq:
         elif scoring_f == 'mix2':
             self.scoring_function = self.d_mfe_target + 2*self.mcc 
         elif scoring_f == 'alt':
-            self.scoring_function = self.d_mfe_target +self.d_mfe_subopt 
+            self.scoring_function = self.d_mfe_target + self.d_alt_mfe_target
 
+    def get_scoring_function_w_subopt(self):
+        self.scoring_function = self.d_mfe_target -self.d_mfe_subopt 
 
             
 def get_first_suboptimal_structure_and_energy(sequence):
