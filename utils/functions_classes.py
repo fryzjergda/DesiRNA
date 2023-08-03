@@ -29,8 +29,90 @@ def get_replica_color(replica_num, num_replicas):
     
     return colors[color_index]
 
-
 def plot_simulation_data_combined(simulation_data, outname, scoring_f):
+    # Define the metrics to plot
+    metrics = ['mfe_e', 'precision', 'temp_shelf', 'target_e', 'recall', 'scoring_function',
+               'd_mfe_target', 'mcc']
+
+    # Create subplots
+    num_plots = len(metrics)
+    num_cols = 3
+    num_rows = (num_plots + num_cols - 1) // num_cols
+    fig, axs = plt.subplots(num_rows, num_cols, figsize=(24, 16))
+
+    # Flatten the axs if there's only one row
+    if num_rows == 1:
+        axs = [axs]
+
+    scoring_function_titles = {
+    'dmt': 'Scoring Function - dE MFE target',
+    'mcc': 'Scoring Function - MCC',
+    'mix': 'Scoring Function - Score',
+    'mix2': 'Scoring Function - Score2',
+    'mfe': 'Scoring Function - MFE'}
+
+
+
+    # Get the number of replicas
+    num_replicas = len(set(data['replica_num'] for data in simulation_data))
+
+    # Iterate over replicas and plot data
+    for i, metric in enumerate(metrics):
+        row = i // num_cols
+        col = i % num_cols
+        ax = axs[row][col]
+
+        for replica_num in range(1, num_replicas + 1):
+            replica_data = [data[metric] for data in simulation_data if data['replica_num'] == replica_num]
+            accepted_structures = range(len(replica_data))
+            color = get_replica_color(replica_num, num_replicas)  # Get color for the replica
+            ax.plot(accepted_structures, replica_data, color=color, label=f"Replica {replica_num}")
+
+
+        ax.set_xlabel('RE steps')
+        ax.set_ylabel(metric.capitalize().replace('_', ' '))
+        ax.set_title(metric.capitalize().replace('_', ' '))
+        ax.legend(loc='upper right')
+
+
+        if metric == 'mcc':
+            ax.set_title('1 - MCC')
+        if metric == 'precision':
+            ax.set_title('1 - Precision')
+        if metric == 'recall':
+            ax.set_title('1 - Recall')
+        if metric == 'mfe_e':
+            ax.set_title('MFE E')
+        if metric == 'temp_shelf':
+            ax.set_title('Temperature shelf')
+        if metric == 'target_e':
+            ax.set_title('Target E')
+        if metric == 'd_mfe_target':
+            ax.set_title('dE MFE target')
+
+
+
+        if metric == 'scoring_function':
+            if scoring_f in scoring_function_titles:
+                ax.set_title(scoring_function_titles[scoring_f])
+
+    if num_plots % num_cols != 0:
+        axs[-1, -1].axis('off')
+
+    # Add overall title to the plot
+    fig.suptitle(outname, fontsize=16, fontweight='bold')
+
+    # Adjust the layout
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+
+    # Save the plot to a file
+    plt.savefig(outname + '_replicas.png')
+
+
+
+
+
+def _plot_simulation_data_combined(simulation_data, outname, scoring_f):
     # Define the metrics to plot
     metrics = ['mfe_e', 'precision', 'reb', 'target_e', 'recall', 'web',
                'd_mfe_target', 'mcc', 'temp_shelf', 'd_mfe_subopt',
@@ -175,6 +257,10 @@ class ScoreSeq:
         self.reb_subopt = 0
         self.web_subopt = 0
         self.d_mfe_subopt_norm =0
+        self.score = 0
+        self.recall = 0
+        self.precision = 0
+        self.d_mfe_subopt = 0
 
     def get_replica_num(self, rep_num):
         self.replica_num = rep_num

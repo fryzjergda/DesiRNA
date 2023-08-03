@@ -175,6 +175,9 @@ class ScoreSeq:
         self.reb_subopt = 0
         self.web_subopt = 0
         self.d_mfe_subopt_norm =0
+        self.score = 0
+        self.recall = 0
+        self.precision = 0
 
     def get_replica_num(self, rep_num):
         self.replica_num = rep_num

@@ -38,41 +38,46 @@ def argument_parser():
                             help="Frequency of replixa exchange attempt. [default = 100]")
     parser.add_argument("-t", "--timelimit", required=False, default=60, dest="timlim", type=int,
                             help="Timelimit for running the program [s]. [default = 60]")
+
+    parser.add_argument("-p", "--param", required=False, dest="param", default='1999', choices=['2004','1999'],
+                            help="Turner energy parameter for calculating MFE. [default = 1999]")
+
+    parser.add_argument("-tmin", "--tmin", required=False, dest="t_min", default=10, type=float,
+                            help="Minimal Replica Temperature. [default = 10]")
+    parser.add_argument("-tmax", "--tmax", required=False, dest="t_max", default=150, type=float,
+                            help="Maximal Replica Temperature. [default = 150]")
+    parser.add_argument("-ts", "--tshelves", required=False, dest="tshelves", type=str, default='',
+                            help="Custom temperature shelves for replicas in replica exchange simulation. Provide comma-separated values.")
+
+    parser.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", default='dmt', choices=['dmt','mcc', 'mfe', 'mix', 'mix2', 'alt'],
+                            help="Scoring function used to guide the design process. [default = dmt]")
+
+                            
     parser.add_argument("-acgu", "--ACGU", required=False, dest="percs", default='off', choices=['off','on'],
                             help="Keep 'natural' ACGU content. [default = off]")
     parser.add_argument("-pk", "--PK", required=False, dest="pks", default='off', choices=['off','on'],
                             help="Design of pseudoknotted structures. [default = off, turns on automatically if pseudoknot detected in the input file]")
-    parser.add_argument("-tmin", "--tmin", required=False, dest="t_min", default=0.05, type=float,
-                            help="Minimal Replica Temperature. [default = 0.05]")
-    parser.add_argument("-tmax", "--tmax", required=False, dest="t_max", default=30, type=float,
-                            help="Maximal Replica Temperature. [default = 30]")
-    parser.add_argument("-ts", "--tshelves", required=False, dest="tshelves", type=str, default='',
-                            help="Custom temperature shelves for replicas in replica exchange simulation. Provide comma-separated values.")
-    parser.add_argument("-tr", "--treplicaexchange", required=False, dest="t_re", default=10, type=float,
-                            help="Temperature of replica exchange attempt. [default = 10]")
+#    parser.add_argument("-tr", "--treplicaexchange", required=False, dest="t_re", default=10, type=float,
+#                            help="Temperature of replica exchange attempt. [default = 10]")
 
     parser.add_argument("-o", "--oligomerization", required=False, dest="oligo", default='off', choices=['off','on'],
                             help="Check if the designed sequence tends to oligomerize. Slows down the simulation. [default = off]")
     parser.add_argument("-d", "--dimer", required=False, dest="dimer", default='off', choices=['off','on'],
                             help="TBA")
 
-    parser.add_argument("-p", "--param", required=False, dest="param", default='1999', choices=['2004','1999'],
-                            help="Turner energy parameter for calculating MFE. [default = 1999]")
-    parser.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", default='dmt', choices=['dmt','mcc', 'mfe', 'mix', 'mix2', 'alt'],
-                            help="Scoring function used to guide the design process. [default = dmt]")
-    parser.add_argument("-m", "--mutations", required=False, dest="mutations", default='one', choices=['one','multi'],
-                            help="More mutatuions pre one MC step in higher temperature replicas. Slows down the simulation. [default = off]")    
+#    parser.add_argument("-m", "--mutations", required=False, dest="mutations", default='one', choices=['one','multi'],
+#                            help="More mutatuions pre one MC step in higher temperature replicas. Slows down the simulation. [default = off]")    
     parser.add_argument("-tm", "--target_mutations", required=False, dest="pm", default='on', choices=['off','on'],
                             help="Targeted mutations. Targets mostly False Negativeas and False Positives. [default = on]")
 
-    parser.add_argument("-s", "--steps", required=False, default=10000000000000000, dest="steps", type=int,
-                            help="Number of steps after the simulation ends. [default = a lot]")
+#    parser.add_argument("-s", "--steps", required=False, default=10000000000000000, dest="steps", type=int,
+#                            help="Number of steps after the simulation ends. [default = a lot]")
     parser.add_argument("-a", "--alt_ss", required=False, dest="alt_ss", default='off', choices=['off','on'],
                             help="Design of sequences folding into two structures. [default = off]")
     parser.add_argument("-seed", "--seed", required=False, default=0, dest="in_seed", type=int,
                             help="User defined seed number for simulation. [default = 0]")
-    parser.add_argument("-rand_seed", "--random_seed", required=False, dest="rand_seed", default='off', choices=['off','on'],
-                            help="Use random seed number for simulation. [default = on]")
+#    parser.add_argument("-rand_seed", "--random_seed", required=False, dest="rand_seed", default='on', choices=['off','on'],
+#                            help="Use random seed number for simulation. [default = on]")
 
 
                             
@@ -98,16 +103,16 @@ def argument_parser():
     param = args.param
     exchange_rate = args.exchange
     scoring_f = args.scoring_f
-    mutations = args.mutations
+#    mutations = args.mutations
     pm = args.pm
-    steps = args.steps
+#    steps = args.steps
     alt_ss = args.alt_ss
     tshelves = args.tshelves
-    t_re = args.t_re
+#    t_re = args.t_re
     in_seed = args.in_seed
-    rand_seed = args.rand_seed
+#    rand_seed = args.rand_seed
     
-    return infile, replicas, timlim, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, mutations, pm, steps, alt_ss, tshelves, t_re, in_seed, rand_seed
+    return infile, replicas, timlim, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, pm,  alt_ss, tshelves,  in_seed
 
 
 def read_input():
@@ -1136,7 +1141,7 @@ def score_sequence(seq):
         scored_sequence.get_subopt_ss(input.alt_sec_struct.replace("&",""))
         scored_sequence.get_subopt_e(RNA.energy_of_struct(seq, input.alt_sec_struct.replace("&","")))
 
-    scored_sequence.get_d_mfe_subopt(scored_sequence.mfe_e, scored_sequence.subopt_e)    
+#    scored_sequence.get_d_mfe_subopt(scored_sequence.mfe_e, scored_sequence.subopt_e)    
     
     ssc = SimScore(input.sec_struct.replace("&","Ee"), scored_sequence.mfe_ss.replace("&","Ee"))
     ssc.find_basepairs()
@@ -1153,7 +1158,7 @@ def score_sequence(seq):
 #    scored_sequence.get_web_subopt()
 #    scored_sequence.get_d_mfe_subopt_norm()
     
-    scored_sequence.get_score()
+#    scored_sequence.get_score()
     
     scored_sequence.get_scoring_function(scoring_f)
 
@@ -1207,16 +1212,16 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
         Updated statistics of the worker.
     """
     
-    best_score = ''
-    in_sequence = sequence_o
+#    best_score = ''
+#    in_sequence = sequence_o
     worker_stats.reset_mc_stats()
     
     for i in range(0, RE_attempt):
         sequence_m = mutate_sequence(sequence_o, nt_list)
-        if mutations == 'multi':
-            sequence_m = mutate_sequence(sequence_m, nt_list)
-            sequence_m = mutate_sequence(sequence_m, nt_list)
-            sequence_m = mutate_sequence(sequence_m, nt_list)
+#        if mutations == 'multi':
+#            sequence_m = mutate_sequence(sequence_m, nt_list)
+#            sequence_m = mutate_sequence(sequence_m, nt_list)
+#            sequence_m = mutate_sequence(sequence_m, nt_list)
 
         deltaF_o = sequence_o.scoring_function
         deltaF_m = sequence_m.scoring_function
@@ -1227,8 +1232,8 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
             if sequence_m.oligomerization == True:
                 accept = False
         
-        if accept == True and (sequence_m.scoring_function < sequence_o.scoring_function):
-            best_score = sequence_m
+#        if accept == True and (sequence_m.scoring_function < sequence_o.scoring_function):
+#            best_score = sequence_m
             
         if accept ==True:
             sequence_o = sequence_m 
@@ -1246,8 +1251,8 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
         if accept == False:
             worker_stats.update_rej_mc_step()
             
-        if best_score == '':
-            best_score = in_sequence
+#        if best_score == '':
+#            best_score = in_sequence
 
     return sequence_o, worker_stats
 
@@ -1385,8 +1390,8 @@ def run_functions():
                     writer.writerow(data)
         
         
-        if stats.step == accepted_steps:
-            break
+#        if stats.step == accepted_steps:
+#            break
         
         
     sorted_dicts = sorted(round_floats(simulation_data), key=lambda d: (d['sim_step'], d['replica_num']))
@@ -1532,7 +1537,7 @@ def get_outname():
     """
     
     outname = infile.split(".")[0]+'_R'+str(replicas)+"_e"+str(RE_attempt)+"_t"+str(timlim)+"_pk"+str(pks)+"_ACGU"+str(acgu_percentages)+\
-                "_Tmin"+str(T_min)+"_Tmax"+str(T_max)+"_p"+str(param)+"_SF"+str(scoring_f)+"_O"+(str(oligo))+"_D"+(str(dimer))+"_M"+(str(mutations))+"_PM"+(str(point_mutations))
+                "_Tmin"+str(T_min)+"_Tmax"+str(T_max)+"_p"+str(param)+"_SF"+str(scoring_f)+"_O"+(str(oligo))+"_D"+(str(dimer))+"_PM"+(str(point_mutations))
     return outname
 
 
@@ -1625,7 +1630,7 @@ if __name__ == '__main__':
     now = datetime.now()
     now = now.strftime("%Y%m%d.%H%M%S")
     
-    infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, mutations, point_mutations, accepted_steps, alt_ss, tshelves, T_re, in_seed, rand_seed = argument_parser()
+    infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, point_mutations,  alt_ss, tshelves, in_seed = argument_parser()
 
     
     if alt_ss == 'on':
@@ -1666,10 +1671,10 @@ if __name__ == '__main__':
     if in_seed != 0:
         original_seed = 2137+in_seed
     else:
-        original_seed = 2137
-
-    if rand_seed == 'on':
         original_seed = random.random()
+
+#    if rand_seed == 'on':
+#        original_seed = random.random()
     random.seed(original_seed)
     print(original_seed)
 
