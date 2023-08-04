@@ -79,6 +79,9 @@ def argument_parser():
                             help="Design of sequences folding into two structures. [default = off, turns on automatically if alternative structure is detected in the input file]")
     parser.add_argument("-seed", "--seed", required=False, default=0, dest="in_seed", type=int,
                             help="User defined seed number for simulation. [default = 0]")
+                            
+    parser.add_argument("-re_seq", "--replicas_sequences", required=False, dest="diff_start_replicas", default='one', choices=['different','same'],
+                            help="Choose wether replicas will start form the same random sequence or each replica will start from different random sequence. [default = same]")
 #    parser.add_argument("-rand_seed", "--random_seed", required=False, dest="rand_seed", default='on', choices=['off','on'],
 #                            help="Use random seed number for simulation. [default = on]")
 
@@ -114,9 +117,12 @@ def argument_parser():
 #    t_re = args.t_re
     in_seed = args.in_seed
 #    rand_seed = args.rand_seed
+
     subopt = args.subopt
+    diff_start_replicas = args.diff_start_replicas
+
     
-    return infile, replicas, timlim, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, pm,  alt_ss, tshelves,  in_seed, subopt
+    return infile, replicas, timlim, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, pm,  alt_ss, tshelves,  in_seed, subopt, diff_start_replicas
 
 
 def read_input(infile):
@@ -134,7 +140,6 @@ def read_input(infile):
             
     data = string.lstrip(">").rstrip("\n").split("\n>")
     data_dict = {}
-    print(data)
     for i in range(0, len(data)):
         type_entry = data[i].split("\n")
         key, values = type_entry[0], type_entry[1:]
@@ -616,18 +621,18 @@ def generate_initial_list(nt_list, input_file):
     seq_list = []
     
     for i in range(0,replicas):
+        if diff_start_replicas == "different":
+            sequence = initial_sequence_generator(nt_list, input_file)
         sequence_object = score_sequence(sequence)
         sequence_object.get_replica_num(i+1)
         sequence_object.get_temp_shelf(rep_temps_shelfs[i])
         sequence_object.get_sim_step(0)
-        
         seq_list.append(sequence_object)        
     
     
     init_sequences_txt =""
     for i in range(0, len(seq_list)):
         init_sequences_txt += str(vars(seq_list[i]))+"\n"
-    
     
     return seq_list
 
@@ -1680,7 +1685,7 @@ if __name__ == '__main__':
     now = datetime.now()
     now = now.strftime("%Y%m%d.%H%M%S")
     
-    infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, point_mutations,  alt_ss, tshelves, in_seed, subopt = argument_parser()
+    infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, point_mutations,  alt_ss, tshelves, in_seed, subopt, diff_start_replicas = argument_parser()
 
     
     if alt_ss == 'on':
