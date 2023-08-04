@@ -29,7 +29,7 @@ def argument_parser():
         A Namespace containing the parsed command-line arguments.
     """
     
-    parser = argparse.ArgumentParser(description=__doc__, prog='2DesignRNA')
+    parser = argparse.ArgumentParser(description=__doc__, prog='DesiRNA.py')
     parser.add_argument("-f", "--filename", required=True, dest="name",
                         help="Name of a file that contains secondary structures and constraints.")
     parser.add_argument("-R", "--replicas", required=False, dest="replicas", default=10, type=int,
