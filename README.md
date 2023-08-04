@@ -42,10 +42,6 @@ python 2DesignRNA.py -f yourfile -R 20
 
 Replace `yourfile` with the path to your input file and `20` with the number of replicas you want to use. If your file path contains spaces, please enclose it in quotation marks.
 
-Remember, the more precise the input parameters, the more accurate the resulting RNA sequence designs will be.
-```
-
-Just replace `yourfile` with the path to your file when running the program. Also, remember to replace 'TBA' with the appropriate descriptions once they become available.
 
 ## Installation
 
