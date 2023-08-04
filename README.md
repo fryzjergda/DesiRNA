@@ -1,4 +1,4 @@
-# 2DesignRNA
+# DesiRNA
 
 ```markdown
 ## Usage
@@ -48,3 +48,26 @@ Remember, the more precise the input parameters, the more accurate the resulting
 
 Just replace `yourfile` with the path to your file when running the program. Also, remember to replace 'TBA' with the appropriate descriptions once they become available.
 
+## Installation
+
+### Without Conda
+
+```
+python3 pip install -r requirements.txt
+python3 pip install viennarna
+```
+
+### With Conda - creating your own environment
+
+```
+conda create -n desirna python=3 numpy matplotlib pandas
+conda activate desirna
+pip install viennarna
+```
+
+### With Conda - using portable environment
+
+```
+conda env create -f DesiRNA-env.yml
+conda activate DesiRNA-env
+```
