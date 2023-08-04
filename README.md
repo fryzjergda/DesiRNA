@@ -1,12 +1,11 @@
 # DesiRNA
 
-```markdown
 ## Usage
 
-You can execute the `2DesignRNA.py` program using the following command:
+You can execute the `DesiRNA.py` program using the following command:
 
 ```bash
-python 2DesignRNA.py [arguments]
+python DesiRNA.py [arguments]
 ```
 
 Here is a detailed explanation of each argument:
