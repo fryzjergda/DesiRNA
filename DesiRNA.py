@@ -119,7 +119,7 @@ def argument_parser():
     return infile, replicas, timlim, acgu_percs, pks, t_max, t_min, oligo, dimer, param, exchange_rate, scoring_f, pm,  alt_ss, tshelves,  in_seed, subopt
 
 
-def read_input():
+def read_input(infile):
     """
     Reads the input file and returns an InputFile object.
 
@@ -135,20 +135,20 @@ def read_input():
     data = string.lstrip(">").rstrip("\n").split("\n>")
     data_dict = {}
     for i in range(0, len(data)):
-        type = data[i].split("\n")
-        key, values = type[0], type[1:]
+        type_entry = data[i].split("\n")
+        key, values = type_entry[0], type_entry[1:]
         data_dict[key] = values
     
 
-    input = InputFile(data_dict['name'][0], data_dict['sec_struct'][0], data_dict['seq_restr'][0])
+    input_file = InputFile(data_dict['name'][0], data_dict['sec_struct'][0], data_dict['seq_restr'][0])
     
     if 'seed_seq' in data_dict:
-        input.add_seed_seq(data_dict['seed_seq'][0]) 
+        input_file.add_seed_seq(data_dict['seed_seq'][0]) 
     
     if 'alt_sec_struct' in data_dict:
-        input.add_alt_sec_struct(data_dict['alt_sec_struct'][0])
+        input_file.add_alt_sec_struct(data_dict['alt_sec_struct'][0])
     
-    return input
+    return input_file
 
 
 def check_dot_bracket(ss):
@@ -230,19 +230,19 @@ def check_length(ss, restr):
         sys.exit("Secondary structure and sequence restraints are of different length. Check input file.")
 
 
-def get_nt_list(input):
+def get_nt_list(input_file):
     """
     Constructs a list of Nucleotide objects from the given InputFile object.
 
     Args:
-        input (InputFile): The InputFile object containing the data from the input file.
+        input_file (InputFile): The InputFile object containing the data from the input file.
 
     Returns:
         list_of_nt (list): A list of Nucleotide objects.
     """
 
-    pair_list = input.pairs
-    restr_seq = input.seq_restr
+    pair_list = input_file.pairs
+    restr_seq = input_file.seq_restr
     
     list_of_nt = []
     
@@ -252,12 +252,12 @@ def get_nt_list(input):
         list_of_nt.append(obj)
 
     for i in range(0, len(pair_list)):
-        open = pair_list[i][0]
-        close = pair_list[i][1]
-        list_of_nt[open].add_pair(close)
-        list_of_nt[close].add_pair(open)
-        nt_open = list_of_nt[open]
-        nt_close = list_of_nt[close]
+        open_br = pair_list[i][0]
+        close_br = pair_list[i][1]
+        list_of_nt[open_br].add_pair(close_br)
+        list_of_nt[close_br].add_pair(open_br)
+        nt_open = list_of_nt[open_br]
+        nt_close = list_of_nt[close_br]
 
         for k in range(0, len(nt_open.letters)):
             pairing_let = can_pair(nt_open.letters[k])
@@ -394,20 +394,20 @@ def can_pair(nt):
     return pairing_l
 
 
-def random_sequence_generator(nt_list,input):
+def random_sequence_generator(nt_list,input_file):
     """
     Generates a random sequence that satisfies the sequence restraints.
 
     Args:
         nt_list (list): A list of Nucleotide objects.
-        input (InputFile): The InputFile object containing the data from the input file.
+        input_file (InputFile): The InputFile object containing the data from the input file.
 
     Returns:
         result_sequence (str): The randomly generated sequence.
     """
     
-    seq_l = list(input.seq_restr).copy()
-    pair_list = sorted(input.pairs.copy())
+    seq_l = list(input_file.seq_restr).copy()
+    pair_list = sorted(input_file.pairs.copy())
 
     
     for i in range(0 , len(nt_list)):
@@ -438,7 +438,7 @@ def random_sequence_generator(nt_list,input):
     return result_sequence    
 
     
-def initial_sequence_generator(nt_list, input):
+def initial_sequence_generator(nt_list, input_file):
     """
     Generates the initial RNA sequence. The function iterates over the secondary structure
     of the RNA (input.sec_struct) and generates a corresponding sequence based on the type
@@ -446,15 +446,15 @@ def initial_sequence_generator(nt_list, input):
     as a string.
 
     Args:
-        input (object): An InputFile object that contains the secondary structure of the RNA.
+        input_file (object): An InputFile object that contains the secondary structure of the RNA.
 
     Returns:
         str: The generated initial RNA sequence.
     """
 
 
-    seq_l = list(input.seq_restr).copy()
-    pair_list = sorted(input.pairs.copy())
+    seq_l = list(input_file.seq_restr).copy()
+    pair_list = sorted(input_file.pairs.copy())
 
 
     # assign A to all nonbonded nucleotides
@@ -527,8 +527,8 @@ def initial_sequence_generator(nt_list, input):
 
     result_sequence = ''.join(seq_l)
 
-    if input.seed_seq:
-        result_sequence = input.seed_seq
+    if input_file.seed_seq:
+        result_sequence = input_file.seed_seq
 
     return result_sequence
 
@@ -608,9 +608,9 @@ def get_rep_temps():
     return rep_temps
 
 
-def generate_initial_list(nt_list, input):
+def generate_initial_list(nt_list, input_file):
     
-    sequence = initial_sequence_generator(nt_list, input)
+    sequence = initial_sequence_generator(nt_list, input_file)
     
     seq_list = []
     
@@ -631,13 +631,13 @@ def generate_initial_list(nt_list, input):
     return seq_list
 
 
-def generate_initial_list_random(nt_list, input):
+def generate_initial_list_random(nt_list, input_file):
     """
     Generate an initial list of random RNA sequences.
 
     Args:
         nt_list (list): List of nucleotide objects.
-        input (object): An InputFile object that contains the secondary structure of the RNA.
+        input_file (object): An InputFile object that contains the secondary structure of the RNA.
 
     Returns:
         list: List of ScoreSeq objects each representing a random RNA sequence.
@@ -645,8 +645,8 @@ def generate_initial_list_random(nt_list, input):
     
     seq_list = []
     for i in range(0,replicas):
-        sequence = random_sequence_generator(nt_list, input)
-        deltaF = delta_MFE_EOS(input.sec_struct, sequence)
+        sequence = random_sequence_generator(nt_list, input_file)
+        deltaF = delta_MFE_EOS(input_file.sec_struct, sequence)
         score = metropolis_score(310, deltaF)
         seq_list.append([sequence, score])
 
@@ -1008,7 +1008,7 @@ def replica_exchange(replicas, stats_obj):
         tuple: A tuple containing the list of replicas after exchange and the updated statistics object.
     """
 
-    sec_struct = input.sec_struct
+    sec_struct = input_file.sec_struct
     re_pairs = []
 
     num_shelfs = [i for i in range(1, len(replicas))]
@@ -1090,6 +1090,11 @@ def get_mfe_e_ss(seq):
         structure = dimer_struct[3]
         energy = dimer_struct[0]
 
+#    if oligo == "on":
+#        pf_struct = RNA.fold(seq)
+#        structure_nopk = pf_struct[0]
+#        energy = pf_struct[1]
+
     return energy, structure
 
 
@@ -1127,29 +1132,29 @@ def score_sequence(seq):
     scored_sequence.get_mfe_ss(mfe_structure)
 
 
-    scored_sequence.get_target_e(RNA.energy_of_struct(seq, input.sec_struct.replace("&","")))
+    scored_sequence.get_target_e(RNA.energy_of_struct(seq, input_file.sec_struct.replace("&","")))
 
     scored_sequence.get_d_mfe_target(scored_sequence.mfe_e, scored_sequence.target_e)
 
-    if dimer== "off" and input.alt_sec_struct == None:
+    if dimer== "off" and input_file.alt_sec_struct == None:
 #        scored_sequence.get_subopt_ss(func.get_first_suboptimal_structure_and_energy(seq)[0])
 #        scored_sequence.get_subopt_e(func.get_first_suboptimal_structure_and_energy(seq)[1])
         scored_sequence.get_subopt_ss(mfe_structure)
         scored_sequence.get_subopt_e(mfe_energy)
 
-    elif dimer == "on" and input.alt_sec_struct == None:
+    elif dimer == "on" and input_file.alt_sec_struct == None:
 
         scored_sequence.get_subopt_ss(mfe_structure)
         scored_sequence.get_subopt_e(mfe_energy)
 
-    if input.alt_sec_struct != None:
+    if input_file.alt_sec_struct != None:
         scored_sequence.get_subopt_e(mfe_energy)
         scored_sequence.get_alt_mfe_e(get_mfe_e_ss(seq)[0])
-        scored_sequence.get_alt_target_e(RNA.energy_of_struct(seq,input.alt_sec_struct))
+        scored_sequence.get_alt_target_e(RNA.energy_of_struct(seq,input_file.alt_sec_struct))
         scored_sequence.get_d_alt_mfe_target(scored_sequence.alt_mfe_e, scored_sequence.alt_target_e)
 #    scored_sequence.get_d_mfe_subopt(scored_sequence.mfe_e, scored_sequence.subopt_e)    
     
-    ssc = SimScore(input.sec_struct.replace("&","Ee"), scored_sequence.mfe_ss.replace("&","Ee"))
+    ssc = SimScore(input_file.sec_struct.replace("&","Ee"), scored_sequence.mfe_ss.replace("&","Ee"))
     ssc.find_basepairs()
     ssc.cofusion_matrix()
 
@@ -1176,7 +1181,8 @@ def score_sequence(seq):
 
     if oligo == "on":
         scored_sequence.get_oligomerization()
-
+        scored_sequence.get_scoring_function_w_oligo()
+        
     return scored_sequence
 
 
@@ -1240,9 +1246,9 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
 
         accept, accept_e = mc_delta(deltaF_o, deltaF_m, sequence_o.temp_shelf)
 
-        if accept == True and oligo == "on":
-            if sequence_m.oligomerization == True:
-                accept = False
+#        if accept == True and oligo == "on":
+#           if sequence_m.oligomerization == True:
+#                accept = False
         
 #        if accept == True and (sequence_m.scoring_function < sequence_o.scoring_function):
 #            best_score = sequence_m
@@ -1335,7 +1341,7 @@ def run_functions():
     Parameters:
     sequence_o (str): The initial sequence.
     nt_list (list): A list of possible nucleotides to use in mutation.
-    input (object): An object that encapsulates the input parameters.
+    input_file (object): An object that encapsulates the input parameters.
     temps (list): A list of temperature values to use in the design process.
     steps (int): The number of steps to run in the design process.
     scoring_f (str): The scoring function to use.
@@ -1347,18 +1353,18 @@ def run_functions():
     list: A list of sequences that are the result of the design process.
     """
     
-    input.pairs = check_dot_bracket(input.sec_struct)  #check dotbracket correctness, assign as list of pairs 
-    check_seq_restr(input.seq_restr)
-    check_length(input.sec_struct, input.seq_restr)
-    nt_list = get_nt_list(input)
+    input_file.pairs = check_dot_bracket(input_file.sec_struct)  #check dotbracket correctness, assign as list of pairs 
+    check_seq_restr(input_file.seq_restr)
+    check_length(input_file.sec_struct, input_file.seq_restr)
+    nt_list = get_nt_list(input_file)
     check_input_logic(nt_list)
     
     
     global target_pairs_tupl
-    target_pairs_tupl = {tuple(pair) for pair in input.pairs}
+    target_pairs_tupl = {tuple(pair) for pair in input_file.pairs}
     
-    seqence_score_list = generate_initial_list(nt_list, input)
-    seqence_score_list_random = generate_initial_list_random(nt_list, input)
+    seqence_score_list = generate_initial_list(nt_list, input_file)
+    seqence_score_list_random = generate_initial_list_random(nt_list, input_file)
 
     start_time = time.time()
     
@@ -1388,9 +1394,13 @@ def run_functions():
             seqence_score_list[i].get_sim_step(stats.step)
             simulation_data.append(vars(seqence_score_list[i]))
 
-        
         if stats.global_step % 10 == 0:
-            sorted_results_mid = sorted(round_floats(simulation_data), key=lambda d: (-d['mcc'], -d['d_mfe_target'], -d['mfe_e']), reverse = True)
+            remove_duplicated_results = {item['sequence']: item for item in simulation_data}
+            simulation_data_noduplicates = list(remove_duplicated_results.values())
+            if oligo == "on":
+                sorted_results_mid = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['oligomerization'],-d['mcc'], -d['d_mfe_target'], -d['mfe_e']), reverse = True)
+            else:
+                sorted_results_mid = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['mcc'], -d['d_mfe_target'], -d['mfe_e']), reverse = True)
             sorted_results_mid = sorted_results_mid[:100]
 #            sorted_results_mid = round_floats(simulation_data)
             with open(outname+'_mid_results.csv', 'w', newline='') as csvfile:
@@ -1467,7 +1477,12 @@ def run_functions():
     with open(outname+'_best_fasta.fas', 'w') as fastafile:
         fastafile.write(best_fasta_txt)
 
-    sorted_results = sorted(round_floats(simulation_data), key=lambda d: (-d['mcc'], -d['d_mfe_target'], -d['mfe_e']), reverse = True)
+    remove_duplicated_results = {item['sequence']: item for item in simulation_data}
+    simulation_data_noduplicates = list(remove_duplicated_results.values())
+    if oligo == "on":
+        sorted_results = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['oligomerization'], -d['mcc'], -d['d_mfe_target'], -d['mfe_e']), reverse = True)
+    else:
+        sorted_results = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['mcc'], -d['d_mfe_target'], -d['mfe_e']), reverse = True)
     sorted_results = sorted_results[:100]
     
     with open(outname+'_results.csv', 'w', newline='') as csvfile:
@@ -1488,14 +1503,13 @@ def run_functions():
             correct +=1
             correct_bool = True
     
-    correct_result_txt = ">"+infile+","+str(correct_bool)+","+str(correct)+","+sorted_results[0]['sequence']+','+sorted_results[0]['mfe_ss']+","+input.sec_struct+'\n'
+    correct_result_txt = ">"+infile+","+str(correct_bool)+","+str(correct)+","+sorted_results[0]['sequence']+','+sorted_results[0]['mfe_ss']+","+input_file.sec_struct+'\n'
     
-    print("\n\nDesign solved: ",correct_bool)
+#    print("\n\nDesign solved: ",correct_bool)
     
     with open(outname+'_best_str', 'w', newline='') as myfile:
         myfile.write(correct_result_txt)
-    print(input.alt_sec_struct)
-    func.plot_simulation_data_combined(simulation_data, outname, scoring_f, input.alt_sec_struct)
+    func.plot_simulation_data_combined(simulation_data, outname, scoring_f, input_file.alt_sec_struct)
 
 
     traj_txt = ""
@@ -1508,13 +1522,19 @@ def run_functions():
     sum_mc_metro = sum_mc-stats.acc_mc_better_e
     acc_metro = stats.acc_mc_step-stats.acc_mc_better_e
 
-
+    if correct_bool == True:
+        best_solution_txt = "\nDesign solved succesfully!\n\nBest solution:\n"+str(sorted_results[0]['sequence'])+"\n"+str(sorted_results[0]['mfe_ss'])\
+                            +"\nMFE:"+str(sorted_results[0]['mfe_e'])+"\n"
+    else:
+        best_solution_txt = "\nDesign not solved!"+"\n\nTarget structure:\n"+str(input_file.sec_struct)+"\n\nClosest solution:\n"+str(sorted_results[0]['sequence'])+"\n"+str(sorted_results[0]['mfe_ss'])\
+                           +"\nMFE: "+str(sorted_results[0]['mfe_e'])+"\n1-MCC: "+str(sorted_results[0]['mcc'])+"\n"
+    
     stats_txt = ">"+outname+" time="+str(timlim)+"s\n"+'Acc_ratio= '+str(acc_perc)+', Iterations='+str(stats.step)+', Accepted='\
                         +str(stats.acc_mc_step)+'/'+str(sum_mc)+', Rejected='+str(stats.rej_mc_step)+'/'+str(sum_mc) + '\n'\
                         +'Accepted Metropolis='+str(acc_metro)+'/'+str(sum_mc_metro)+', Rejected Metropolis='+str(sum_mc_metro-acc_metro)+'/'+str(sum_mc_metro) + '\n'\
-                        +"Replica exchange attempts: "+str(stats.global_step)+"\nReplica swaps accepted: "+str(stats.acc_re_step)\
+                        +"Replica exchange attempts: "+str(stats.global_step)+"\nReplica swaps attempts: "+str(stats.acc_re_step+stats.rej_re_step)+"\nReplica swaps accepted: "+str(stats.acc_re_step)\
                         +"\nReplica swaps rejected: "+str(stats.rej_re_step) + "\nReplica exchange acc_ratio: "\
-                        + str( round(stats.acc_re_step/(stats.acc_re_step+stats.rej_re_step) , 3))+'\n'
+                        + str( round(stats.acc_re_step/(stats.acc_re_step+stats.rej_re_step) , 3))+'\n'+best_solution_txt
     
     print('\n' + stats_txt)
 
@@ -1522,7 +1542,7 @@ def run_functions():
         myfile.write(stats_txt)
         
         
-def get_outname():
+def get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, point_mutations,  alt_ss, tshelves, in_seed, subopt):
     """
     Generate an output name for a file based on the current parameters.
 
@@ -1656,24 +1676,24 @@ if __name__ == '__main__':
     
     nt_percentages = {"A":15, "C":30, "G":30,"U":15}
     
-    input = read_input()
+    input_file = read_input(infile)
 
-    if input.alt_sec_struct != None:
+    if input_file.alt_sec_struct != None:
         alt_ss = "on"
         scoring_f = "alt"
 
-    if "&" in input.sec_struct:
+    if "&" in input_file.sec_struct:
         dimer = "on"
     else:
         dimer = "off"
 
 
-    if ("[" or "<" or "{") in input.sec_struct:
+    if ("[" or "<" or "{") in input_file.sec_struct:
         pks = "on"
     else:
         pks = "off"
     
-    outname = get_outname()
+    outname = get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, point_mutations,  alt_ss, tshelves, in_seed, subopt)
 
     if tshelves == '':
         rep_temps_shelfs = get_rep_temps()

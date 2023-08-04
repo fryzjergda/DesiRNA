@@ -363,7 +363,12 @@ class ScoreSeq:
 
     def get_scoring_function_w_subopt(self):
         self.scoring_function = self.d_mfe_target -self.d_mfe_subopt 
-
+    
+    def get_scoring_function_w_oligo(self):
+        if self.oligomerization == True:
+            self.scoring_function = 300*self.d_mfe_target
+        else:
+            self.scoring_function = self.d_mfe_target
             
 def get_first_suboptimal_structure_and_energy(sequence):
     """
