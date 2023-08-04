@@ -37,7 +37,7 @@ Here is a detailed explanation of each argument:
 To use the program with specific options, include the corresponding arguments in your command. For example, to execute the program with 20 replicas, your command would look like this:
 
 ```bash
-python 2DesignRNA.py -f yourfile -R 20
+python DesiRNA.py -f yourfile -R 20
 ```
 
 Replace `yourfile` with the path to your input file and `20` with the number of replicas you want to use. If your file path contains spaces, please enclose it in quotation marks.
