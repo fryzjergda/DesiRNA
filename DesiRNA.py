@@ -134,6 +134,7 @@ def read_input(infile):
             
     data = string.lstrip(">").rstrip("\n").split("\n>")
     data_dict = {}
+    print(data)
     for i in range(0, len(data)):
         type_entry = data[i].split("\n")
         key, values = type_entry[0], type_entry[1:]
@@ -899,6 +900,24 @@ def get_pk_struct(seq, ss_nopk):
                 l_ss_pk[i] = ">"        
 
         ss_pk = ''.join(l_ss_pk)
+        
+        if "(" in mfe_structure:
+            constraints = ss_pk.replace("(","x").replace(")","x").replace("[","x").replace("]","x").replace("<","x").replace(">","x")
+            fc = RNA.fold_compound(seq)
+            fc.hc_add_from_db(constraints)
+
+            mfe_structure, mfe_energy = fc.mfe()
+            l_ss_pk = list(ss_pk)
+            l_mfe_pk2 = list(mfe_structure)
+
+            for i in range(0, len(l_ss_pk)):
+                if l_mfe_pk2[i] == "(":
+                    l_ss_pk[i] = "{"
+                if l_mfe_pk2[i] == ")":
+                    l_ss_pk[i] = "}"
+
+                ss_pk = ''.join(l_ss_pk)
+
     
     return ss_pk
 
@@ -1681,14 +1700,21 @@ if __name__ == '__main__':
     if input_file.alt_sec_struct != None:
         alt_ss = "on"
         scoring_f = "alt"
+    
+    print(input_file.alt_sec_struct)
 
     if "&" in input_file.sec_struct:
-        dimer = "on"
+        too_much = input_file.sec_struct.count("&")
+        if too_much == 1:
+            dimer = "on"
+        else:
+            print("\nToo much structures in the input. Can only design dimers.\nPlease correct your input file.\n")
+            quit()
     else:
         dimer = "off"
 
-
-    if ("[" or "<" or "{") in input_file.sec_struct:
+    if set(input_file.sec_struct) != set('.()'):
+#    if ("[" or "<" or "{") in input_file.sec_struct:
         pks = "on"
     else:
         pks = "off"
