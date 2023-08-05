@@ -16,6 +16,9 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import multiprocessing as mp
 import pandas as pd
+from pathlib import Path
+from shutil import copy
+from shutil import move
 
 from utils import functions_classes as func
 from utils.SimScore import SimScore
@@ -1572,7 +1575,18 @@ def run_functions():
     with open(outname+'_stats', 'w', newline='\n') as myfile:
         myfile.write(stats_txt)
         
-        
+    files_to_move = ['_best_str', '_traj.csv', '_replicas.csv', '_best_fasta.fas','_multifasta.fas','_random.csv', '.command']
+    
+    for i in range(0, len(files_to_move)):
+        move(outname+files_to_move[i], "trajectory_files/"+(outname+files_to_move[i]))
+    
+    
+    
+    
+    
+    
+    
+    
 def get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, Dimer, param, RE_attempt, scoring_f, point_mutations,  alt_ss, tshelves, in_seed, subopt):
     """
     Generate an output name for a file based on the current parameters.
@@ -1749,6 +1763,14 @@ if __name__ == '__main__':
 #        original_seed = random.random()
     random.seed(original_seed)
     print(original_seed)
+
+    WORK_DIR = outname+"_"+str(now)
+    Path(WORK_DIR).mkdir(parents=True, exist_ok=True)
+    copy(infile, WORK_DIR+"/"+infile)
+    move(outname+".command", WORK_DIR+"/"+(outname+".command"))
+    Path(WORK_DIR+"/trajectory_files").mkdir(parents=True, exist_ok=True)
+    os.chdir(WORK_DIR)
+
 
     
     run_functions()
