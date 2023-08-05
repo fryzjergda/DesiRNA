@@ -128,16 +128,15 @@ DesiRNA.py -h
 
 ### Input Files
 
-The input file for DesiRNA must contain information related to the RNA sequence design, specifically for single chain RNA. Here's an overview of the expected format:
+The input file for DesiRNA must contain specific information related to the RNA sequence design. Here's an overview of the expected format and additional options:
 
-- **Name Line:** Starts with `>name` on one line, followed by a unique identifier for the RNA design on the next line (e.g., `Ete_11`).
-- **Sequence Restraints Line:** Starts with `>seq_restr` on one line, followed by the sequence restraints on the next line, where `N` represents any nucleotide. The sequence restraints define the allowed nucleotides at each position.
-- **Secondary Structure Line:** Starts with `>sec_struct` on one line, followed by the secondary structure in dot-bracket notation on the next line.
+#### Basic Single Chain RNA Design
 
-#### Example:
+- **Name Line:** `>name` followed by a unique identifier.
+- **Sequence Restraints Line:** `>seq_restr` followed by sequence restraints using IUPAC nomenclature.
+- **Secondary Structure Line:** `>sec_struct` followed by the secondary structure.
 
-A basic single chain RNA design file may look like this:
-
+##### Example:
 
 ```
 >name
@@ -147,4 +146,79 @@ NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 >sec_struct
 ((((((.((((((((....))))).)).).))))))
 ```
+
+#### Design with Pseudoknots
+
+Include different brackets for pseudoknot representation.
+
+**Note:** Available brackets for pseudoknots include `()`, `[]`, `<`, `>`, `{}`, `Aa`, `Bb`, `Cc`, `Dd`. Up to three levels of pseudoknots are accepted.
+
+##### Example:
+
+```
+>name
+Pseudoknot_Example
+>seq_restr
+NNNNNNNNNNNNNNNNNNNN
+>sec_struct
+((((((....[[[[..))))))......]]]]....
+```
+
+#### Two-Chain RNA Complex Design
+
+Include an `&` symbol in both the sequence restraints and structure lines.
+
+**Note:** A maximum of two-chain RNAs can be designed.
+
+
+##### Example:
+
+```
+>name
+Two_Chain_Example
+>seq_restr
+NNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNN
+>sec_struct
+(((.(((((....))..&(((....)))..))))))
+```
+
+#### Design with Alternative Structures
+
+Include an additional line for alternative structures.
+
+**Note:** One can design a sequence folding into two structures maximum.
+
+##### Example:
+
+```
+>name
+Alt_Struct_Example
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+((((((.((((((((....))))).)).).))))))
+>alt_sec_struct
+(((((((((((((....)))..)).)).).))))).
+```
+
+#### Design with Seed Sequence
+
+Include a seed sequence for the starting point of the design simulation.
+
+##### Example:
+
+```
+>name
+Seed_Seq_Example
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+((((((.((((((((....))))).)).).))))))
+>seed_seq
+GCCCCGGCCCCCGGCGAAAGCCGGUGGAGGCGGGGC
+```
+
+#### Sequence Restraints Dictionary:
+
+The sequence restraints line uses IUPAC symbols such as `N` for any nucleotide, `W` for A or U, `S` for C or G, etc.
 
