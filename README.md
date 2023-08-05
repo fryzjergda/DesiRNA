@@ -1,5 +1,24 @@
 # DesiRNA
 
+DesiRNA is a state-of-the-art RNA sequence design tool, written in Python3, that stands out for its speed, lightweight nature, ease of installation, and user-friendly interface. It's tailored for researchers and professionals working with RNA sequence design for given secondary structures.
+
+## Features
+- **Super Fast:** Utilizes replica exchange Monte Carlo for efficient computations.
+- **Lightweight:** Purely Python-based, ensuring minimal system requirements.
+- **Easy to Install:** A hassle-free installation process that gets you started quickly.
+- **Versatile Design Capabilities:**
+  - Single chain RNAs
+  - Two-strand RNA complexes
+  - RNAs with alternative structures
+  - RNAs with pseudoknots
+  - Checks if the designed RNA tends to oligomerize
+  - Designs RNAs with natural ACGU content
+- **Positive and Negative Design:** Follows both positive and negative design principles.
+- **Exceptional Performance:** Proven extraordinary performance in the EteRNA benchmark, solving 99 out of 100 design problems in under 24 hours.
+
+Whether you're an academic researcher, a biotech professional, or an RNA enthusiast, DesiRNA offers a comprehensive solution for all your RNA design needs. Explore the tool and discover how it can accelerate your research and innovation.
+
+
 ## Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
