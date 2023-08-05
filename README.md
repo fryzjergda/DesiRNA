@@ -50,6 +50,65 @@ conda activate DesiRNA-env
 ```
 
 
+Certainly! Here's a more formal version of the "Installation" section:
+
+```markdown
+## Installation
+
+The installation of DesiRNA can be accomplished through several methods. Below are the instructions for different scenarios:
+
+### Without Conda
+
+Execute the following commands:
+
+```bash
+python3 -m pip install -r requirements.txt
+python3 -m pip install viennarna
+```
+
+### With Conda - Creating a Custom Environment
+
+Execute the following commands:
+
+```bash
+conda create -n desirna python=3 numpy matplotlib pandas shutil pathlib
+conda activate desirna
+pip install viennarna
+```
+
+### With Conda - Utilizing Conda Environment YAML File
+
+Execute the following commands:
+
+```bash
+conda env create -f DesiRNA-env.yml
+conda activate DesiRNA-env
+```
+
+### Adding DesiRNA to PATH
+
+To facilitate access to DesiRNA from the command line, the path to `DesiRNA.py` may be added to the `.bashrc` file:
+
+```bash
+echo 'export PATH=$PATH:/path/to/DesiRNA.py' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Replace `/path/to/DesiRNA.py` with the correct path to the `DesiRNA.py` file.
+
+### Additional Installation Guidance
+
+- **Conda Installation:** Should Conda be required, the [official Conda installation guide](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) provides comprehensive instructions.
+- **ViennaRNA Installation:** ViennaRNA may be installed through various methods. Detailed instructions are available in the [ViennaRNA installation guide](https://www.tbi.univie.ac.at/RNA/#download).
+
+It is imperative to ensure that all dependencies are properly installed prior to utilizing DesiRNA.
+```
+
+
+
+
+
+
 
 ## Usage
 
