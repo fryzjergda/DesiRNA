@@ -27,34 +27,6 @@ DesiRNA is a state-of-the-art RNA sequence design tool, that stands out for its 
 
 ## Installation
 
-### Without Conda
-
-```
-python3 -m pip install -r requirements.txt
-python3 -m pip install viennarna
-```
-
-### With Conda - creating your own environment
-
-```
-conda create -n desirna python=3 numpy matplotlib pandas shutil pathlib
-conda activate desirna
-pip install viennarna
-```
-
-### With Conda - using Conda environment YAML file
-
-```
-conda env create -f DesiRNA-env.yml
-conda activate DesiRNA-env
-```
-
-
-Certainly! Here's a more formal version of the "Installation" section:
-
-```markdown
-## Installation
-
 The installation of DesiRNA can be accomplished through several methods. Below are the instructions for different scenarios:
 
 ### Without Conda
@@ -100,12 +72,6 @@ Replace `/path/to/DesiRNA.py` with the correct path to the `DesiRNA.py` file.
 
 - **Conda Installation:** Should Conda be required, the [official Conda installation guide](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) provides comprehensive instructions.
 - **ViennaRNA Installation:** ViennaRNA may be installed through various methods. Detailed instructions are available in the [ViennaRNA installation guide](https://www.tbi.univie.ac.at/RNA/#download).
-
-It is imperative to ensure that all dependencies are properly installed prior to utilizing DesiRNA.
-```
-
-
-
 
 
 
