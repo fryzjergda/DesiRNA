@@ -97,4 +97,4 @@ dependencies:
   - zstd=1.5.5=hc292b87_0
   - pip:
       - viennarna==2.6.3
-prefix: /home/fryzjer/miniconda3/envs/DesiRNA-env
+

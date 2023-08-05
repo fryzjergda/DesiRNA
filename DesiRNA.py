@@ -66,7 +66,7 @@ def argument_parser():
     parser.add_argument("-o", "--oligomerization", required=False, dest="oligo", default='off', choices=['off','on'],
                             help="Check if the designed sequence tends to oligomerize. Slows down the simulation. [default = off]")
     parser.add_argument("-d", "--dimer", required=False, dest="dimer", default='off', choices=['off','on'],
-                            help="TBA")
+                            help="Design of a RNA complex, of two strands. [deafult = off, turns on automatically is '&' detected in the input file]")
 
 #    parser.add_argument("-m", "--mutations", required=False, dest="mutations", default='one', choices=['one','multi'],
 #                            help="More mutatuions pre one MC step in higher temperature replicas. Slows down the simulation. [default = off]")    
@@ -81,7 +81,7 @@ def argument_parser():
                             help="User defined seed number for simulation. [default = 0]")
                             
     parser.add_argument("-re_seq", "--replicas_sequences", required=False, dest="diff_start_replicas", default='one', choices=['different','same'],
-                            help="Choose wether replicas will start form the same random sequence or each replica will start from different random sequence. [default = same]")
+                            help="Choose wether replicas will start from the same random sequence or each replica will start from different random sequence. [default = same]")
 #    parser.add_argument("-rand_seed", "--random_seed", required=False, dest="rand_seed", default='on', choices=['off','on'],
 #                            help="Use random seed number for simulation. [default = on]")
 
@@ -1555,10 +1555,10 @@ def run_functions():
 
     if correct_bool == True:
         best_solution_txt = "\nDesign solved succesfully!\n\nBest solution:\n"+str(sorted_results[0]['sequence'])+"\n"+str(sorted_results[0]['mfe_ss'])\
-                            +"\nMFE:"+str(sorted_results[0]['mfe_e'])+"\n"
+                            +"\nMFE:"+str(round(sorted_results[0]['mfe_e'],3))+"\n"
     else:
         best_solution_txt = "\nDesign not solved!"+"\n\nTarget structure:\n"+str(input_file.sec_struct)+"\n\nClosest solution:\n"+str(sorted_results[0]['sequence'])+"\n"+str(sorted_results[0]['mfe_ss'])\
-                           +"\nMFE: "+str(sorted_results[0]['mfe_e'])+"\n1-MCC: "+str(sorted_results[0]['mcc'])+"\n"
+                           +"\nMFE: "+str(round(sorted_results[0]['mfe_e'],3))+"\n1-MCC: "+str(round(sorted_results[0]['mcc'],3))+"\n"
     
     stats_txt = ">"+outname+" time="+str(timlim)+"s\n"+'Acc_ratio= '+str(acc_perc)+', Iterations='+str(stats.step)+', Accepted='\
                         +str(stats.acc_mc_step)+'/'+str(sum_mc)+', Rejected='+str(stats.rej_mc_step)+'/'+str(sum_mc) + '\n'\
@@ -1713,7 +1713,6 @@ if __name__ == '__main__':
         alt_ss = "on"
         scoring_f = "alt"
     
-    print(input_file.alt_sec_struct)
 
     if "&" in input_file.sec_struct:
         too_much = input_file.sec_struct.count("&")

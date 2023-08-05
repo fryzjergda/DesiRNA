@@ -48,8 +48,8 @@ Replace `yourfile` with the path to your input file and `20` with the number of 
 ### Without Conda
 
 ```
-python3 pip install -r requirements.txt
-python3 pip install viennarna
+python3 -m pip install -r requirements.txt
+python3 -m pip install viennarna
 ```
 
 ### With Conda - creating your own environment
@@ -60,7 +60,7 @@ conda activate desirna
 pip install viennarna
 ```
 
-### With Conda - using portable environment
+### With Conda - using Conda environment YAML file
 
 ```
 conda env create -f DesiRNA-env.yml
