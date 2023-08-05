@@ -1527,7 +1527,14 @@ def run_functions():
             correct +=1
             correct_bool = True
     
-    correct_result_txt = ">"+infile+","+str(correct_bool)+","+str(correct)+","+sorted_results[0]['sequence']+','+sorted_results[0]['mfe_ss']+","+input_file.sec_struct+'\n'
+    if oligo == "on":
+        if sorted_results[0]['oligomerization'] == True:
+            oligo_txt = ",oligomerize: yes"
+        elif sorted_results[0]['oligomerization'] == False:
+            oligo_txt = ",oligomerize: no"
+        correct_result_txt = ">"+infile+","+str(correct_bool)+","+str(correct)+","+sorted_results[0]['sequence']+','+sorted_results[0]['mfe_ss']+","+input_file.sec_struct+oligo_txt+'\n'
+    else:
+        correct_result_txt = ">"+infile+","+str(correct_bool)+","+str(correct)+","+sorted_results[0]['sequence']+','+sorted_results[0]['mfe_ss']+","+input_file.sec_struct+'\n'
     
 #    print("\n\nDesign solved: ",correct_bool)
     
