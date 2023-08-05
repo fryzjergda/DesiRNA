@@ -123,6 +123,28 @@ For further assistance with the command-line options, you can use the help comma
 ```bash
 DesiRNA.py -h
 ```
-```
 
+## Files
+
+### Input Files
+
+The input file for DesiRNA must contain information related to the RNA sequence design, specifically for single chain RNA. Here's an overview of the expected format:
+
+- **Name Line:** Starts with `>name` on one line, followed by a unique identifier for the RNA design on the next line (e.g., `Ete_11`).
+- **Sequence Restraints Line:** Starts with `>seq_restr` on one line, followed by the sequence restraints on the next line, where `N` represents any nucleotide. The sequence restraints define the allowed nucleotides at each position.
+- **Secondary Structure Line:** Starts with `>sec_struct` on one line, followed by the secondary structure in dot-bracket notation on the next line.
+
+#### Example:
+
+A basic single chain RNA design file may look like this:
+
+
+```
+>name
+Ete_11
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+((((((.((((((((....))))).)).).))))))
+```
 
