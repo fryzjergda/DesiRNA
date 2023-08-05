@@ -159,7 +159,7 @@ Include different brackets for pseudoknot representation.
 >name
 Pseudoknot_Example
 >seq_restr
-NNNNNNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 >sec_struct
 ((((((....[[[[..))))))......]]]]....
 ```
@@ -194,7 +194,7 @@ Include an additional line for alternative structures.
 >name
 Alt_Struct_Example
 >seq_restr
-NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 >sec_struct
 ((((((.((((((((....))))).)).).))))))
 >alt_sec_struct
