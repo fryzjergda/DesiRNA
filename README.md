@@ -57,7 +57,7 @@ conda env create -f DesiRNA-env.yml
 conda activate DesiRNA-env
 ```
 
-### Adding DesiRNA to PATH
+#### Adding DesiRNA to PATH
 
 To facilitate access to DesiRNA from the command line, the path to `DesiRNA.py` may be added to the `.bashrc` file:
 
@@ -68,7 +68,7 @@ source ~/.bashrc
 
 Replace `/path/to/DesiRNA.py` with the correct path to the `DesiRNA.py` file.
 
-### Additional Installation Guidance
+#### Additional Installation Guidance
 
 - **Conda Installation:** Should Conda be required, the [official Conda installation guide](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) provides comprehensive instructions.
 - **ViennaRNA Installation:** ViennaRNA may be installed through various methods. Detailed instructions are available in the [ViennaRNA installation guide](https://www.tbi.univie.ac.at/RNA/#download).
