@@ -1,5 +1,40 @@
 # DesiRNA
 
+## Table of Contents
+- [Installation](#installation)
+- [Usage](#usage)
+- [Files](#files)
+- [Citation](#citation)
+- [License](#license)
+- [Contact](#contact)
+
+
+## Installation
+
+### Without Conda
+
+```
+python3 -m pip install -r requirements.txt
+python3 -m pip install viennarna
+```
+
+### With Conda - creating your own environment
+
+```
+conda create -n desirna python=3 numpy matplotlib pandas shutil pathlib
+conda activate desirna
+pip install viennarna
+```
+
+### With Conda - using Conda environment YAML file
+
+```
+conda env create -f DesiRNA-env.yml
+conda activate DesiRNA-env
+```
+
+
+
 ## Usage
 
 You can execute the `DesiRNA.py` program using the following command:
@@ -43,26 +78,3 @@ python DesiRNA.py -f yourfile -R 20
 Replace `yourfile` with the path to your input file and `20` with the number of replicas you want to use. If your file path contains spaces, please enclose it in quotation marks.
 
 
-## Installation
-
-### Without Conda
-
-```
-python3 -m pip install -r requirements.txt
-python3 -m pip install viennarna
-```
-
-### With Conda - creating your own environment
-
-```
-conda create -n desirna python=3 numpy matplotlib pandas
-conda activate desirna
-pip install viennarna
-```
-
-### With Conda - using Conda environment YAML file
-
-```
-conda env create -f DesiRNA-env.yml
-conda activate DesiRNA-env
-```
