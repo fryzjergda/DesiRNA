@@ -93,20 +93,23 @@ DesiRNA.py -f NAME
 - `-R, --replicas REPLICAS`: Number of replicas (default: 10).
 - `-e, --exchange EXCHANGE`: Frequency of replica exchange attempt (default: 100).
 - `-t, --timelimit TIMLIM`: Time limit for running the program in seconds (default: 60).
+- `-s, --steps STEPS`: Number of Replica Exchange steps, overwrites the `-t` option (default: None).
+- `-r, --results_number NUM_RESULTS`: Number of best results to be reported (default: 10).
 - `-p, --param {2004,1999}`: Turner energy parameter for calculating MFE (default: 1999).
 - `-tmin, --tmin T_MIN`: Minimal Replica Temperature (default: 10).
 - `-tmax, --tmax T_MAX`: Maximal Replica Temperature (default: 150).
 - `-ts, --tshelves TSHELVES`: Custom temperature shelves for replicas, provide comma-separated values.
-- `-sf, --scoring_function {dmt,mcc,mfe,mix,mix2,alt}`: Scoring function used to guide the design process (default: dmt).
+- `-sf, --scoring_function {dmt,mcc}`: Scoring function used to guide the design process (default: dmt).
 - `-nd, --negative_design {off,on}`: Use negative design approach (default: off).
-- `-acgu, --ACGU {off,on}`: Keep 'natural' ACGU content (default: off).
-- `-pk, --PK {off,on}`: Design of pseudoknotted structures (default: off).
+- `-acgu, --ACGU {off,on}`: Keep 'natural' ACGU content, with default content A:15%, C:30%, G:30%, U:15% (default: off).
+- `-acgu_content, --ACGU_content ACGU_CONTENT`: Provide user-defined ACGU content, comma-separated values (e.g., 10,40,40,10).
 - `-o, --oligomerization {off,on}`: Check if the designed sequence tends to oligomerize (default: off).
-- `-d, --dimer {off,on}`: Design of an RNA complex, of two strands (default: off).
 - `-tm, --target_mutations {off,on}`: Targeted mutations (default: on).
-- `-a, --alt_ss {off,on}`: Design of sequences folding into two structures (default: off).
+- `-tm_perc_max, --target_mutations_percentage_max TM_MAX`: Highest percentage of targeted mutations for the lowest temperature replica (default: 0.7).
+- `-tm_perc_min, --target_mutations_percentage_min TM_MIN`: Lowest percentage of targeted mutations for the highest temperature replica (default: 0.0).
 - `-seed, --seed IN_SEED`: User-defined seed number for simulation (default: 0).
 - `-re_seq, --replicas_sequences {different,same}`: Choose whether replicas will start from the same or different random sequence (default: same).
+
 
 ### Example Usage
 
