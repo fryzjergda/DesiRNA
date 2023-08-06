@@ -225,3 +225,4 @@ GCCCCGGCCCCCGGCGAAAGCCGGUGGAGGCGGGGC
 
 The sequence restraints line uses IUPAC symbols such as `N` for any nucleotide, `W` for A or U, `S` for C or G, etc.
 
+For more details on the IUPAC nomenclature, please refer to the [NCBI's page on nucleotide codes](https://www.ncbi.nlm.nih.gov/Class/MLACourse/Modules/MolBioReview/iupac_nomenclature.html).
