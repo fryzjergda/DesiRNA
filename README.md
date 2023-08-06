@@ -225,4 +225,17 @@ GCCCCGGCCCCCGGCGAAAGCCGGUGGAGGCGGGGC
 
 The sequence restraints line uses IUPAC symbols such as `N` for any nucleotide, `W` for A or U, `S` for C or G, etc.
 
-For more details on the IUPAC nomenclature, please refer to the [NCBI's page on nucleotide codes](https://www.ncbi.nlm.nih.gov/Class/MLACourse/Modules/MolBioReview/iupac_nomenclature.html).
+For more details on the IUPAC nomenclature, please refer to the [Wikipedia page on nucleic acid notation](https://en.wikipedia.org/wiki/Nucleic_acid_notation).
+
+
+
+
+## Citation
+
+If you use DesiRNA in your research, please cite our paper:
+
+[DesiRNA: structure-based design of RNA sequences with a Monte Carlo approach](https://www.biorxiv.org/content/10.1101/2023.06.04.543636v1.abstract)
+
+You can find the full citation details at the link above. Your citation helps support our work and ensures that it reaches a wider audience.
+
+For any inquiries related to the paper or the use of DesiRNA, please feel fr
