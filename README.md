@@ -248,3 +248,14 @@ DesiRNA is licensed under the Apache License, Version 2.0. You may obtain a copy
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 For the full license text, please see the [LICENSE](LICENSE) file in the repository.
+
+## Contact
+
+If you have any questions, need support, or would like to collaborate, please feel free to reach out to us:
+
+- **Dr. Tomasz. K Wirecki**: [twirecki@iimcb.gov.pl](mailto:twirecki@iimcb.gov.pl)
+- **Prof. Janusz M. Bujnicki**: [janusz@iimcb.gov.pl](mailto:janusz@iimcb.gov.pl)
+
+You can also learn more about our research and other projects on our lab's website: [GeneSilico Lab](https://genesilico.pl/)
+
+We welcome feedback and contributions to DesiRNA, and we look forward to hearing from you!
