@@ -217,7 +217,7 @@ def read_input(infile):
         input_file.add_seed_seq(data_dict['seed_seq'][0]) 
     
     if 'alt_sec_struct' in data_dict:
-        input_file.add_alt_sec_struct(data_dict['alt_sec_struct'][0])
+        input_file.add_alt_sec_struct(data_dict['alt_sec_struct'])
     
     return input_file
 
@@ -1250,7 +1250,8 @@ def score_sequence(seq):
         scored_sequence.get_sln_mfe()
     
     if input_file.alt_sec_struct != None:
-        scored_sequence.get_edesired2(RNA.energy_of_struct(seq, input_file.alt_sec_struct))
+        energies = [RNA.energy_of_struct(seq, alt_dbn) for alt_dbn in input_file.alt_sec_structs]
+        scored_sequence.get_edesired2(sum(energies)/len(energies))
         scored_sequence.get_edesired2_minus_mfe(scored_sequence.mfe, scored_sequence.edesired2)    
         scored_sequence.get_scoring_function_w_alt_ss()
 
@@ -1743,14 +1744,14 @@ class InputFile:
         self.pairs = []
         self.seed_seq = None
         self.alt_sec_struct = None
+        self.alt_sec_structs = None
 
     def add_seed_seq(self, seed_seq):
         self.seed_seq = seed_seq
 
-    def add_alt_sec_struct(self, alt_sec_struct):
-        self.alt_sec_struct = alt_sec_struct
-
-
+    def add_alt_sec_struct(self, alt_sec_structs):
+        self.alt_sec_struct  = alt_sec_structs[0].strip()
+        self.alt_sec_structs = [x.strip() for x in alt_sec_structs]
 
 if __name__ == '__main__':
 
@@ -1838,7 +1839,6 @@ if __name__ == '__main__':
     move(outname+".command", WORK_DIR+"/"+(outname+".command"))
     Path(WORK_DIR+"/trajectory_files").mkdir(parents=True, exist_ok=True)
     os.chdir(WORK_DIR)
-
 
     
     run_functions()

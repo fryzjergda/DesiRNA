@@ -188,9 +188,7 @@ NNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNN
 
 #### Design with Alternative Structures
 
-Include an additional line for alternative structures.
-
-**Note:** One can design a sequence folding into two structures maximum.
+Include additional lines for alternative structures.
 
 ##### Example:
 
@@ -203,6 +201,7 @@ NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 ((((((.((((((((....))))).)).).))))))
 >alt_sec_struct
 (((((((((((((....)))..)).)).).))))).
+(((((((((((((....)))))...)).).))))).
 ```
 
 #### Design with Seed Sequence
