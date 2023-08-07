@@ -100,11 +100,10 @@ DesiRNA.py -f NAME
 - `-tmax, --tmax T_MAX`: Maximal Replica Temperature (default: 150).
 - `-ts, --tshelves TSHELVES`: Custom temperature shelves for replicas, provide comma-separated values.
 - `--motifs MOTIFS`: Provide sequence motifs along with their bonuses(-)/penalties(+), e.g., "GNRA,-1,CCCC,2".
-- `-sf, --scoring_function {ed-mfe,1-mcc,sln_mfe} [...]`: Scoring function(s) used to guide the design process. Multiple scoring functions can be selected. Available options:
+- `-sf, --scoring_function {ed-mfe,1-mcc,sln_mfe} [...]`: Scoring function(s) used to guide the design process. Multiple scoring functions can be selected. Please provide desired scoring functions space separated (e.g., ```-sf ed-mfe 1-mcc```)(default: `ed-mfe`) Available options:
   - `ed-mfe`: Energy of the desired structure minus MFE (Minimum Free Energy).
   - `1-mcc`: One minus Matthews Correlation Coefficient (MCC).
   - `sln_mfe`: Sequence Length Normalized MFE.
-  (default: `ed-mfe`).
 - `-nd, --negative_design {off,on}`: Use negative design approach (default: off).
 - `-acgu, --ACGU {off,on}`: Keep 'natural' ACGU content, with default content A:15%, C:30%, G:30%, U:15% (default: off).
 - `-acgu_content, --ACGU_content ACGU_CONTENT`: Provide user-defined ACGU content, comma-separated values (e.g., 10,40,40,10).
