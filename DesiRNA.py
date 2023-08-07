@@ -759,9 +759,6 @@ def get_mutation_position(seq_obj, available_positions):
 
         max_perc_prob = tm_max
         min_perc_prob = tm_min
-        print(max_perc_prob, "max")
-        print(min_perc_prob, "min")
-        quit()
         
         pair_list_mfe = check_dot_bracket(seq_obj.mfe_ss)
         
