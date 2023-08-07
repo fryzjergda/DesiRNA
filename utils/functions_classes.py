@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+    #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import pandas as pd
 import RNA
@@ -14,7 +14,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-
+from matplotlib import ticker
 
 def get_replica_color(replica_num, num_replicas):
     # Define a list of ten colors ranging from blue to red
@@ -29,89 +29,126 @@ def get_replica_color(replica_num, num_replicas):
     
     return colors[color_index]
 
-def plot_simulation_data_combined(simulation_data, outname, scoring_f, alt):
+def plot_simulation_data_combined(simulation_data, outname, alt, infile):
     # Define the metrics to plot
-    if alt == None:
-        metrics = ['mfe_e', 'precision', 'd_mfe_subopt', 'target_e', 'recall','temp_shelf', 'd_mfe_target', 'mcc','scoring_function']
-    else:
-        metrics = ['mfe_e', 'precision', 'd_alt_mfe_target', 'target_e', 'recall','temp_shelf', 'd_mfe_target', 'mcc','scoring_function']
+#    if alt == None:
+    metrics = ['scoring_function', 'edesired_minus_mfe','mfe', 'edesired', 'mcc']
+    #else:
+     #   metrics = ['mfe', 'precision', 'd_alt_mfe_target', 'edesired', 'recall','temp_shelf', 'edesired_minus_mfe', 'mcc','scoring_function']
+    
 
     # Create subplots
     num_plots = len(metrics)
-    num_cols = 3
-    num_rows = (num_plots + num_cols - 1) // num_cols
-    fig, axs = plt.subplots(num_rows, num_cols, figsize=(24, 16))
+    num_cols = 1
+    num_rows = num_plots+1 #+ num_cols - 1) // num_cols
+
+    width_mm = 160  
+    height_mm = (20 / 8) * width_mm  
+
+    fig, axs = plt.subplots(num_rows, num_cols, figsize=(width_mm / 25.4, height_mm / 25.4))
 
     # Flatten the axs if there's only one row
     if num_rows == 1:
         axs = [axs]
 
-    scoring_function_titles = {
-    'dmt': 'Scoring Function - dE MFE target',
-    'mcc': 'Scoring Function - MCC',
-    'mix': 'Scoring Function - Score',
-    'mix2': 'Scoring Function - Score2',
-    'mfe': 'Scoring Function - MFE'}
-
-
 
     # Get the number of replicas
     num_replicas = len(set(data['replica_num'] for data in simulation_data))
+    
+    handles, labels = [], []
 
     # Iterate over replicas and plot data
     for i, metric in enumerate(metrics):
-        row = i // num_cols
-        col = i % num_cols
-        ax = axs[row][col]
+        row = i #// num_cols
+#        col = i % num_cols
+        ax = axs[row]#[col]
+        ax.tick_params(axis='both', labelsize=7)
 
+        
         for replica_num in range(1, num_replicas + 1):
             replica_data = [data[metric] for data in simulation_data if data['replica_num'] == replica_num]
             accepted_structures = range(len(replica_data))
             color = get_replica_color(replica_num, num_replicas)  # Get color for the replica
             ax.plot(accepted_structures, replica_data, color=color, label=f"Replica {replica_num}")
+            line, = ax.plot(accepted_structures, replica_data, color=color, label=f"Replica {replica_num}")
+            if i == 0:  # Only collect handles and labels from the first subplot
+                handles.append(line)
+                labels.append(f"Replica {replica_num}")
+                ylabel_pos = ax.yaxis.label.get_position()
 
-
-        ax.set_xlabel('RE steps')
-        ax.set_ylabel(metric.capitalize().replace('_', ' '))
-        ax.set_title(metric.capitalize().replace('_', ' '))
-        ax.legend(loc='upper right')
-
+#        ax.set_xlabel('Simulatiion steps')
+#        ax.set_ylabel(metric.capitalize().replace('_', ' '))
+#        ax.set_title(metric.capitalize().replace('_', ' '))
+#        ax.legend(loc='upper right')
+        ax.yaxis.label.set_position(ylabel_pos)
 
         if metric == 'mcc':
-            ax.set_title('1 - MCC')
+            ax.set_ylabel('1 - MCC', fontsize=12)
+            ax.set_xlabel('Simulatiion steps', fontsize=12)
         if metric == 'precision':
             ax.set_title('1 - Precision')
         if metric == 'recall':
             ax.set_title('1 - Recall')
-        if metric == 'mfe_e':
-            ax.set_title('MFE E')
+        if metric == 'mfe':
+            ax.set_ylabel('MFE', fontsize=12)
         if metric == 'temp_shelf':
             ax.set_title('Temperature shelf')
-        if metric == 'target_e':
-            ax.set_title('Target E')
-        if metric == 'd_mfe_target':
-            ax.set_title('dE MFE target')
-        if (metric == 'd_mfe_subopt') and (alt == None):
+        if metric == 'edesired':
+            ax.set_ylabel('E desired', fontsize=12)
+        if metric == 'edesired_minus_mfe':
+            ax.set_ylabel('E desired - MFE', fontsize=12)
+        if (metric == 'esubopt_minus_mfe') and (alt == None):
             ax.set_title('dE MFE subopt')
         if (metric == 'd_alt_mfe_target') and (alt != None):
             ax.set_title('dE altMFE target')
 
 
         if metric == 'scoring_function':
-            if scoring_f in scoring_function_titles:
-                ax.set_title(scoring_function_titles[scoring_f])
+            ax.set_ylabel('Scoring function', fontsize=12)
+
 
     if num_plots % num_cols != 0:
         axs[-1, -1].axis('off')
 
-    # Add overall title to the plot
-    fig.suptitle(outname, fontsize=16, fontweight='bold')
 
-    # Adjust the layout
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    max_width = 0
+    for ax in axs:
+        ax.yaxis.set_major_formatter(ticker.ScalarFormatter(useMathText=True))
+        plt.draw()  # Update the figure to get the correct tick label sizes
+        tick_width = max([t.get_window_extent().width for t in ax.yaxis.get_ticklabels()])
+        max_width = max(max_width, tick_width)
+
+# Set the position of the y-labels based on the maximum width of the y-tick labels
+    for ax in axs:
+        ax.yaxis.labelpad = max_width   # Adjust the padding as needed
+
+
+    # Add overall title to the plot
+    fig.suptitle(infile.split(".")[0], fontsize=16, fontweight='bold')
+
+
+    num_replica_columns = min(num_replicas, 4)
+
+    legend_ax = axs[-1]
+    legend_ax.legend(handles, labels, loc='center', ncol=num_replica_columns, fontsize=8, frameon=False)
+    # Get the position of the last subplot
+    last_subplot_pos = axs[-2].get_position()
+    # Calculate the position for the legend based on the last subplot
+    legend_pos = [last_subplot_pos.x0, last_subplot_pos.y0 - 0.15, last_subplot_pos.width, 0.1]  # Adjust as needed
+
+    # Set the position for the legend
+    legend_ax.set_position(legend_pos)
+    legend_ax.axis('off')
+    
+#    plt.subplots_adjust(bottom=0.25)
+
+    # Adjust the layout to make room for the legend
+    fig.tight_layout(rect=[0, 0.0, 1, 0.95])
+#    plt.subplots_adjust(bottom=0.1) 
+#    plt.subplots_adjust(hspace=0.3, bottom=0.15)
 
     # Save the plot to a file
-    plt.savefig(outname + '_replicas.png')
+    plt.savefig(outname + '_replicas.png', dpi=400)
 
 
 
@@ -119,8 +156,8 @@ def plot_simulation_data_combined(simulation_data, outname, scoring_f, alt):
 
 def _plot_simulation_data_combined(simulation_data, outname, scoring_f):
     # Define the metrics to plot
-    metrics = ['mfe_e', 'precision', 'reb', 'target_e', 'recall', 'web',
-               'd_mfe_target', 'mcc', 'temp_shelf', 'd_mfe_subopt',
+    metrics = ['mfe', 'precision', 'sln_mfe', 'edesired', 'recall', 'web',
+               'edesired_minus_mfe', 'mcc', 'temp_shelf', 'esubopt_minus_mfe',
                'score', 'scoring_function']
 
     # Create subplots
@@ -134,7 +171,7 @@ def _plot_simulation_data_combined(simulation_data, outname, scoring_f):
         axs = [axs]
 
     scoring_function_titles = {
-    'dmt': 'Scoring Function - d_mfe_target',
+    'dmt': 'Scoring Function - edesired_minus_mfe',
     'mcc': 'Scoring Function - MCC',
     'mix': 'Scoring Function - Score',
     'mix2': 'Scoring Function - Score2',
@@ -251,21 +288,24 @@ class Stats:
 class ScoreSeq:
     def __init__(self, sequence):
         self.sequence = sequence
-#        self.mfe_ss = None
-#        self.mfe_e = None
-#        self.target_e = None
-#        self.d_mfe_target = None
-#        self.subopt_e = 0
-#        self.d_mfe_subopt = 0
-        self.reb = 0
-        self.web = 0
-        self.reb_subopt = 0
-        self.web_subopt = 0
-        self.d_mfe_subopt_norm =0
-        self.score = 0
+        self.scoring_function = 0
+        self.replica_num = None
+        self.temp_shelf = None
+        self.sim_step = 0
+        self.edesired_minus_mfe =0
+        self.mfe =0
+        self.edesired = 0
+        self.mcc = 0
+        self.mfe_ss = None
+        self.subopt_e = 0
+        self.esubopt_minus_mfe = 0
+        self.sln_mfe = 0
+#        self.score = 0
         self.recall = 0
         self.precision = 0
-        self.d_mfe_subopt = 0
+        self.edesired2 = 0
+        self.edesired2_minus_mfe =0
+        self.dimer_mfe = 0    
 
     def get_replica_num(self, rep_num):
         self.replica_num = rep_num
@@ -276,33 +316,33 @@ class ScoreSeq:
     def get_sim_step(self, step):
         self.sim_step = step
         
-    def get_mfe_e(self, mfe):
-        self.mfe_e = mfe
+    def get_mfe(self, mfe):
+        self.mfe = mfe
 
     def get_mfe_ss(self, ss):
         self.mfe_ss = ss
 
-    def get_target_e(self, e_target):
-        self.target_e = e_target
+    def get_edesired(self, e_target):
+        self.edesired = e_target
 
-    def get_d_mfe_target(self, mfe, e_target):
-        self.d_mfe_target = e_target -mfe
-    
-    def get_d_mfe_target_pk(self, mfe, e_target):
-        self.d_mfe_target = abs(e_target -mfe)
+    def get_edesired_minus_mfe(self, mfe, e_target):
+        self.edesired_minus_mfe = e_target -mfe
 
+    def get_edesired2(self, e_target):
+        self.edesired2 = e_target
+
+    def get_edesired2_minus_mfe(self, mfe, e_target):
+        self.edesired2_minus_mfe = e_target -mfe
+        
     def get_subopt_e(self, e_subopt):
         self.subopt_e = e_subopt
 
-    def get_subopt_ss(self, ss_subopt):
-        self.subopt_ss = ss_subopt
-
-    def get_d_mfe_subopt(self, mfe, e_subopt):
-        self.d_mfe_subopt = e_subopt -mfe
+    def get_esubopt_minus_mfe(self, mfe, e_subopt):
+        self.esubopt_minus_mfe = e_subopt -mfe
 
     def get_oligomerization(self):
         mfe_oligo = energy_of_oligomer(self.sequence)
-        self.oligomerization = if_oligomer(self.mfe_e, mfe_oligo)
+        self.oligomerization = if_oligomer(self.mfe, mfe_oligo)
 
     def get_precision(self, precision):
         self.precision = 1-precision
@@ -313,62 +353,29 @@ class ScoreSeq:
     def get_mcc(self, mcc):
         self.mcc = 1-mcc
 
-
-    def get_deltafm(self, delta):
-        self.deltaF_m = delta 
-
-    def get_reb(self):
-        self.reb = -(self.mfe_e + 0.31*len(self.sequence) - 7.05)/(-0.049*len(self.sequence) - 20.743)
-
-    def get_web(self):
-        self.web = (self.mcc**4)*self.reb
-
-    def get_reb_subopt(self):
-        self.reb_subopt = -(self.subopt_e + 0.31*len(self.sequence) - 7.05)/(-0.049*len(self.sequence) - 20.743)
-
-    def get_d_mfe_subopt_norm(self):
-        self.d_mfe_subopt_norm = (self.d_mfe_subopt/3)
-
-#    def get_web_subopt(self):
-#        self.web_subopt = (self.mcc**4)*self.reb_subopt*0.25
-    def get_alt_mfe_e(self, altmfe):
-        self.alt_mfe_e = altmfe
+    def get_sln_mfe(self):
+        self.sln_mfe = -(self.mfe + 0.31*len(self.sequence) - 7.05)/(-0.049*len(self.sequence) - 20.743)
     
-    def get_alt_target_e(self, e_alt_target):
-        self.alt_target_e = e_alt_target
-
-    
-    def get_d_alt_mfe_target(self, alt_mfe, e_alt_target):
-        self.d_alt_mfe_target = e_alt_target -alt_mfe
-
-    def get_score(self):
-        self.score = self.d_mfe_target +self.mcc + self.web
-#        self.score = -self.mcc
-#        self.score = self.d_mfe_target -self.mcc + self.web
-#        self.score = self.d_mfe_target
 
     def get_scoring_function(self, scoring_f):
-        if scoring_f == 'dmt':
-            self.scoring_function = self.d_mfe_target
-        elif scoring_f == 'mcc':
-            self.scoring_function = self.mcc
-        elif scoring_f == 'mfe':
-            self.scoring_function = self.mfe_e
-        elif scoring_f == 'mix':
-            self.scoring_function = self.d_mfe_target +self.mcc + self.web
-        elif scoring_f == 'mix2':
-            self.scoring_function = self.d_mfe_target + 2*self.mcc 
-        elif scoring_f == 'alt':
-            self.scoring_function = self.d_mfe_target + self.d_alt_mfe_target
+        self.scoring_function = 0
+        if 'ed-mfe' in scoring_f:
+            self.scoring_function += self.edesired_minus_mfe
+        if '1-mcc' in scoring_f:
+            self.scoring_function += self.mcc*10
+        if 'sln_mfe' in scoring_f:
+            self.scoring_function += self.sln_mfe
 
+    def get_scoring_function_w_alt_ss(self):        
+        self.scoring_function = self.scoring_function + self.edesired2_minus_mfe
+        
     def get_scoring_function_w_subopt(self):
-        self.scoring_function = self.d_mfe_target -self.d_mfe_subopt 
+        self.scoring_function = self.scoring_function -self.esubopt_minus_mfe 
     
     def get_scoring_function_w_oligo(self):
         if self.oligomerization == True:
-            self.scoring_function = 300*self.d_mfe_target
-        else:
-            self.scoring_function = self.d_mfe_target
+            self.scoring_function = self.scoring_function + 300*self.edesired_minus_mfe
+
             
 def get_first_suboptimal_structure_and_energy(sequence):
     """

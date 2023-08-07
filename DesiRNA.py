@@ -58,8 +58,12 @@ def argument_parser():
     parser.add_argument("-ts", "--tshelves", required=False, dest="tshelves", type=str, default='',
                             help="Custom temperature shelves for replicas in replica exchange simulation. Provide comma-separated values.")
 
-    parser.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", default='dmt', choices=['dmt','mcc'],
-                            help="Scoring function used to guide the design process. [default = dmt]")
+    parser.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", default='ed-mfe', choices=['ed-mfe','1-mcc', 'sln_mfe'], nargs='+',
+                            help="Scoring function used to guide the design process. [default = ed-mfe]")
+
+
+
+
     parser.add_argument("-nd", "--negative_design", required=False, dest="subopt", default='off', choices=['off','on'],
                             help="Use negative design approach. [default = off]")
 
@@ -1177,32 +1181,15 @@ def score_sequence(seq):
 
     mfe_energy, mfe_structure = get_mfe_e_ss(seq)
     
-    scored_sequence.get_mfe_e(mfe_energy)
+    scored_sequence.get_mfe(mfe_energy)
     scored_sequence.get_mfe_ss(mfe_structure)
 
 
-    scored_sequence.get_target_e(RNA.energy_of_struct(seq, input_file.sec_struct.replace("&","")))
+    scored_sequence.get_edesired(RNA.energy_of_struct(seq, input_file.sec_struct.replace("&","")))
 
-    scored_sequence.get_d_mfe_target(scored_sequence.mfe_e, scored_sequence.target_e)
+    scored_sequence.get_edesired_minus_mfe(scored_sequence.mfe, scored_sequence.edesired)
 
-    if dimer== "off" and input_file.alt_sec_struct == None:
-#        scored_sequence.get_subopt_ss(func.get_first_suboptimal_structure_and_energy(seq)[0])
-#        scored_sequence.get_subopt_e(func.get_first_suboptimal_structure_and_energy(seq)[1])
-        scored_sequence.get_subopt_ss(mfe_structure)
-        scored_sequence.get_subopt_e(mfe_energy)
 
-    elif dimer == "on" and input_file.alt_sec_struct == None:
-
-        scored_sequence.get_subopt_ss(mfe_structure)
-        scored_sequence.get_subopt_e(mfe_energy)
-
-    if input_file.alt_sec_struct != None:
-        scored_sequence.get_subopt_e(mfe_energy)
-        scored_sequence.get_alt_mfe_e(get_mfe_e_ss(seq)[0])
-        scored_sequence.get_alt_target_e(RNA.energy_of_struct(seq,input_file.alt_sec_struct))
-        scored_sequence.get_d_alt_mfe_target(scored_sequence.alt_mfe_e, scored_sequence.alt_target_e)
-#    scored_sequence.get_d_mfe_subopt(scored_sequence.mfe_e, scored_sequence.subopt_e)    
-    
     ssc = SimScore(input_file.sec_struct.replace("&","Ee"), scored_sequence.mfe_ss.replace("&","Ee"))
     ssc.find_basepairs()
     ssc.cofusion_matrix()
@@ -1210,27 +1197,29 @@ def score_sequence(seq):
     scored_sequence.get_precision(ssc.precision())
     scored_sequence.get_recall(ssc.recall())
     scored_sequence.get_mcc(ssc.mcc())
+
+
+    scored_sequence.get_scoring_function(scoring_f)
+
+    if 'sln_mfe' in scoring_f:
+        scored_sequence.get_sln_mfe()
     
-#    scored_sequence.get_reb()
-#    scored_sequence.get_web()
-    
-#    scored_sequence.get_reb_subopt()
-#    scored_sequence.get_web_subopt()
-#    scored_sequence.get_d_mfe_subopt_norm()
-    
-#    scored_sequence.get_score()
-    if subopt == "off":    
-        scored_sequence.get_scoring_function(scoring_f)
-    elif (subopt == "on") and (scored_sequence.mcc == 0):
+    if input_file.alt_sec_struct != None:
+        scored_sequence.get_edesired2(RNA.energy_of_struct(seq, input_file.alt_sec_struct))
+        scored_sequence.get_edesired2_minus_mfe(scored_sequence.mfe, scored_sequence.edesired2)    
+        scored_sequence.get_scoring_function_w_alt_ss()
+
+    if (subopt == "on") and (scored_sequence.mcc == 0):        
         scored_sequence.get_subopt_e(func.get_first_suboptimal_structure_and_energy(seq)[1])
-        scored_sequence.get_d_mfe_subopt(scored_sequence.mfe_e, scored_sequence.subopt_e)
+        scored_sequence.get_esubopt_minus_mfe(scored_sequence.mfe, scored_sequence.subopt_e)
         scored_sequence.get_scoring_function_w_subopt()
-    elif (subopt == "on") and (scored_sequence.mcc != 0):
-        scored_sequence.get_scoring_function(scoring_f)
+        
+
 
     if oligo == "on":
         scored_sequence.get_oligomerization()
         scored_sequence.get_scoring_function_w_oligo()
+
         
     return scored_sequence
 
@@ -1447,9 +1436,9 @@ def run_functions():
             remove_duplicated_results = {item['sequence']: item for item in simulation_data}
             simulation_data_noduplicates = list(remove_duplicated_results.values())
             if oligo == "on":
-                sorted_results_mid = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['oligomerization'],-d['mcc'], -d['d_mfe_target'], -d['mfe_e']), reverse = True)
+                sorted_results_mid = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['oligomerization'],-d['mcc'], -d['edesired_minus_mfe'], -d['mfe']), reverse = True)
             else:
-                sorted_results_mid = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['mcc'], -d['d_mfe_target'], -d['mfe_e']), reverse = True)
+                sorted_results_mid = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_mfe'], -d['mfe']), reverse = True)
             sorted_results_mid = sorted_results_mid[:num_results]
 #            sorted_results_mid = round_floats(simulation_data)
             with open(outname+'_mid_results.csv', 'w', newline='') as csvfile:
@@ -1497,7 +1486,7 @@ def run_functions():
     df = df.drop_duplicates(subset=['sim_step', 'replica_num'])
 
 
-    for metric in ['sequence', 'mfe_e', 'd_mfe_target', 'subopt_e', 'd_mfe_subopt', 'precision', 'recall', 'mcc', 'reb','temp_shelf', 'web', 'reb_subopt', 'd_mfe_subopt_norm', 'score', 'scoring_function']:
+    for metric in ['sequence', 'mfe', 'edesired_minus_mfe', 'subopt_e', 'esubopt_minus_mfe', 'precision', 'recall', 'mcc', 'sln_mfe','temp_shelf', 'scoring_function']:
     # For each metric, create a sub-DataFrame and pivot it
         sub_df = df[['sim_step', 'replica_num', metric]].pivot(index='sim_step', columns='replica_num', values=metric)
         sub_df.columns = [f'replica{col}' for col in sub_df.columns]
@@ -1529,9 +1518,9 @@ def run_functions():
     remove_duplicated_results = {item['sequence']: item for item in simulation_data}
     simulation_data_noduplicates = list(remove_duplicated_results.values())
     if oligo == "on":
-        sorted_results = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['oligomerization'], -d['mcc'], -d['d_mfe_target'], -d['mfe_e']), reverse = True)
+        sorted_results = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['oligomerization'], -d['mcc'], -d['edesired_minus_mfe'], -d['mfe']), reverse = True)
     else:
-        sorted_results = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['mcc'], -d['d_mfe_target'], -d['mfe_e']), reverse = True)
+        sorted_results = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_mfe'], -d['mfe']), reverse = True)
     sorted_results = sorted_results[:num_results]
     
     with open(outname+'_results.csv', 'w', newline='') as csvfile:
@@ -1565,7 +1554,8 @@ def run_functions():
     
     with open(outname+'_best_str', 'w', newline='') as myfile:
         myfile.write(correct_result_txt)
-    func.plot_simulation_data_combined(simulation_data, outname, scoring_f, input_file.alt_sec_struct)
+
+    func.plot_simulation_data_combined(simulation_data, outname,  input_file.alt_sec_struct, infile)
 
 
     traj_txt = ""
@@ -1580,10 +1570,10 @@ def run_functions():
 
     if correct_bool == True:
         best_solution_txt = "\nDesign solved succesfully!\n\nBest solution:\n"+str(sorted_results[0]['sequence'])+"\n"+str(sorted_results[0]['mfe_ss'])\
-                            +"\nMFE:"+str(round(sorted_results[0]['mfe_e'],3))+"\n"
+                            +"\nMFE:"+str(round(sorted_results[0]['mfe'],3))+"\n"
     else:
         best_solution_txt = "\nDesign not solved!"+"\n\nTarget structure:\n"+str(input_file.sec_struct)+"\n\nClosest solution:\n"+str(sorted_results[0]['sequence'])+"\n"+str(sorted_results[0]['mfe_ss'])\
-                           +"\nMFE: "+str(round(sorted_results[0]['mfe_e'],3))+"\n1-MCC: "+str(round(sorted_results[0]['mcc'],3))+"\n"
+                           +"\nMFE: "+str(round(sorted_results[0]['mfe'],3))+"\n1-MCC: "+str(round(sorted_results[0]['mcc'],3))+"\n"
     
     stats_txt = ">"+outname+" time="+str(timlim)+"s\n"+'Acc_ratio= '+str(acc_perc)+', Iterations='+str(stats.step)+', Accepted='\
                         +str(stats.acc_mc_step)+'/'+str(sum_mc)+', Rejected='+str(stats.rej_mc_step)+'/'+str(sum_mc) + '\n'\
@@ -1635,7 +1625,7 @@ def get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, o
     """
     
     outname = infile.split(".")[0]+'_R'+str(replicas)+"_e"+str(RE_attempt)+"_t"+str(timlim)+"_pk"+str(pks)+"_ACGU"+str(acgu_percentages)+\
-                "_Tmin"+str(T_min)+"_Tmax"+str(T_max)+"_p"+str(param)+"_SF"+str(scoring_f)+"_O"+(str(oligo))+"_D"+(str(dimer))+"_PM"+(str(point_mutations))
+                "_Tmin"+str(T_min)+"_Tmax"+str(T_max)+"_p"+str(param)+"_SF"+str("_".join(scoring_f))+"_O"+(str(oligo))+"_D"+(str(dimer))+"_PM"+(str(point_mutations))
     return outname
 
 
@@ -1742,7 +1732,6 @@ if __name__ == '__main__':
     if param == '1999':
         RNA.params_load(os.path.join(script_path, "rna_turner1999.par"))
 
-    
     L = 504.12
     
     if acgu_content == '':
