@@ -10,6 +10,7 @@ import math
 import csv
 import time
 import random
+import re
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -23,6 +24,24 @@ from shutil import move
 from utils import functions_classes as func
 from utils.SimScore import SimScore
 from utils.pcofold_dimer_multichain_energy import mfe_e_dimer
+
+iupac_re = {'A' : 'A',
+            'C' : 'C',
+            'G' : 'G',
+            'T' : 'T',
+            'U' : 'U',
+            'W' : '[AU]',
+            'S' : '[GC]',
+            'M' : '[AC]',
+            'K' : '[GU]',
+            'R' : '[AG]',
+            'Y' : '[CU]',
+            'B' : '[CGU]',
+            'D' : '[AGU]',
+            'H' : '[ACU]',
+            'V' : '[ACG]',
+            'N' : '[ACGU]',
+            }
 
 def argument_parser():
     """
@@ -57,6 +76,10 @@ def argument_parser():
                             help="Maximal Replica Temperature. [default = 150]")
     parser.add_argument("-ts", "--tshelves", required=False, dest="tshelves", type=str, default='',
                             help="Custom temperature shelves for replicas in replica exchange simulation. Provide comma-separated values.")
+
+    parser.add_argument("--motifs", required=False, dest="motifs", type=str, default='',
+                        help="Sequence motifs along with their bonuses(-)/penalties(+). Provide comma-separated key,value,key,value sequence.")
+
 
     parser.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", default='ed-mfe', choices=['ed-mfe','1-mcc', 'sln_mfe'], nargs='+',
                             help="Scoring function used to guide the design process. [default = ed-mfe]")
@@ -115,6 +138,18 @@ def argument_parser():
         # Check if the number of temperatures matches the number of replicas
         if len(temperature_shelves) != args.replicas:
             parser.error("The number of temperatures provided in -ts/--tshelves must match the number of replicas set by -R.")
+
+    if args.motifs:
+
+        motifs_list = args.motifs.split(',')
+        try:
+            motifs = {motifs_list[i]:(re.compile(''.join([iupac_re[ch]
+                                                          for ch in motifs_list[i]])),
+                                      float(motifs_list[i+1])) for i in range(0,len(motifs_list),2)}
+        except:
+            parser.error("Something is wrong with your motifs")
+    else:
+        motifs = {}
     
     if args.percs == 'off' and args.acgu_content:
         parser.error("The -acgu_content option is only applicable when -acgu is set to 'on'.")    
@@ -151,7 +186,8 @@ def argument_parser():
     tm_min = args.tm_min
 
     
-    return infile, replicas, timlim, acgu_percs,  t_max, t_min, oligo,  param, exchange_rate, scoring_f, pm,   tshelves,  in_seed, subopt, diff_start_replicas, num_results, acgu_content, steps, tm_max, tm_min
+    return infile, replicas, timlim, acgu_percs,  t_max, t_min, oligo,  param, exchange_rate, scoring_f, pm,   tshelves,\
+           in_seed, subopt, diff_start_replicas, num_results, acgu_content, steps, tm_max, tm_min, motifs
 
 
 def read_input(infile):
@@ -1151,6 +1187,15 @@ def get_mfe_e_ss(seq):
     return energy, structure
 
 
+def score_motifs(seq, motifs):
+    """Returns the overall bonus/penalty for sequence motifs
+       present/absent in the sequence"""
+    motif_score = 0
+    for motif in motifs:
+        if motifs[motif][0].search(seq):
+            motif_score += motifs[motif][1]
+    return motif_score
+
 def score_sequence(seq):
     """
     Calculate various scoring metrics for a given RNA sequence.
@@ -1215,11 +1260,13 @@ def score_sequence(seq):
         scored_sequence.get_scoring_function_w_subopt()
         
 
-
     if oligo == "on":
         scored_sequence.get_oligomerization()
         scored_sequence.get_scoring_function_w_oligo()
 
+    if motifs:
+        motif_score = score_motifs(seq, motifs)
+        scored_sequence.update_scoring_function_w_motifs(motif_score)
         
     return scored_sequence
 
@@ -1719,10 +1766,9 @@ if __name__ == '__main__':
     now = now.strftime("%Y%m%d.%H%M%S")
     
     infile, replicas, timlim, acgu_percentages,  T_max, T_min, oligo,  param, RE_attempt, scoring_f, point_mutations,  \
-    tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min = argument_parser()
+    tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs = argument_parser()
     
     input_file = read_input(infile)
-
 
     if RE_steps != None:
         timlim = 100000000000000000
@@ -1766,7 +1812,8 @@ if __name__ == '__main__':
     else:
         pks = "off"
     
-    outname = get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, dimer, param, RE_attempt, scoring_f, point_mutations,  alt_ss, tshelves, in_seed, subopt)
+    outname = get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, dimer, 
+                          param, RE_attempt, scoring_f, point_mutations,  alt_ss, tshelves, in_seed, subopt)
 
     if tshelves == '':
         rep_temps_shelfs = get_rep_temps()

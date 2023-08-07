@@ -99,6 +99,7 @@ DesiRNA.py -f NAME
 - `-tmin, --tmin T_MIN`: Minimal Replica Temperature (default: 10).
 - `-tmax, --tmax T_MAX`: Maximal Replica Temperature (default: 150).
 - `-ts, --tshelves TSHELVES`: Custom temperature shelves for replicas, provide comma-separated values.
+- `--motifs MOTIFS`: Provide sequence motifs along with their bonuses(-)/penalties(+), e.g., "GNRA,-1,CCCC,2".
 - `-sf, --scoring_function {dmt,mcc}`: Scoring function used to guide the design process (default: dmt).
 - `-nd, --negative_design {off,on}`: Use negative design approach (default: off).
 - `-acgu, --ACGU {off,on}`: Keep 'natural' ACGU content, with default content A:15%, C:30%, G:30%, U:15% (default: off).

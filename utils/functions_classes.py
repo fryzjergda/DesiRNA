@@ -376,6 +376,9 @@ class ScoreSeq:
         if self.oligomerization == True:
             self.scoring_function = self.scoring_function + 300*self.edesired_minus_mfe
 
+    def update_scoring_function_w_motifs(self, motif_bonus):
+        self.scoring_function += motif_bonus
+
             
 def get_first_suboptimal_structure_and_energy(sequence):
     """
