@@ -81,9 +81,8 @@ def argument_parser():
                         help="Sequence motifs along with their bonuses(-)/penalties(+). Provide comma-separated key,value,key,value sequence.")
 
 
-    parser.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", default='ed-mfe', choices=['ed-mfe','1-mcc', 'sln_mfe'], nargs='+',
-                            help="Scoring function used to guide the design process. [default = ed-mfe]")
-
+    parser.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", type=str, default='ed-mfe:1.0',
+                            help="Scoring functions and weights used to guide the design process, e.g. 'ed-mfe:0.5,1-mcc:0.5'. Scoring functions to choose: ed-mfe, 1-mcc, sln_mfe [default = dmt:1.0]")
 
 
 
@@ -102,8 +101,8 @@ def argument_parser():
 #    parser.add_argument("-tr", "--treplicaexchange", required=False, dest="t_re", default=10, type=float,
 #                            help="Temperature of replica exchange attempt. [default = 10]")
 
-    parser.add_argument("-o", "--oligomerization", required=False, dest="oligo", default='off', choices=['off','on'],
-                            help="Check if the designed sequence tends to oligomerize. Slows down the simulation. [default = off]")
+    parser.add_argument("-o", "--oligomerization", required=False, dest="oligo", default='off', choices=['off','enforce', 'avoid'],
+                            help="Check if the designed sequence tends to oligomerize. User may enforce, or avoid oligomerization. Slows down the simulation. [default = off]")
 #    parser.add_argument("-d", "--dimer", required=False, dest="dimer", default='off', choices=['off','on'],
 #                            help="Design of a RNA complex, of two strands. [deafult = off, turns on automatically is '&' detected in the input file]")
 
@@ -168,7 +167,9 @@ def argument_parser():
 #    dimer = args.dimer
     param = args.param
     exchange_rate = args.exchange
-    scoring_f = args.scoring_f
+#    scoring_f = args.scoring_f
+    scoring_f = parse_scoring_functions(args.scoring_f)
+    
 #    mutations = args.mutations
     pm = args.pm
     steps = args.steps
@@ -221,6 +222,15 @@ def read_input(infile):
     
     return input_file
 
+
+def parse_scoring_functions(scoring_f_str):
+    scoring_f = []
+    for item in scoring_f_str.split(','):
+        if ':' not in item:
+            raise ValueError(f"Invalid scoring function format: {item}. Expected format: 'function:weight'")
+        function, weight = item.split(':')
+        scoring_f.append((function, float(weight)))
+    return scoring_f    
 
 def check_dot_bracket(ss):
     """
@@ -1246,8 +1256,9 @@ def score_sequence(seq):
 
     scored_sequence.get_scoring_function(scoring_f)
 
-    if 'sln_mfe' in scoring_f:
-        scored_sequence.get_sln_mfe()
+    for function, weight in scoring_f:
+        if function == 'sln_mfe':
+            scored_sequence.get_sln_mfe()
     
     if input_file.alt_sec_struct != None:
         energies = [RNA.energy_of_struct(seq, alt_dbn) for alt_dbn in input_file.alt_sec_structs]
@@ -1261,9 +1272,12 @@ def score_sequence(seq):
         scored_sequence.get_scoring_function_w_subopt()
         
 
-    if oligo == "on":
+    if oligo != "off":
         scored_sequence.get_oligomerization()
-        scored_sequence.get_scoring_function_w_oligo()
+        if oligo == "avoid":
+            scored_sequence.get_scoring_function_w_oligo_avoid()
+        elif oligo == "enforce":
+            scored_sequence.get_scoring_function_w_oligo_enforce()
 
     if motifs:
         motif_score = score_motifs(seq, motifs)
@@ -1483,7 +1497,7 @@ def run_functions():
         if stats.global_step % 10 == 0:
             remove_duplicated_results = {item['sequence']: item for item in simulation_data}
             simulation_data_noduplicates = list(remove_duplicated_results.values())
-            if oligo == "on":
+            if oligo != "off":
                 sorted_results_mid = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['oligomerization'],-d['mcc'], -d['edesired_minus_mfe'], -d['mfe']), reverse = True)
             else:
                 sorted_results_mid = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_mfe'], -d['mfe']), reverse = True)
@@ -1565,7 +1579,7 @@ def run_functions():
 
     remove_duplicated_results = {item['sequence']: item for item in simulation_data}
     simulation_data_noduplicates = list(remove_duplicated_results.values())
-    if oligo == "on":
+    if oligo != "off":
         sorted_results = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['oligomerization'], -d['mcc'], -d['edesired_minus_mfe'], -d['mfe']), reverse = True)
     else:
         sorted_results = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_mfe'], -d['mfe']), reverse = True)
@@ -1589,7 +1603,7 @@ def run_functions():
             correct +=1
             correct_bool = True
     
-    if oligo == "on":
+    if oligo != "off":
         if sorted_results[0]['oligomerization'] == True:
             oligo_txt = ",oligomerize: yes"
         elif sorted_results[0]['oligomerization'] == False:
@@ -1671,9 +1685,11 @@ def get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, o
     outname : str
         The generated output name.
     """
+    scoring_f_str = "_".join([f"{func}_{weight}" for func, weight in scoring_f])
+
     
     outname = infile.split(".")[0]+'_R'+str(replicas)+"_e"+str(RE_attempt)+"_t"+str(timlim)+"_pk"+str(pks)+"_ACGU"+str(acgu_percentages)+\
-                "_Tmin"+str(T_min)+"_Tmax"+str(T_max)+"_p"+str(param)+"_SF"+str("_".join(scoring_f))+"_O"+(str(oligo))+"_D"+(str(dimer))+"_PM"+(str(point_mutations))
+                "_Tmin"+str(T_min)+"_Tmax"+str(T_max)+"_p"+str(param)+"_SF"+scoring_f_str+"_O"+(str(oligo))+"_D"+(str(dimer))+"_PM"+(str(point_mutations))
     return outname
 
 
@@ -1770,6 +1786,7 @@ if __name__ == '__main__':
     tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs = argument_parser()
     
     input_file = read_input(infile)
+
 
     if RE_steps != None:
         timlim = 100000000000000000
