@@ -111,7 +111,7 @@ DesiRNA.py -f NAME
 - `-tm, --target_mutations {off,on}`: Targeted mutations (default: on).
 - `-tm_perc_max, --target_mutations_percentage_max`: Highest percentage of targeted mutations for the lowest temperature replica (default: 0.7).
 - `-tm_perc_min, --target_mutations_percentage_min`: Lowest percentage of targeted mutations for the highest temperature replica (default: 0.0).
-- `-motifs, --motifs`: Prevent or enforce specific sequence moitif. Provide sequence motifs along with their bonuses(-)/penalties(+), e.g., ```-motifs GNRA,-1,CCCC,2```.
+- `-motifs, --motif_sequences`: Prevent or enforce specific sequence moitif. Provide sequence motifs along with their bonuses(-)/penalties(+), e.g., ```-motifs GNRA,-1,CCCC,2```.
 - `-seed, --seed_number`: User-defined seed number for simulation (default: 0).
 - `-re_seq, --replicas_sequences {different,same}`: Choose whether replicas will start from the same or different random sequence (default: same).
 

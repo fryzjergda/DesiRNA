@@ -88,10 +88,6 @@ def argument_parser():
     parser.add_argument("-ts", "--tshelves", required=False, dest="tshelves", type=str, default='',
                             help="Custom temperature shelves for replicas in replica exchange simulation. Provide comma-separated values.")
 
-    parser.add_argument("-motifs", "--motifs", required=False, dest="motifs", type=str, default='',
-                        help="Sequence motifs along with their bonuses(-)/penalties(+). Provide comma-separated key,value,key,value sequence.")
-
-
     parser.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", type=str, default='ed-mfe:1.0',
                             help="Scoring functions and weights used to guide the design process, e.g. 'ed-mfe:0.5,1-mcc:0.5'. Scoring functions to choose: ed-mfe, 1-mcc, sln_mfe [default = dmt:1.0]")
 
@@ -99,8 +95,6 @@ def argument_parser():
 
     parser.add_argument("-nd", "--negative_design", required=False, dest="subopt", default='off', choices=['off','on'],
                             help="Use negative design approach. [default = off]")
-
-
                             
     parser.add_argument("-acgu", "--ACGU", required=False, dest="percs", default='off', choices=['off','on'],
                             help="Keep 'natural' ACGU content. If turned on the content will be A:15%%, C:30%%, G:30%%, U:15%%. [default = off]")
@@ -127,6 +121,8 @@ def argument_parser():
     parser.add_argument("-tm_perc_min", "--target_mutations_percentage_min", required=False, dest="tm_min", default=0.0, type=float,
                             help="Lowest percentage of targeted mutations applied to highest temperature replica. Percentage for replicas in between will be set evenly from 'tm_perc_max' to 'tm_perc_min'. Float from 0.0 to 1.0. [default = 0.0]")
 
+    parser.add_argument("-motifs", "--motif_sequences", required=False, dest="motifs", type=str, default='',
+                        help="Sequence motifs along with their bonuses(-)/penalties(+). Provide comma-separated key,value,key,value sequence.")
 
 
 #    parser.add_argument("-a", "--alt_ss", required=False, dest="alt_ss", default='off', choices=['off','on'],
