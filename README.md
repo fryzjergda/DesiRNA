@@ -19,7 +19,7 @@ DesiRNA is a state-of-the-art RNA sequence design tool, that stands out for its 
 ## Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
-- [Files](#files)
+- [Files](#file description)
 - [Citation](#citation)
 - [License](#license)
 - [Contact](#contact)
@@ -133,7 +133,7 @@ DesiRNA.py -h
 ```
 
 
-## Files
+## Files Description
 
 Description of the input and output files.
 
