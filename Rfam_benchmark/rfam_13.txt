@@ -1,6 +1,0 @@
->name
-RF00013.139.ss
->seq_restr
-NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
->sec_struct
-.(((((((((((((.(((.............((((.((((((................(((.(((((...(((((((.....((...(((((......)))))..))....)))))))..))))).)))..............)))))).))))...........))))))))))))))))...

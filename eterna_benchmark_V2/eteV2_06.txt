@@ -1,6 +1,0 @@
->name
-Ete_6
->seq_restr
-NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
->sec_struct
-(((((((((((........)))).((...............))....(((((.......))))))))))))....(((((((..((((........))))(((.............)))....(((((.......))))))))))))....(((((((..((((........))))((((((.......))))))....(((((.......))))))))))))....(((((((..((((........))))((((((.......))))))....(((((.......))))))))))))....(((((((..((((........))))((((((.......))))))....(((((.......))))))))))))....

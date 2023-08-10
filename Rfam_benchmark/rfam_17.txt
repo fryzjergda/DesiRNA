@@ -1,6 +1,0 @@
->name
-RF00017.90.ss
->seq_restr
-NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
->sec_struct
-((((((((((......)))))))....(((....)))))).....((((((((..(((((.((.((..(((((((((((((((((((..(((......(((((((.((.(((((.((((.((((.((((((.((((((((.((....)).)))))))).)))))).......(((((......(((....(((......)))....)))....))))).)))).))))..)))))))....))))))).)))..))))))))).....)))))))))).)).)).))).))..))))))))

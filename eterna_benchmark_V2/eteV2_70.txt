@@ -1,6 +1,0 @@
->name
-Ete_70
->seq_restr
-NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
->sec_struct
-...(((((((....((..((..(((..((..((..((..((..((..((...)).))..)).)).))..)).))).)).)))))))))........(((((((....((..((..(((..((..((..((..((..((..((...)).))..)).)).))..)).))).)).)))))))))...

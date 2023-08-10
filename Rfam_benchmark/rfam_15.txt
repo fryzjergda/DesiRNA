@@ -1,6 +1,0 @@
->name
-RF00015.101.ss
->seq_restr
-NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
->sec_struct
-...............((.(((((.(((................))))))))..))....((((...........)))).....(((.((((((((((...)).))))).))).)))...........((((....))))

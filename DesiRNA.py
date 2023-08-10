@@ -43,6 +43,17 @@ iupac_re = {'A' : 'A',
             'N' : '[ACGU]',
             }
 
+class SuppressWarnings:
+    def __init__(self, original):
+        self.original = original
+
+    def write(self, message):
+        if "WARNING:" not in message:
+            self.original.write(message)
+
+    def flush(self):
+        self.original.flush()
+
 def argument_parser():
     """
     Parses command-line arguments.
@@ -103,8 +114,8 @@ def argument_parser():
 
     parser.add_argument("-o", "--oligomerization", required=False, dest="oligo", default='off', choices=['off','enforce', 'avoid'],
                             help="Check if the designed sequence tends to oligomerize. User may enforce, or avoid oligomerization. Slows down the simulation. [default = off]")
-#    parser.add_argument("-d", "--dimer", required=False, dest="dimer", default='off', choices=['off','on'],
-#                            help="Design of a RNA complex, of two strands. [deafult = off, turns on automatically is '&' detected in the input file]")
+    parser.add_argument("-d", "--dimer", required=False, dest="dimer", default='off', choices=['off','on'],
+                            help="Design of a homodimer complex, of two strands. [deafult = off, requires input file complying with RNA-RNA complex format]")
 
 #    parser.add_argument("-m", "--mutations", required=False, dest="mutations", default='one', choices=['one','multi'],
 #                            help="More mutatuions pre one MC step in higher temperature replicas. Slows down the simulation. [default = off]")    
@@ -115,6 +126,7 @@ def argument_parser():
                             help="Highest percentage of targeted mutations applied to lowest temperature replica. Percentage for replicas in between will be set evenly from 'tm_perc_max' to 'tm_perc_min'. Float from 0.0 to 1.0. [default = 0.7]")
     parser.add_argument("-tm_perc_min", "--target_mutations_percentage_min", required=False, dest="tm_min", default=0.0, type=float,
                             help="Lowest percentage of targeted mutations applied to highest temperature replica. Percentage for replicas in between will be set evenly from 'tm_perc_max' to 'tm_perc_min'. Float from 0.0 to 1.0. [default = 0.0]")
+
 
 
 #    parser.add_argument("-a", "--alt_ss", required=False, dest="alt_ss", default='off', choices=['off','on'],
@@ -164,7 +176,7 @@ def argument_parser():
     t_max = args.t_max
     t_min = args.t_min
     oligo = args.oligo
-#    dimer = args.dimer
+    dimer = args.dimer
     param = args.param
     exchange_rate = args.exchange
 #    scoring_f = args.scoring_f
@@ -188,7 +200,7 @@ def argument_parser():
 
     
     return infile, replicas, timlim, acgu_percs,  t_max, t_min, oligo,  param, exchange_rate, scoring_f, pm,   tshelves,\
-           in_seed, subopt, diff_start_replicas, num_results, acgu_content, steps, tm_max, tm_min, motifs
+           in_seed, subopt, diff_start_replicas, num_results, acgu_content, steps, tm_max, tm_min, motifs, dimer
 
 
 def read_input(infile):
@@ -307,7 +319,7 @@ def check_length(ss, restr):
         SystemExit: If the secondary structure string and the sequence restraints string are of different lengths.
     """
     
-    if len(ss) != len(restr):
+    if (len(ss) != len(restr)):
         sys.exit("Secondary structure and sequence restraints are of different length. Check input file.")
 
 
@@ -727,20 +739,24 @@ def generate_initial_list_random(nt_list, input_file):
     seq_list = []
     for i in range(0,replicas):
         sequence = random_sequence_generator(nt_list, input_file)
-        deltaF = delta_MFE_EOS(input_file.sec_struct, sequence)
-        score = metropolis_score(310, deltaF)
-        seq_list.append([sequence, score])
+        sequence_object = score_sequence(sequence)
+        sequence_object.get_replica_num(i+1)
+        sequence_object.get_temp_shelf(rep_temps_shelfs[i])
+        sequence_object.get_sim_step(0)
+        seq_list.append(sequence_object)
 
-    seq_list.sort(key = lambda x: x[1], reverse = True)
+#    seq_list.sort(key = lambda x: x[1], reverse = True)
 
-
-    result_list = seq_list[:replicas]
+    rand_sequences_txt =""
+    for i in range(0, len(seq_list)):
+        rand_sequences_txt += str(vars(seq_list[i]))+"\n"
 
     with open(outname+'_random.csv', 'w', newline='\n') as myfile:
-         wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
-         wr.writerows(result_list)
+#         wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+#         wr.writerows(rand_sequences_txt)
+         myfile.write(rand_sequences_txt)
 
-    return result_list
+#    return result_list
 
 
 def get_seq_to_mutate(sequence_list, step):
@@ -1015,6 +1031,7 @@ def delta_MFE_EOS(struct, seq):
     """
     
     F0 = RNA.energy_of_struct(seq, struct)
+    print("kupka")
     F1 = RNA.pf_fold(seq)[1]
     
         
@@ -1170,7 +1187,7 @@ def get_mfe_e_ss(seq):
     (float, float): A tuple containing the MFE and EFE of the sequence.
     """
 
-    if dimer == "off":
+    if dimer == "off" and rr_complex == "off":
         pf_struct = RNA.pf_fold(seq)
         structure_nopk = pf_struct[0]
         energy = pf_struct[1]
@@ -1184,10 +1201,16 @@ def get_mfe_e_ss(seq):
         elif pks == "on":
             structure = get_pk_struct(seq, structure_nopk)            
     
+    elif rr_complex == "on":
+        dimer_struct = mfe_e_dimer(seq)
+        structure = dimer_struct[3]
+        energy = dimer_struct[0]
     elif dimer == "on":
         dimer_struct = mfe_e_dimer(seq)
         structure = dimer_struct[3]
         energy = dimer_struct[0]
+
+
 
 #    if oligo == "on":
 #        pf_struct = RNA.fold(seq)
@@ -1231,8 +1254,12 @@ def score_sequence(seq):
     is a combination of these metrics.
     """
     
-    scored_sequence = func.ScoreSeq(sequence = seq)
-
+    if dimer == "off":
+        scored_sequence = func.ScoreSeq(sequence = seq)
+    else:
+        seq = seq.split("&")[0]
+        seq = seq+"&"+seq
+        scored_sequence = func.ScoreSeq(sequence = seq)
 
     mfe_energy, mfe_structure = get_mfe_e_ss(seq)
     
@@ -1772,6 +1799,10 @@ class InputFile:
 if __name__ == '__main__':
 
 
+    original_stderr = sys.stderr
+    sys.stderr = SuppressWarnings(original_stderr) 
+
+
     print("DesiRNA")
 
     command = os.path.basename(sys.argv[0])+' '+' '.join(sys.argv[1:])
@@ -1783,7 +1814,7 @@ if __name__ == '__main__':
     now = now.strftime("%Y%m%d.%H%M%S")
     
     infile, replicas, timlim, acgu_percentages,  T_max, T_min, oligo,  param, RE_attempt, scoring_f, point_mutations,  \
-    tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs = argument_parser()
+    tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs, dimer = argument_parser()
     
     input_file = read_input(infile)
 
@@ -1814,16 +1845,17 @@ if __name__ == '__main__':
     else:
         alt_ss = "off"    
 
-    if "&" in input_file.sec_struct:
+    if "&" in input_file.sec_struct and dimer == "off":
         too_much = input_file.sec_struct.count("&")
-        if too_much == 1:
-            dimer = "on"
-        else:
-            print("\nToo much structures in the input. Can only design dimers.\nPlease correct your input file.\n")
+        if too_much != 1:
+            print("\nToo much structures in the input. Can only design RNA complexes of max two sequences.\nPlease correct your input file.\n")
             quit()
+        rr_complex = "on"
     else:
-        dimer = "off"
-
+        rr_complex = "off"
+            
+        
+        
     if set(input_file.sec_struct) != set('.()'):
 #    if ("[" or "<" or "{") in input_file.sec_struct:
         pks = "on"
