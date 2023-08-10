@@ -88,7 +88,7 @@ def argument_parser():
     parser.add_argument("-ts", "--tshelves", required=False, dest="tshelves", type=str, default='',
                             help="Custom temperature shelves for replicas in replica exchange simulation. Provide comma-separated values.")
 
-    parser.add_argument("--motifs", required=False, dest="motifs", type=str, default='',
+    parser.add_argument("-motifs", "--motifs", required=False, dest="motifs", type=str, default='',
                         help="Sequence motifs along with their bonuses(-)/penalties(+). Provide comma-separated key,value,key,value sequence.")
 
 
@@ -131,7 +131,7 @@ def argument_parser():
 
 #    parser.add_argument("-a", "--alt_ss", required=False, dest="alt_ss", default='off', choices=['off','on'],
 #                            help="Design of sequences folding into two structures. [default = off, turns on automatically if alternative structure is detected in the input file]")
-    parser.add_argument("-seed", "--seed", required=False, default=0, dest="in_seed", type=int,
+    parser.add_argument("-seed", "--seed_number", required=False, default=0, dest="in_seed", type=int,
                             help="User defined seed number for simulation. [default = 0]")
                             
     parser.add_argument("-re_seq", "--replicas_sequences", required=False, dest="diff_start_replicas", default='one', choices=['different','same'],
