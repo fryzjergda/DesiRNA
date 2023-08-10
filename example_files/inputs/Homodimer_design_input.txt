@@ -1,0 +1,6 @@
+>name
+Homodimer_Example
+>seq_restr
+NNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNN
+>sec_struct
+((((....((((.....&))))....)))).....

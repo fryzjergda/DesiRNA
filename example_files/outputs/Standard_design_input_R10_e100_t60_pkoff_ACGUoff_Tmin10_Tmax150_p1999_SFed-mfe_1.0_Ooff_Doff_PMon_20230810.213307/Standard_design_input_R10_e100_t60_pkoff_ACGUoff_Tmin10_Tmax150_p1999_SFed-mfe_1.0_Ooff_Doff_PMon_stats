@@ -1,0 +1,15 @@
+>Standard_design_input_R10_e100_t60_pkoff_ACGUoff_Tmin10_Tmax150_p1999_SFed-mfe_1.0_Ooff_Doff_PMon time=60s
+Acc_ratio= 0.562, Iterations=6200, Accepted=34868/62000, Rejected=27132/62000
+Accepted Metropolis=17354/44486, Rejected Metropolis=27132/44486
+Replica exchange attempts: 62
+Replica swaps attempts: 279
+Replica swaps accepted: 209
+Replica swaps rejected: 70
+Replica exchange acc_ratio: 0.749
+
+Design solved succesfully!
+
+Best solution:
+GGUGACACCGACGGCUACUGCCGUACGUGCGUCACC
+((((((.((((((((....))))).)).).))))))
+MFE:-20.844

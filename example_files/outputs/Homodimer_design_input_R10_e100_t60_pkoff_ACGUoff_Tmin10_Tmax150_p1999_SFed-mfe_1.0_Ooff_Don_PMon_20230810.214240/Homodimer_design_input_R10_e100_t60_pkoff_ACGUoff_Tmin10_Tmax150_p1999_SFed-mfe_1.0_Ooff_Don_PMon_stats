@@ -1,0 +1,15 @@
+>Homodimer_design_input_R10_e100_t60_pkoff_ACGUoff_Tmin10_Tmax150_p1999_SFed-mfe_1.0_Ooff_Don_PMon time=60s
+Acc_ratio= 0.364, Iterations=6000, Accepted=21828/60000, Rejected=38172/60000
+Accepted Metropolis=2726/40898, Rejected Metropolis=38172/40898
+Replica exchange attempts: 60
+Replica swaps attempts: 270
+Replica swaps accepted: 173
+Replica swaps rejected: 97
+Replica exchange acc_ratio: 0.641
+
+Design solved succesfully!
+
+Best solution:
+GGGCAGGGGCUCAAACA&GGGCAGGGGCUCAAACA
+((((....((((.....&))))....)))).....
+MFE:-12.8

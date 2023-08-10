@@ -1,0 +1,15 @@
+>RNA_RNA_complex_design_input_R10_e100_t60_pkoff_ACGUoff_Tmin10_Tmax150_p1999_SFed-mfe_1.0_Ooff_Doff_PMon time=60s
+Acc_ratio= 0.356, Iterations=5600, Accepted=19943/56000, Rejected=36057/56000
+Accepted Metropolis=9871/45928, Rejected Metropolis=36057/45928
+Replica exchange attempts: 56
+Replica swaps attempts: 252
+Replica swaps accepted: 185
+Replica swaps rejected: 67
+Replica exchange acc_ratio: 0.734
+
+Design solved succesfully!
+
+Best solution:
+GCGAGGCGCGAGAGCAU&GCCGGGAGGCUCGCCCGC
+(((.(((((....))..&(((....)))..))))))
+MFE:-19.92

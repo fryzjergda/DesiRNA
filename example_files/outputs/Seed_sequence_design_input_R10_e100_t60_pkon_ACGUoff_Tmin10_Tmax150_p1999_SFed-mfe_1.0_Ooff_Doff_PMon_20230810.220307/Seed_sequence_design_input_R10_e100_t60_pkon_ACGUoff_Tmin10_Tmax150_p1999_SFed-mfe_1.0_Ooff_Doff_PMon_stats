@@ -1,0 +1,15 @@
+>Seed_sequence_design_input_R10_e100_t60_pkon_ACGUoff_Tmin10_Tmax150_p1999_SFed-mfe_1.0_Ooff_Doff_PMon time=60s
+Acc_ratio= 0.59, Iterations=13300, Accepted=78487/133000, Rejected=54513/133000
+Accepted Metropolis=39033/93546, Rejected Metropolis=54513/93546
+Replica exchange attempts: 133
+Replica swaps attempts: 599
+Replica swaps accepted: 480
+Replica swaps rejected: 119
+Replica exchange acc_ratio: 0.801
+
+Design solved succesfully!
+
+Best solution:
+GCCCCGGCCCCCGGCGAAAGCCGGUGGAGGCGGGGC
+((((((.((((((((....))))).)).).))))))
+MFE:-32.115

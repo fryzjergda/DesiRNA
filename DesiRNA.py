@@ -218,7 +218,6 @@ def read_input(infile):
         type_entry = data[i].split("\n")
         key, values = type_entry[0], type_entry[1:]
         data_dict[key] = values
-    
 
     input_file = InputFile(data_dict['name'][0], data_dict['sec_struct'][0], data_dict['seq_restr'][0])
     
@@ -227,7 +226,7 @@ def read_input(infile):
     
     if 'alt_sec_struct' in data_dict:
         input_file.add_alt_sec_struct(data_dict['alt_sec_struct'])
-    
+
     return input_file
 
 
@@ -1027,7 +1026,6 @@ def delta_MFE_EOS(struct, seq):
     """
     
     F0 = RNA.energy_of_struct(seq, struct)
-    print("kupka")
     F1 = RNA.pf_fold(seq)[1]
     
         
@@ -1198,6 +1196,7 @@ def get_mfe_e_ss(seq):
             structure = get_pk_struct(seq, structure_nopk)            
     
     elif rr_complex == "on":
+        
         dimer_struct = mfe_e_dimer(seq)
         structure = dimer_struct[3]
         energy = dimer_struct[0]
@@ -1385,7 +1384,6 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
         if accept == True and (sequence_o.scoring_function < best_score.scoring_function) and (worker_stats.global_step % 1000 !=0):
             best_score = sequence_o
         elif accept == True and (sequence_o.scoring_function >= best_score.scoring_function) and (worker_stats.global_step % 1000 ==0): 
-            print("kupka")
             best_score = sequence_o
         '''
 
@@ -1708,6 +1706,8 @@ def get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, o
     outname : str
         The generated output name.
     """
+
+    print(scoring_f)
     scoring_f_str = "_".join([f"{func}_{weight}" for func, weight in scoring_f])
 
     
@@ -1834,10 +1834,9 @@ if __name__ == '__main__':
             quit()        
         nt_percentages = {"A":acgu_l[0], "C":acgu_l[1], "G":acgu_l[2],"U":acgu_l[3]}
     
-
     if input_file.alt_sec_struct != None:
         alt_ss = "on"
-        scoring_f = "alt"
+#        scoring_f = "alt"
     else:
         alt_ss = "off"    
 
@@ -1852,7 +1851,7 @@ if __name__ == '__main__':
             
         
         
-    if set(input_file.sec_struct) != set('.()'):
+    if set(input_file.sec_struct) != set('.()&'):
 #    if ("[" or "<" or "{") in input_file.sec_struct:
         pks = "on"
     else:

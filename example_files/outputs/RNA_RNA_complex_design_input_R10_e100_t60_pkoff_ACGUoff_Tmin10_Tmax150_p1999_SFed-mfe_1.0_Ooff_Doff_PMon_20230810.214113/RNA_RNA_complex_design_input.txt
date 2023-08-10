@@ -1,0 +1,6 @@
+>name
+RNA-RNA Complex_Example
+>seq_restr
+NNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNN
+>sec_struct
+(((.(((((....))..&(((....)))..))))))

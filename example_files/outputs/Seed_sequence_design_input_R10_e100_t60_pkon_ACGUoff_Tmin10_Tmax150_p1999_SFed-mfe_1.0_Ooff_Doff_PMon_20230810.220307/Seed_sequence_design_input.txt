@@ -1,0 +1,8 @@
+>name
+Seed_Seq_Example
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+((((((.((((((((....))))).)).).))))))
+>seed_seq
+GCCCCGGCCCCCGGCGAAAGCCGGUGGAGGCGGGGC

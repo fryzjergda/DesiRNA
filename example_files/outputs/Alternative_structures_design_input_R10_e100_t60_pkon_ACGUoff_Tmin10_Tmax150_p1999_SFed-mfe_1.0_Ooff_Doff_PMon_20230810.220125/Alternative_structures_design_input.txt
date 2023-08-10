@@ -1,0 +1,9 @@
+>name
+Alt_Struct_Example
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+((((((.((((((((....))))).)).).))))))
+>alt_sec_struct
+(((((((((((((....)))..)).)).).))))).
+(((((((((((((....)))))...)).).))))).

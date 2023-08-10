@@ -1,0 +1,15 @@
+>Alternative_structures_design_input_R10_e100_t60_pkon_ACGUoff_Tmin10_Tmax150_p1999_SFed-mfe_1.0_Ooff_Doff_PMon time=60s
+Acc_ratio= 0.02, Iterations=11800, Accepted=2395/118000, Rejected=115605/118000
+Accepted Metropolis=1140/116745, Rejected Metropolis=115605/116745
+Replica exchange attempts: 118
+Replica swaps attempts: 531
+Replica swaps accepted: 286
+Replica swaps rejected: 245
+Replica exchange acc_ratio: 0.539
+
+Design solved succesfully!
+
+Best solution:
+GAGGGGCGUGUUUGUUCGAAUAAGUCGUCACCCUUC
+((((((.((((((((....))))).)).).))))))
+MFE:-10.019

@@ -1,0 +1,15 @@
+>Pseudoknot_design_input_R10_e100_t60_pkon_ACGUoff_Tmin10_Tmax150_p1999_SFed-mfe_1.0_Ooff_Doff_PMon time=60s
+Acc_ratio= 0.562, Iterations=5800, Accepted=32574/58000, Rejected=25426/58000
+Accepted Metropolis=16306/41732, Rejected Metropolis=25426/41732
+Replica exchange attempts: 58
+Replica swaps attempts: 261
+Replica swaps accepted: 201
+Replica swaps rejected: 60
+Replica exchange acc_ratio: 0.77
+
+Design solved succesfully!
+
+Best solution:
+GUAGAGACCAUGCAACCUCUACAACAGCUGCACCAC
+((((((....[[[[..))))))......]]]]....
+MFE:-6.837
