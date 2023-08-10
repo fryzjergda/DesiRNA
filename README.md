@@ -132,7 +132,7 @@ For further assistance with the command-line options, you can use the help comma
 DesiRNA.py -h
 ```
 
-### Files
+## Files
 
 ### Input Files
 
