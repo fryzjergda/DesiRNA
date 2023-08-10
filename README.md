@@ -144,7 +144,7 @@ The input file for DesiRNA must contain specific information related to the RNA 
 - **Sequence Restraints Line:** `>seq_restr` followed by sequence restraints using IUPAC nomenclature.
 - **Secondary Structure Line:** `>sec_struct` followed by the secondary structure.
 
-##### Example:
+#### Example:
 
 ```
 >name
@@ -161,7 +161,7 @@ Include different brackets for pseudoknot representation.
 
 **Note:** Available brackets for pseudoknots include `()`, `[]`, `<`, `>`, `{}`, `Aa`, `Bb`, `Cc`, `Dd`. Up to three levels of pseudoknots are accepted.
 
-##### Example:
+#### Example:
 
 ```
 >name
@@ -179,7 +179,7 @@ Include an `&` symbol in both the sequence restraints and structure lines.
 **Note:** A maximum of two-chain RNAs can be designed.
 
 
-##### Example:
+#### Example:
 
 ```
 >name
@@ -197,7 +197,7 @@ Include an `&` symbol in both the sequence restraints and structure lines. The t
 **Note:** Turn on the homodimer option `-d on`.
 
 
-##### Example:
+#### Example:
 
 ```
 >name
@@ -215,7 +215,7 @@ NNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNN
 
 Include additional lines for alternative structures.
 
-##### Example:
+#### Example:
 
 ```
 >name
@@ -233,7 +233,7 @@ NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 
 Include a seed sequence for the starting point of the design simulation.
 
-##### Example:
+#### Example:
 
 ```
 >name
