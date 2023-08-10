@@ -22,6 +22,7 @@ DesiRNA is a state-of-the-art RNA sequence design tool, that stands out for its 
 - [Input Files](#input-files)
 - [Output Files](#output-files)
 - [Citation](#citation)
+- [Benchmark](#benchmark)
 - [License](#license)
 - [Contact](#contact)
 
@@ -276,6 +277,26 @@ Within the main directory, there is a `trajectory_files` folder containing addit
 - `*_random.csv`: A CSV file containing random sequences fitting compying to the desired structure.
 - `*_replicas.csv`: A CSV file containing information about the varius stats for each replica used in the simulation.
 - `*_traj.csv`: A CSV file containing the trajectory of the simulation.
+
+
+## Benchmark
+
+The benchmark files are organized into two main directories: `Eterna100V1_benchmark_results` and `Eterna100V1_inputs`.
+
+### Eterna100V1_benchmark_results
+
+This directory contains the results of the benchmark tests. The files include:
+
+- `Eterna100V1_1h_results.txt`: Results for the 1-hour benchmark test.
+- `Eterna100V1_1min_results.txt`: Results for the 1-minute benchmark test.
+- `Eterna100V1_24h_results.txt`: Results for the 24-hour benchmark test.
+- `Eterna100V1_all_results.txt`: Consolidated results for all benchmark tests.
+
+### Eterna100V1_inputs
+
+This directory contains the input files used for the benchmark tests. There are 100 individual text files (`eteV1_01.txt`, `eteV1_02.txt`, ..., `eteV1_100.txt`) that contain the structures of 100 Eterna benchmark puzzles.
+
+These files are organized in the same format as described in the [Input Files](#input-files) section.
 
 
 
