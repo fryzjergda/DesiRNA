@@ -133,6 +133,7 @@ DesiRNA.py -h
 ```
 
 ## Files
+Description of the input and output files.
 
 ### Input Files
 
