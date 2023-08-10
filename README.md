@@ -19,7 +19,7 @@ DesiRNA is a state-of-the-art RNA sequence design tool, that stands out for its 
 ## Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
-- [Input Files](#input files)
+- [Input Files](#input-files)
 - [Citation](#citation)
 - [License](#license)
 - [Contact](#contact)
