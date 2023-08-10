@@ -99,19 +99,19 @@ DesiRNA.py -f NAME
 - `-tmin, --tmin T_MIN`: Minimal Replica Temperature (default: 10).
 - `-tmax, --tmax T_MAX`: Maximal Replica Temperature (default: 150).
 - `-ts, --tshelves TSHELVES`: Custom temperature shelves for replicas, provide comma-separated values.
-- `-sf, --scoring_function SCORING_F`: Scoring functions and weights used to guide the design process. Multiple scoring functions can be selected. Please provide desired scoring functions and their weigths e.g., 'ed-mfe:0.5,1-mcc:0.5'. (default: `dmt:1.0`). Available options:
+- `-sf, --scoring_function SCORING_F`: Scoring functions and weights used to guide the design process. Multiple scoring functions can be selected. Please provide desired scoring functions and their weigths e.g., ```-sf ed-mfe:0.5,1-mcc:0.5```. (default: `dmt:1.0`). Available options:
   - `ed-mfe`: Energy of the desired structure minus MFE (Minimum Free Energy).
   - `1-mcc`: One minus Matthews Correlation Coefficient (MCC).
   - `sln_mfe`: Sequence Length Normalized MFE.
 - `-nd, --negative_design {off,on}`: Use negative design approach (default: off).
 - `-acgu, --ACGU {off,on}`: Keep 'natural' ACGU content, with default content A:15%, C:30%, G:30%, U:15% (default: off).
-- `-acgu_content, --ACGU_content ACGU_CONTENT`: Provide user-defined ACGU content, comma-separated values (e.g., 10,40,40,10).
+- `-acgu_content, --ACGU_content ACGU_CONTENT`: Provide user-defined ACGU content, comma-separated values e.g., ```-acgu_content 10,40,40,10```.
 - `-o, --oligomerization {off,enforce,avoid}`: Check if the designed sequence tends to oligomerize. User may enforce or avoid oligomerization. Slows down the simulation (default: `off`).
 - `-d, --dimer {off,on}`: Design of a homodimer complex, of two strands. Requires input file complying with RNA-RNA complex format (default: `off`).
 - `-tm, --target_mutations {off,on}`: Targeted mutations (default: on).
 - `-tm_perc_max, --target_mutations_percentage_max TM_MAX`: Highest percentage of targeted mutations for the lowest temperature replica (default: 0.7).
 - `-tm_perc_min, --target_mutations_percentage_min TM_MIN`: Lowest percentage of targeted mutations for the highest temperature replica (default: 0.0).
-- `--motifs MOTIFS`: Prevent or enforce specific sequence moitif. Provide sequence motifs along with their bonuses(-)/penalties(+), e.g., "GNRA,-1,CCCC,2".
+- `--motifs MOTIFS`: Prevent or enforce specific sequence moitif. Provide sequence motifs along with their bonuses(-)/penalties(+), e.g., ```-motifs GNRA,-1,CCCC,2```.
 - `-seed, --seed IN_SEED`: User-defined seed number for simulation (default: 0).
 - `-re_seq, --replicas_sequences {different,same}`: Choose whether replicas will start from the same or different random sequence (default: same).
 
