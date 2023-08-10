@@ -132,7 +132,7 @@ For further assistance with the command-line options, you can use the help comma
 DesiRNA.py -h
 ```
 
-## Files
+### Files
 
 ### Input Files
 
@@ -252,6 +252,30 @@ The sequence restraints line uses IUPAC symbols such as `N` for any nucleotide, 
 
 For more details on the IUPAC nomenclature, please refer to the [Wikipedia page on nucleic acid notation](https://en.wikipedia.org/wiki/Nucleic_acid_notation).
 
+
+### Output Files
+
+The results of a simulation are organized into a specific directory, named according to the parameters and options used in the simulation. The directory includes the following files and subdirectory:
+
+#### Main Directory
+
+- `*_mid_results.csv`: A CSV file containing intermediate results of the simulation.
+- `*_replicas.png`: A PNG image showing the design simulation process.
+- `*_results.csv`: A CSV file containing the final results of the simulation.
+- `*_stats`: A file containing statistical information about the simulation.
+- `*.txt`: The original input file used for the simulation.
+
+#### Trajectory Files Subdirectory
+
+Within the main directory, there is a `trajectory_files` folder containing additional files related to the simulation trajectory:
+
+- `*_best_fasta.fas`: A FASTA file containing the best sequence(s) from the simulation.
+- `*_best_str`: A file containing the best solution.
+- `*_command`: A file containing the command used to run the simulation.
+- `*_multifasta.fas`: A FASTA file containing all sequences from the simulation.
+- `*_random.csv`: A CSV file containing random sequences fitting compying to the desired structure.
+- `*_replicas.csv`: A CSV file containing information about the varius stats for each replica used in the simulation.
+- `*_traj.csv`: A CSV file containing the trajectory of the simulation.
 
 
 
