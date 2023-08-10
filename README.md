@@ -20,6 +20,7 @@ DesiRNA is a state-of-the-art RNA sequence design tool, that stands out for its 
 - [Installation](#installation)
 - [Usage](#usage)
 - [Input Files](#input-files)
+- [Output Files](#output-files)
 - [Citation](#citation)
 - [License](#license)
 - [Contact](#contact)
@@ -137,7 +138,7 @@ DesiRNA.py -h
 
 The input file for DesiRNA must contain specific information related to the RNA sequence design. Here's an overview of the expected format and additional options:
 
-#### Basic Single Chain RNA Design
+### Basic Single Chain RNA Design
 
 - **Name Line:** `>name` followed by a unique identifier.
 - **Sequence Restraints Line:** `>seq_restr` followed by sequence restraints using IUPAC nomenclature.
@@ -154,7 +155,7 @@ NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 ((((((.((((((((....))))).)).).))))))
 ```
 
-#### Design with Pseudoknots
+### Design with Pseudoknots
 
 Include different brackets for pseudoknot representation.
 
@@ -171,7 +172,7 @@ NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 ((((((....[[[[..))))))......]]]]....
 ```
 
-#### Two-Chain RNA Complex Design
+### Two-Chain RNA Complex Design
 
 Include an `&` symbol in both the sequence restraints and structure lines.
 
@@ -189,7 +190,7 @@ NNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNN
 (((.(((((....))..&(((....)))..))))))
 ```
 
-#### Two-Chain Homodimer Design
+### Two-Chain Homodimer Design
 
 Include an `&` symbol in both the sequence restraints and structure lines. The two sequences, must be of the same length.
 
@@ -210,7 +211,7 @@ NNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNN
 
 
 
-#### Design with Alternative Structures
+### Design with Alternative Structures
 
 Include additional lines for alternative structures.
 
@@ -228,7 +229,7 @@ NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 (((((((((((((....)))))...)).).))))).
 ```
 
-#### Design with Seed Sequence
+### Design with Seed Sequence
 
 Include a seed sequence for the starting point of the design simulation.
 
@@ -252,11 +253,11 @@ The sequence restraints line uses IUPAC symbols such as `N` for any nucleotide, 
 For more details on the IUPAC nomenclature, please refer to the [Wikipedia page on nucleic acid notation](https://en.wikipedia.org/wiki/Nucleic_acid_notation).
 
 
-### Output Files
+## Output Files
 
 The results of a simulation are organized into a specific directory, named according to the parameters and options used in the simulation. The directory includes the following files and subdirectory:
 
-#### Main Directory
+### Main Directory
 
 - `*_mid_results.csv`: A CSV file containing intermediate results of the simulation.
 - `*_replicas.png`: A PNG image showing the design simulation process.
