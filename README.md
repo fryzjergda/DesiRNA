@@ -148,7 +148,7 @@ The input file for DesiRNA must contain specific information related to the RNA 
 
 ```
 >name
-Ete_11
+Design
 >seq_restr
 NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 >sec_struct
@@ -183,12 +183,33 @@ Include an `&` symbol in both the sequence restraints and structure lines.
 
 ```
 >name
-Two_Chain_Example
+RNA-RNA Complex_Example
 >seq_restr
 NNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNN
 >sec_struct
 (((.(((((....))..&(((....)))..))))))
 ```
+
+#### Two-Chain Homodimer Design
+
+Include an `&` symbol in both the sequence restraints and structure lines. The two sequences, must be of the same length.
+
+**Note:** Turn on the homodimer option `-d on`.
+
+
+##### Example:
+
+```
+>name
+Homodimer_Example
+>seq_restr
+NNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNN
+>sec_struct
+((((....((((.....&))))....)))).....
+
+```
+
+
 
 #### Design with Alternative Structures
 
