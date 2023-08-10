@@ -96,5 +96,5 @@ dependencies:
   - zlib=1.2.13=h5eee18b_0
   - zstd=1.5.5=hc292b87_0
   - pip:
+      - pathlib==1.0.1
       - viennarna==2.6.3
-
