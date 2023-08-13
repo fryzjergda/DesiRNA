@@ -231,13 +231,13 @@ def read_input(infile):
 
 
 def parse_scoring_functions(scoring_f_str):
-    scoring_f = []
+    scoring_func = []
     for item in scoring_f_str.split(','):
         if ':' not in item:
             raise ValueError(f"Invalid scoring function format: {item}. Expected format: 'function:weight'")
         function, weight = item.split(':')
-        scoring_f.append((function, float(weight)))
-    return scoring_f    
+        scoring_func.append((function, float(weight)))
+    return scoring_func    
 
 def check_dot_bracket(ss):
     """
