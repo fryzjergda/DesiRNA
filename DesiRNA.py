@@ -42,7 +42,7 @@ iupac_re = {'A' : 'A',
             'V' : '[ACG]',
             'N' : '[ACGU]',
             }
-
+'''
 class SuppressWarnings:
     def __init__(self, original):
         self.original = original
@@ -53,6 +53,8 @@ class SuppressWarnings:
 
     def flush(self):
         self.original.flush()
+'''
+
 
 def argument_parser():
     """
@@ -1795,8 +1797,8 @@ class InputFile:
 if __name__ == '__main__':
 
 
-    original_stderr = sys.stderr
-    sys.stderr = SuppressWarnings(original_stderr) 
+#    original_stderr = sys.stderr
+#    sys.stderr = SuppressWarnings(original_stderr) 
 
 
     print("DesiRNA")

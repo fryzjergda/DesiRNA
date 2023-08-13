@@ -359,12 +359,24 @@ class ScoreSeq:
 
     def get_scoring_function(self, scoring_f):
         self.scoring_function = 0
+        for function, weight in scoring_f:
+            if function == 'ed-mfe':
+                self.scoring_function += self.edesired_minus_mfe * weight
+            elif function == '1-mcc':
+                self.scoring_function += self.mcc * 10 * weight
+            elif function == 'sln_mfe':
+                self.scoring_function += self.sln_mfe * weight
+
+    '''
+    def get_scoring_function(self, scoring_f):
+        self.scoring_function = 0
         if 'ed-mfe' in scoring_f:
             self.scoring_function += self.edesired_minus_mfe
         if '1-mcc' in scoring_f:
             self.scoring_function += self.mcc*10
         if 'sln_mfe' in scoring_f:
             self.scoring_function += self.sln_mfe
+    '''
 
     def get_scoring_function_w_alt_ss(self):        
         self.scoring_function = self.scoring_function + self.edesired2_minus_mfe
@@ -372,8 +384,12 @@ class ScoreSeq:
     def get_scoring_function_w_subopt(self):
         self.scoring_function = self.scoring_function -self.esubopt_minus_mfe 
     
-    def get_scoring_function_w_oligo(self):
+    def get_scoring_function_w_oligo_avoid(self):
         if self.oligomerization == True:
+            self.scoring_function = self.scoring_function + 300*self.edesired_minus_mfe
+
+    def get_scoring_function_w_oligo_enforce(self):
+        if self.oligomerization == False:
             self.scoring_function = self.scoring_function + 300*self.edesired_minus_mfe
 
     def update_scoring_function_w_motifs(self, motif_bonus):
