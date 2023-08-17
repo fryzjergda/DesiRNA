@@ -1499,7 +1499,7 @@ def run_functions():
     for i in range(len(seqence_score_list)):
         simulation_data.append(vars(seqence_score_list[i]))
        
-    if all(char in "ACGU" for char in input_file.seq_restr):
+    if all(char in "ACGU&" for char in input_file.seq_restr):
         print("Cannot mutate the sequence due to sequence constraints.\n Scoring sequence.")
         sorted_results = sorted(round_floats(simulation_data), key=lambda d: (-d['mcc'], -d['edesired_minus_mfe'], -d['mfe']), reverse = True)
         kok = score_sequence(seqence_score_list[0].sequence)
