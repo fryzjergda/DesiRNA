@@ -1277,13 +1277,15 @@ def score_sequence(seq):
     scored_sequence.get_recall(ssc.recall())
     scored_sequence.get_mcc(ssc.mcc())
 
-
-    scored_sequence.get_scoring_function(scoring_f)
-
     for function, weight in scoring_f:
         if function == 'sln_mfe':
             scored_sequence.get_sln_mfe()
     
+
+
+    scored_sequence.get_scoring_function(scoring_f)
+
+
     if input_file.alt_sec_struct != None:
         energies = [RNA.energy_of_struct(seq, alt_dbn) for alt_dbn in input_file.alt_sec_structs]
         scored_sequence.get_edesired2(sum(energies)/len(energies))
