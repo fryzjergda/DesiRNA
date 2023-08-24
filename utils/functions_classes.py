@@ -76,7 +76,7 @@ def plot_simulation_data_combined(simulation_data, outname, alt, infile):
                 labels.append(f"Replica {replica_num}")
                 ylabel_pos = ax.yaxis.label.get_position()
 
-#        ax.set_xlabel('Simulatiion steps')
+#        ax.set_xlabel('Simulation steps')
 #        ax.set_ylabel(metric.capitalize().replace('_', ' '))
 #        ax.set_title(metric.capitalize().replace('_', ' '))
 #        ax.legend(loc='upper right')
@@ -84,7 +84,7 @@ def plot_simulation_data_combined(simulation_data, outname, alt, infile):
 
         if metric == 'mcc':
             ax.set_ylabel('1 - MCC', fontsize=12)
-            ax.set_xlabel('Simulatiion steps', fontsize=12)
+            ax.set_xlabel('Simulation steps', fontsize=12)
         if metric == 'precision':
             ax.set_title('1 - Precision')
         if metric == 'recall':
@@ -354,7 +354,7 @@ class ScoreSeq:
         self.mcc = 1-mcc
 
     def get_sln_mfe(self):
-        self.sln_mfe = -(self.mfe + 0.3759*len(self.sequence) + 5.7534)/10
+        self.sln_mfe = (self.mfe + 0.3759*len(self.sequence) + 5.7534)/10
     
 
     def get_scoring_function(self, scoring_f):

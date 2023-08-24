@@ -354,7 +354,7 @@ class ScoreSeq:
         self.mcc = 1-mcc
 
     def get_sln_mfe(self):
-        self.sln_mfe = -(self.mfe + 0.31*len(self.sequence) - 7.05)/(-0.049*len(self.sequence) - 20.743)
+        self.sln_mfe = -(self.mfe + 0.3759*len(self.sequence) + 5.7534)/10
     
 
     def get_scoring_function(self, scoring_f):
