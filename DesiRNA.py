@@ -163,9 +163,10 @@ def argument_parser():
     if args.percs == 'off' and args.acgu_content:
         parser.error("The -acgu_content option is only applicable when -acgu is set to 'on'.")    
     
-    if args.pm == 'off' and ('tm_max' in vars(args) or 'tm_min' in vars(args)):
+    
+    if args.pm == 'off' and (args.tm_max != 0.7 or args.tm_min != 0.0): #('tm_max' in vars(args) or 'tm_min' in vars(args)):
         parser.error("Targeted mutations must be 'on' to set -tm_perc_max and/or -tm_perc_min.")
-
+    
     infile = args.name
     replicas = args.replicas
     timlim = args.timlim
@@ -850,7 +851,7 @@ def get_mutation_position(seq_obj, available_positions):
         else:
             false_cases = expand_cases(false_cases, len(seq_obj.sequence)-1)
             range_pos = random.choices([false_cases, available_positions], weights=[mutat_point_prob, 1-mutat_point_prob])[0]
-
+            
         mutation_position = random.choice(range_pos)
         
     return mutation_position
@@ -900,10 +901,15 @@ def mutate_sequence(sequence_obj, nt_list):
             sequence_list[nt_pos] = mutated_nt
         else:
             print("cannot mutate")
+    elif (nt_list[nt_pos].pairs_with == None) and (len(nt_list[nt_pos].letters_allowed) == 1):
+        sequence_list = sequence_list
+
     elif nt_list[nt_pos].pairs_with != None:
         nt1 = nt_list[nt_pos]
+
         available_mutations_nt1 = nt1.letters_allowed.copy()
-        if sequence_list[nt_pos] in available_mutations_nt1:
+                    
+        if (sequence_list[nt_pos] in available_mutations_nt1) and len(available_mutations_nt1) != 1:
         
             available_mutations_nt1.remove(sequence_list[nt_pos])
         available_mutations_nt1.sort()
@@ -915,7 +921,7 @@ def mutate_sequence(sequence_obj, nt_list):
             allowed_choices_nt1 = allowed_choice(available_mutations_nt1, nt_percentages)
             mutated_nt1 = random.choices(available_mutations_nt1, weights= allowed_choices_nt1)[0]
         elif acgu_percentages == "off": 
-            mutated_nt1 = random.choice(available_mutations_nt1)        
+            mutated_nt1 = random.choice(available_mutations_nt1)
         
         allowed_pairings_nt2 = can_pair(mutated_nt1)
         available_mutations_nt2 = list(set(allowed_mutations_nt2).intersection(allowed_pairings_nt2))
