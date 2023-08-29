@@ -32,7 +32,7 @@ def get_replica_color(replica_num, num_replicas):
 def plot_simulation_data_combined(simulation_data, outname, alt, infile):
     # Define the metrics to plot
 #    if alt == None:
-    metrics = ['scoring_function', 'edesired_minus_mfe','mfe', 'edesired', 'mcc']
+    metrics = ['scoring_function', 'edesired_minus_Epf','Epf', 'edesired', 'mcc']
     #else:
      #   metrics = ['mfe', 'precision', 'd_alt_mfe_target', 'edesired', 'recall','temp_shelf', 'edesired_minus_mfe', 'mcc','scoring_function']
     
@@ -89,16 +89,16 @@ def plot_simulation_data_combined(simulation_data, outname, alt, infile):
             ax.set_title('1 - Precision')
         if metric == 'recall':
             ax.set_title('1 - Recall')
-        if metric == 'mfe':
-            ax.set_ylabel('MFE', fontsize=12)
+        if metric == 'Epf':
+            ax.set_ylabel('Epf', fontsize=12)
         if metric == 'temp_shelf':
             ax.set_title('Temperature shelf')
         if metric == 'edesired':
             ax.set_ylabel('E desired', fontsize=12)
-        if metric == 'edesired_minus_mfe':
-            ax.set_ylabel('E desired - MFE', fontsize=12)
-        if (metric == 'esubopt_minus_mfe') and (alt == None):
-            ax.set_title('dE MFE subopt')
+        if metric == 'edesired_minus_Epf':
+            ax.set_ylabel('E desired - Epf', fontsize=12)
+        if (metric == 'esubopt_minus_Epf') and (alt == None):
+            ax.set_title('dE Epf subopt')
         if (metric == 'd_alt_mfe_target') and (alt != None):
             ax.set_title('dE altMFE target')
 
@@ -156,8 +156,8 @@ def plot_simulation_data_combined(simulation_data, outname, alt, infile):
 
 def _plot_simulation_data_combined(simulation_data, outname, scoring_f):
     # Define the metrics to plot
-    metrics = ['mfe', 'precision', 'sln_mfe', 'edesired', 'recall', 'web',
-               'edesired_minus_mfe', 'mcc', 'temp_shelf', 'esubopt_minus_mfe',
+    metrics = ['Epf', 'precision', 'sln_Epf', 'edesired', 'recall', 'web',
+               'edesired_minus_Epf', 'mcc', 'temp_shelf', 'esubopt_minus_Epf',
                'score', 'scoring_function']
 
     # Create subplots
@@ -171,7 +171,7 @@ def _plot_simulation_data_combined(simulation_data, outname, scoring_f):
         axs = [axs]
 
     scoring_function_titles = {
-    'dmt': 'Scoring Function - edesired_minus_mfe',
+    'dmt': 'Scoring Function - edesired_minus_Epf',
     'mcc': 'Scoring Function - MCC',
     'mix': 'Scoring Function - Score',
     'mix2': 'Scoring Function - Score2',
@@ -292,20 +292,22 @@ class ScoreSeq:
         self.replica_num = None
         self.temp_shelf = None
         self.sim_step = 0
-        self.edesired_minus_mfe =0
-        self.mfe =0
+        self.edesired_minus_Epf =0
+        self.Epf =0
         self.edesired = 0
         self.mcc = 0
         self.mfe_ss = None
         self.subopt_e = 0
-        self.esubopt_minus_mfe = 0
-        self.sln_mfe = 0
+        self.esubopt_minus_Epf = 0
+        self.sln_Epf = 0
 #        self.score = 0
+        self.MFE = 0
+        self.edesired_minus_MFE = 0
         self.recall = 0
         self.precision = 0
         self.edesired2 = 0
-        self.edesired2_minus_mfe =0
-        self.dimer_mfe = 0    
+        self.edesired2_minus_Epf =0
+        self.dimer_Epf = 0    
 
     def get_replica_num(self, rep_num):
         self.replica_num = rep_num
@@ -316,8 +318,8 @@ class ScoreSeq:
     def get_sim_step(self, step):
         self.sim_step = step
         
-    def get_mfe(self, mfe):
-        self.mfe = mfe
+    def get_Epf(self, Epf):
+        self.Epf = Epf
 
     def get_mfe_ss(self, ss):
         self.mfe_ss = ss
@@ -325,24 +327,24 @@ class ScoreSeq:
     def get_edesired(self, e_target):
         self.edesired = e_target
 
-    def get_edesired_minus_mfe(self, mfe, e_target):
-        self.edesired_minus_mfe = e_target -mfe
+    def get_edesired_minus_Epf(self, Epf, e_target):
+        self.edesired_minus_Epf = e_target - Epf
 
     def get_edesired2(self, e_target):
         self.edesired2 = e_target
 
-    def get_edesired2_minus_mfe(self, mfe, e_target):
-        self.edesired2_minus_mfe = e_target -mfe
+    def get_edesired2_minus_Epf(self, Epf, e_target):
+        self.edesired2_minus_Epf = e_target - Epf
         
     def get_subopt_e(self, e_subopt):
         self.subopt_e = e_subopt
 
-    def get_esubopt_minus_mfe(self, mfe, e_subopt):
-        self.esubopt_minus_mfe = e_subopt -mfe
+    def get_esubopt_minus_Epf(self, Epf, e_subopt):
+        self.esubopt_minus_Epf = e_subopt - Epf
 
     def get_oligomerization(self):
-        mfe_oligo = energy_of_oligomer(self.sequence)
-        self.oligomerization = if_oligomer(self.mfe, mfe_oligo)
+        Epf_oligo = energy_of_oligomer(self.sequence)
+        self.oligomerization = if_oligomer(self.Epf, Epf_oligo)
 
     def get_precision(self, precision):
         self.precision = 1-precision
@@ -353,19 +355,30 @@ class ScoreSeq:
     def get_mcc(self, mcc):
         self.mcc = 1-mcc
 
-    def get_sln_mfe(self):
-        self.sln_mfe = (self.mfe + 0.3759*len(self.sequence) + 5.7534)/10
+    def get_sln_Epf(self):
+        self.sln_Epf = (self.Epf + 0.3759*len(self.sequence) + 5.7534)/10
     
+    def get_MFE(self):
+        self.MFE = RNA.fold(self.sequence)[1]
+
+    def get_edesired_minus_MFE(self):
+        self.edesired_minus_MFE = self.edesired - self.MFE
 
     def get_scoring_function(self, scoring_f):
         self.scoring_function = 0
         for function, weight in scoring_f:
-            if function == 'ed-mfe':
-                self.scoring_function += self.edesired_minus_mfe * weight
-            elif function == '1-mcc':
+            if function == 'Ed-Epf':
+                self.scoring_function += self.edesired_minus_Epf * weight
+            elif function == '1-MCC':
                 self.scoring_function += self.mcc * 10 * weight
-            elif function == 'sln_mfe':
-                self.scoring_function += self.sln_mfe * weight
+            elif function == 'sln_Epf':
+                self.scoring_function += self.sln_Epf * weight
+            elif function == 'Ed-MFE':
+                self.scoring_function += self.edesired_minus_MFE * weight
+            elif function == '1-precision':
+                self.scoring_function += self.precision * 10 * weight
+            elif function == '1-recall':
+                self.scoring_function += self.recall * 10 * weight
 
     '''
     def get_scoring_function(self, scoring_f):
@@ -379,18 +392,18 @@ class ScoreSeq:
     '''
 
     def get_scoring_function_w_alt_ss(self):        
-        self.scoring_function = self.scoring_function + self.edesired2_minus_mfe
+        self.scoring_function = self.scoring_function + self.edesired2_minus_Epf
         
     def get_scoring_function_w_subopt(self):
-        self.scoring_function = self.scoring_function -self.esubopt_minus_mfe 
+        self.scoring_function = self.scoring_function -self.esubopt_minus_Epf 
     
     def get_scoring_function_w_oligo_avoid(self):
         if self.oligomerization == True:
-            self.scoring_function = self.scoring_function + 300*self.edesired_minus_mfe
+            self.scoring_function = self.scoring_function + 300*self.edesired_minus_Epf
 
     def get_scoring_function_w_oligo_enforce(self):
         if self.oligomerization == False:
-            self.scoring_function = self.scoring_function + 300*self.edesired_minus_mfe
+            self.scoring_function = self.scoring_function + 300*self.edesired_minus_Epf
 
     def update_scoring_function_w_motifs(self, motif_bonus):
         self.scoring_function += motif_bonus
