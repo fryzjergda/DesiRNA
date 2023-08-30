@@ -101,10 +101,14 @@ DesiRNA.py -f NAME
 - `-tmin, --tmin`: Minimal Replica Temperature (default: 10).
 - `-tmax, --tmax`: Maximal Replica Temperature (default: 150).
 - `-ts, --tshelves`: Custom temperature shelves for replicas, provide comma-separated values.
-- `-sf, --scoring_function`: Scoring functions and weights used to guide the design process. Multiple scoring functions can be selected. Please provide desired scoring functions and their weigths e.g., ```-sf ed-mfe:0.5,1-mcc:0.5```. (default: `dmt:1.0`). Available options:
-  - `ed-mfe`: Energy of the desired structure minus MFE (Minimum Free Energy).
-  - `1-mcc`: One minus Matthews Correlation Coefficient (MCC).
-  - `sln_mfe`: Sequence Length Normalized MFE.
+- `-sf, --scoring_function`: Scoring functions and weights used to guide the design process. Multiple scoring functions can be selected. Please provide desired scoring functions and their weigths e.g., ```-sf Ed-Epf:0.5,1-MCC:0.5```. (default: `Ed-Epf:1.0`). Available options:
+  - `Ed-Epf`: Energy of the desired structure (Ed) minus free energy of the thermodynamic ensemble (Epf).
+  - `Ed-MFE`: Energy of the desired structure (Ed) minus Minimum Free Energy (MFE)
+  - `1-MCC`: One minus Matthews Correlation Coefficient (MCC).
+  - `sln_Epf`: Sequence Length Normalized Epf.
+  - `1-precision`: One minus precision (TP/(TP+FP)).
+  - `1-recall`: One minus recall (TP/(TP+FN)).
+
 - `-nd, --negative_design {off,on}`: Use negative design approach (default: off).
 - `-acgu, --ACGU {off,on}`: Keep 'natural' ACGU content, with default content A:15%, C:30%, G:30%, U:15% (default: off).
 - `-acgu_content, --ACGU_content`: Provide user-defined ACGU content, comma-separated values e.g., ```-acgu_content 10,40,40,10```.
@@ -123,10 +127,10 @@ DesiRNA.py -f NAME
 To run DesiRNA with a specific file and custom parameters:
 
 ```bash
-DesiRNA.py -f example.txt -R 20 -e 50 -t 120
+DesiRNA.py -f Standard_design_input.txt -R 20 -e 50 -t 120
 ```
 
-This command will run DesiRNA with the file `example.txt`, 20 replicas, an exchange frequency of 50, and a time limit of 120 seconds.
+This command will run DesiRNA with the file `Standard_design_input.txt`, 20 replicas, an exchange frequency of 50, and a time limit of 120 seconds.
 
 For further assistance with the command-line options, you can use the help command:
 
@@ -155,6 +159,8 @@ NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 >sec_struct
 ((((((.((((((((....))))).)).).))))))
 ```
+
+####
 
 ### Design with Pseudoknots
 

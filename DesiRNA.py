@@ -15,7 +15,8 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 from datetime import datetime
-import multiprocessing as mp
+#import multiprocessing as mp
+import multiprocess as mp
 import pandas as pd
 from pathlib import Path
 from shutil import copy
@@ -1189,7 +1190,6 @@ def get_mfe_e_ss(seq):
     (float, float): A tuple containing the MFE and EFE of the sequence.
     """
 
-    print(pks)
     if dimer == "off" and rr_complex == "off":
         pf_struct = RNA.pf_fold(seq)
         structure_nopk = pf_struct[0]
