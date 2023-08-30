@@ -9,15 +9,13 @@ import RNA
 import math
 import csv
 import time
-import random
 import re
 import numpy as np
 import os
-import matplotlib.pyplot as plt
 from datetime import datetime
-#import multiprocessing as mp
 import multiprocess as mp
 import pandas as pd
+
 from pathlib import Path
 from shutil import copy
 from shutil import move
@@ -26,35 +24,45 @@ from utils import functions_classes as func
 from utils.SimScore import SimScore
 from utils.pcofold_dimer_multichain_energy import mfe_e_dimer
 
-iupac_re = {'A' : 'A',
-            'C' : 'C',
-            'G' : 'G',
-            'T' : 'T',
-            'U' : 'U',
-            'W' : '[AU]',
-            'S' : '[GC]',
-            'M' : '[AC]',
-            'K' : '[GU]',
-            'R' : '[AG]',
-            'Y' : '[CU]',
-            'B' : '[CGU]',
-            'D' : '[AGU]',
-            'H' : '[ACU]',
-            'V' : '[ACG]',
-            'N' : '[ACGU]',
-            }
-'''
-class SuppressWarnings:
-    def __init__(self, original):
-        self.original = original
 
-    def write(self, message):
-        if "WARNING:" not in message:
-            self.original.write(message)
+def print_action_group_help(parser, action_group, include_all=False, print_usage=True):
+    formatter = parser._get_formatter()
+    
+    # Add usage for the specific action group
+    if print_usage:
+        actions = action_group._group_actions if not include_all else parser._actions
+        formatter.add_usage(parser.usage, actions, parser._mutually_exclusive_groups)
+    
+    formatter.start_section(action_group.title)
+    formatter.add_text(action_group.description)
+    formatter.add_arguments(action_group._group_actions)
+    formatter.end_section()
+    print(formatter.format_help())
 
-    def flush(self):
-        self.original.flush()
-'''
+
+
+class StandardHelpAction(argparse.Action):
+    def __init__(self, option_strings, dest=argparse.SUPPRESS, default=argparse.SUPPRESS, help=None):
+        super(StandardHelpAction, self).__init__(option_strings=option_strings, dest=dest, default=default, nargs=0, help=help)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        # Display only the standard options
+        for action_group in parser._action_groups:
+            if action_group.title == "Standard Options":
+                print_action_group_help(parser, action_group)
+        parser.exit()
+
+
+class AdvancedHelpAction(argparse.Action):
+    def __init__(self, option_strings, dest=argparse.SUPPRESS, default=argparse.SUPPRESS, help=None):
+        super(AdvancedHelpAction, self).__init__(option_strings=option_strings, dest=dest, default=default, nargs=0, help=help)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        # Display both standard and advanced options
+        print_action_group_help(parser, parser._action_groups[-2], include_all=True)  # Standard Options with usage
+        print_action_group_help(parser, parser._action_groups[-1], include_all=True, print_usage=False)  # Advanced Options without usage
+        parser.exit()
+
 
 
 def argument_parser():
@@ -65,78 +73,76 @@ def argument_parser():
         A Namespace containing the parsed command-line arguments.
     """
     
-    parser = argparse.ArgumentParser(description=__doc__, prog='DesiRNA.py')
-    parser.add_argument("-f", "--filename", required=True, dest="name",
+    parser = argparse.ArgumentParser(description=__doc__, prog='DesiRNA.py', add_help=False)
+    
+    standard_group = parser.add_argument_group('Standard Options')
+    advanced_group = parser.add_argument_group('Advanced Options')
+    
+    
+    standard_group.add_argument("-f", "--filename", required=True, dest="name",
                         help="Name of a file that contains secondary structures and constraints.")
-    parser.add_argument("-R", "--replicas", required=False, dest="replicas", default=10, type=int,
+    standard_group.add_argument("-R", "--replicas", required=False, dest="replicas", default=10, type=int,
                             help="Number of replicas. [default = 10]")
-    parser.add_argument("-e", "--exchange", required=False, dest="exchange", default=100, type=int,
+    standard_group.add_argument("-e", "--exchange", required=False, dest="exchange", default=100, type=int,
                             help="Frequency of replixa exchange attempt. [default = 100]")
-    parser.add_argument("-t", "--timelimit", required=False, default=60, dest="timlim", type=int,
+    standard_group.add_argument("-t", "--timelimit", required=False, default=60, dest="timlim", type=int,
                             help="Timelimit for running the program [s]. [default = 60]")
-    parser.add_argument("-s", "--steps", required=False, default=None, dest="steps", type=int,
+    standard_group.add_argument("-s", "--steps", required=False, default=None, dest="steps", type=int,
                             help="Number of Replica Exchange steps after which the simulation ends. Overwrites the -t option. [default = None]")
 
 
-    parser.add_argument("-r", "--results_number", required=False, dest="num_results", default=10, type=int,
+    standard_group.add_argument("-r", "--results_number", required=False, dest="num_results", default=10, type=int,
                             help="Number of best results to be reported in the output. [default = 10]")
 
-    parser.add_argument("-p", "--param", required=False, dest="param", default='1999', choices=['2004','1999'],
+    advanced_group.add_argument("-p", "--param", required=False, dest="param", default='1999', choices=['2004','1999'],
                             help="Turner energy parameter for calculating MFE. [default = 1999]")
 
-    parser.add_argument("-tmin", "--tmin", required=False, dest="t_min", default=10, type=float,
+    advanced_group.add_argument("-tmin", "--tmin", required=False, dest="t_min", default=10, type=float,
                             help="Minimal Replica Temperature. [default = 10]")
-    parser.add_argument("-tmax", "--tmax", required=False, dest="t_max", default=150, type=float,
+    advanced_group.add_argument("-tmax", "--tmax", required=False, dest="t_max", default=150, type=float,
                             help="Maximal Replica Temperature. [default = 150]")
-    parser.add_argument("-ts", "--tshelves", required=False, dest="tshelves", type=str, default='',
+    advanced_group.add_argument("-ts", "--tshelves", required=False, dest="tshelves", type=str, default='',
                             help="Custom temperature shelves for replicas in replica exchange simulation. Provide comma-separated values.")
 
-    parser.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", type=str, default='Ed-Epf:1.0',
-                            help="Scoring functions and weights used to guide the design process, e.g. 'Ed-Epf:0.5,1-MCC:0.5'. Scoring functions to choose: Ed-Epf, 1-MCC, sln_Epf, Ed-MFE, 1-precision, 1-recall [default = Ed-Epf:1.0]")
+    advanced_group.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", type=str, default='Ed-Epf:1.0',
+                            help="Scoring functions and weights used to guide the design process, e.g. 'Ed-Epf:0.5,1-MCC:0.5'. \
+                            Scoring functions to choose: Ed-Epf, 1-MCC, sln_Epf, Ed-MFE, 1-precision, 1-recall [default = Ed-Epf:1.0]")
 
 
 
-    parser.add_argument("-nd", "--negative_design", required=False, dest="subopt", default='off', choices=['off','on'],
+    advanced_group.add_argument("-nd", "--negative_design", required=False, dest="subopt", default='off', choices=['off','on'],
                             help="Use negative design approach. [default = off]")
                             
-    parser.add_argument("-acgu", "--ACGU", required=False, dest="percs", default='off', choices=['off','on'],
+    standard_group.add_argument("-acgu", "--ACGU", required=False, dest="percs", default='off', choices=['off','on'],
                             help="Keep 'natural' ACGU content. If turned on the content will be A:15%%, C:30%%, G:30%%, U:15%%. [default = off]")
-    parser.add_argument("-acgu_content", "--ACGU_content", required=False, dest="acgu_content", default='', type=str,
+    advanced_group.add_argument("-acgu_content", "--ACGU_content", required=False, dest="acgu_content", default='', type=str,
                             help="Provide user defined ACGU content. Comma-separated values e.g., 10,40,40,10")
     
-#    parser.add_argument("-pk", "--PK", required=False, dest="pks", default='off', choices=['off','on'],
-#                            help="Design of pseudoknotted structures. [default = off, turns on automatically if pseudoknot is detected in the input file]")
-#    parser.add_argument("-tr", "--treplicaexchange", required=False, dest="t_re", default=10, type=float,
-#                            help="Temperature of replica exchange attempt. [default = 10]")
-
-    parser.add_argument("-o", "--oligomerization", required=False, dest="oligo", default='off', choices=['off','enforce', 'avoid'],
+    advanced_group.add_argument("-o", "--oligomerization", required=False, dest="oligo", default='off', choices=['off','enforce', 'avoid'],
                             help="Check if the designed sequence tends to oligomerize. User may enforce, or avoid oligomerization. Slows down the simulation. [default = off]")
-    parser.add_argument("-d", "--dimer", required=False, dest="dimer", default='off', choices=['off','on'],
+    advanced_group.add_argument("-d", "--dimer", required=False, dest="dimer", default='off', choices=['off','on'],
                             help="Design of a homodimer complex, of two strands. [deafult = off, requires input file complying with RNA-RNA complex format]")
 
-#    parser.add_argument("-m", "--mutations", required=False, dest="mutations", default='one', choices=['one','multi'],
-#                            help="More mutatuions pre one MC step in higher temperature replicas. Slows down the simulation. [default = off]")    
-    parser.add_argument("-tm", "--target_mutations", required=False, dest="pm", default='on', choices=['off','on'],
+    advanced_group.add_argument("-tm", "--target_mutations", required=False, dest="pm", default='on', choices=['off','on'],
                             help="Targeted mutations. Targets mostly False Negativeas and False Positives. [default = on]")
 
-    parser.add_argument("-tm_perc_max", "--target_mutations_percentage_max", required=False, dest="tm_max", default=0.7, type=float,
+    advanced_group.add_argument("-tm_perc_max", "--target_mutations_percentage_max", required=False, dest="tm_max", default=0.7, type=float,
                             help="Highest percentage of targeted mutations applied to lowest temperature replica. Percentage for replicas in between will be set evenly from 'tm_perc_max' to 'tm_perc_min'. Float from 0.0 to 1.0. [default = 0.7]")
-    parser.add_argument("-tm_perc_min", "--target_mutations_percentage_min", required=False, dest="tm_min", default=0.0, type=float,
+    advanced_group.add_argument("-tm_perc_min", "--target_mutations_percentage_min", required=False, dest="tm_min", default=0.0, type=float,
                             help="Lowest percentage of targeted mutations applied to highest temperature replica. Percentage for replicas in between will be set evenly from 'tm_perc_max' to 'tm_perc_min'. Float from 0.0 to 1.0. [default = 0.0]")
 
-    parser.add_argument("-motifs", "--motif_sequences", required=False, dest="motifs", type=str, default='',
+    advanced_group.add_argument("-motifs", "--motif_sequences", required=False, dest="motifs", type=str, default='',
                         help="Sequence motifs along with their bonuses(-)/penalties(+). Provide comma-separated key,value,key,value sequence.")
 
-
-#    parser.add_argument("-a", "--alt_ss", required=False, dest="alt_ss", default='off', choices=['off','on'],
-#                            help="Design of sequences folding into two structures. [default = off, turns on automatically if alternative structure is detected in the input file]")
-    parser.add_argument("-seed", "--seed_number", required=False, default=0, dest="in_seed", type=int,
+    advanced_group.add_argument("-seed", "--seed_number", required=False, default=0, dest="in_seed", type=int,
                             help="User defined seed number for simulation. [default = 0]")
                             
-    parser.add_argument("-re_seq", "--replicas_sequences", required=False, dest="diff_start_replicas", default='one', choices=['different','same'],
+    advanced_group.add_argument("-re_seq", "--replicas_sequences", required=False, dest="diff_start_replicas", default='one', choices=['different','same'],
                             help="Choose wether replicas will start from the same random sequence or each replica will start from different random sequence. [default = same]")
-#    parser.add_argument("-rand_seed", "--random_seed", required=False, dest="rand_seed", default='on', choices=['off','on'],
-#                            help="Use random seed number for simulation. [default = on]")
+
+
+    parser.add_argument('-h', action=StandardHelpAction, help='Show standard help message and exit.')
+    parser.add_argument('-H', action=AdvancedHelpAction, help='Show advanced help message and exit.')
 
 
                             
@@ -150,6 +156,8 @@ def argument_parser():
             parser.error("The number of temperatures provided in -ts/--tshelves must match the number of replicas set by -R.")
 
     if args.motifs:
+        iupac_re = {'A' : 'A', 'C' : 'C', 'G' : 'G', 'T' : 'T', 'U' : 'U', 'W' : '[AU]', 'S' : '[GC]', 'M' : '[AC]',
+            'K' : '[GU]', 'R' : '[AG]', 'Y' : '[CU]', 'B' : '[CGU]', 'D' : '[AGU]', 'H' : '[ACU]', 'V' : '[ACG]', 'N' : '[ACGU]',}
 
         motifs_list = args.motifs.split(',')
         try:
@@ -1488,6 +1496,14 @@ def run_functions():
     """
     
     input_file.pairs = check_dot_bracket(input_file.sec_struct)  #check dotbracket correctness, assign as list of pairs 
+
+    if input_file.alt_sec_structs != None:
+        print(input_file.alt_sec_structs)
+        for i in range(0, len (input_file.alt_sec_structs)):
+            print("Checking brackets for alternative structure ", i+1)
+            check_dot_bracket(input_file.alt_sec_structs[i])
+        print("Alternative structures are ok.")
+    
     check_seq_restr(input_file.seq_restr)
     check_length(input_file.sec_struct, input_file.seq_restr)
     nt_list = get_nt_list(input_file)
@@ -1836,6 +1852,14 @@ if __name__ == '__main__':
 #    original_stderr = sys.stderr
 #    sys.stderr = SuppressWarnings(original_stderr) 
 
+
+    if len(sys.argv) == 1:
+        print("DesiRNA")
+        print("usage: DesiRNA.py [-h] [-H]")
+        print("\nOptions:")
+        print("  -h  Display basic usage and options.")
+        print("  -H  Display detailed help, including advanced options.")
+        sys.exit(1)
 
     print("DesiRNA")
 

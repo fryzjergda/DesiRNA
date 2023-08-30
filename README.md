@@ -90,13 +90,18 @@ The basic command to run DesiRNA requires specifying the filename that contains 
 DesiRNA.py -f NAME
 ```
 
-### Optional Arguments
+### Standard Options
 
 - `-R, --replicas`: Number of replicas (default: 10).
 - `-e, --exchange`: Frequency of replica exchange attempt (default: 100).
 - `-t, --timelimit`: Time limit for running the program in seconds (default: 60).
 - `-s, --steps`: Number of Replica Exchange steps, overwrites the `-t` option (default: None).
 - `-r, --results_number`: Number of best results to be reported (default: 10).
+- `-acgu, --ACGU {off,on}`: Keep 'natural' ACGU content, with default content A:15%, C:30%, G:30%, U:15% (default: off).
+
+
+### Advanced Options
+
 - `-p, --param {2004,1999}`: Turner energy parameter for calculating MFE (default: 1999).
 - `-tmin, --tmin`: Minimal Replica Temperature (default: 10).
 - `-tmax, --tmax`: Maximal Replica Temperature (default: 150).
@@ -110,7 +115,6 @@ DesiRNA.py -f NAME
   - `1-recall`: One minus recall (TP/(TP+FN)).
 
 - `-nd, --negative_design {off,on}`: Use negative design approach (default: off).
-- `-acgu, --ACGU {off,on}`: Keep 'natural' ACGU content, with default content A:15%, C:30%, G:30%, U:15% (default: off).
 - `-acgu_content, --ACGU_content`: Provide user-defined ACGU content, comma-separated values e.g., ```-acgu_content 10,40,40,10```.
 - `-o, --oligomerization {off,enforce,avoid}`: Check if the designed sequence tends to oligomerize. User may enforce or avoid oligomerization. Slows down the simulation (default: `off`).
 - `-d, --dimer {off,on}`: Design of a homodimer complex, of two strands. Requires input file complying with RNA-RNA complex format (default: `off`).
@@ -120,6 +124,9 @@ DesiRNA.py -f NAME
 - `-motifs, --motif_sequences`: Prevent or enforce specific sequence moitif. Provide sequence motifs along with their bonuses(-)/penalties(+), e.g., ```-motifs GNRA,-1,CCCC,2```.
 - `-seed, --seed_number`: User-defined seed number for simulation (default: 0).
 - `-re_seq, --replicas_sequences {different,same}`: Choose whether replicas will start from the same or different random sequence (default: same).
+
+
+
 
 
 ### Example Usage
