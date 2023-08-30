@@ -160,7 +160,12 @@ NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 ((((((.((((((((....))))).)).).))))))
 ```
 
-####
+#### Command:
+
+```
+DesiRNA.py -f Standard_design_input.txt -t 60
+```
+
 
 ### Design with Pseudoknots
 
@@ -177,6 +182,12 @@ Pseudoknot_Example
 NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 >sec_struct
 ((((((....[[[[..))))))......]]]]....
+```
+
+#### Command:
+
+```
+DesiRNA.py -f Pseudoknot_design_input.txt -t 60
 ```
 
 ### Two-Chain RNA Complex Design
@@ -197,6 +208,13 @@ NNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNN
 (((.(((((....))..&(((....)))..))))))
 ```
 
+#### Command:
+
+```
+DesiRNA.py -f RNA_RNA_complex_design_input.txt -t 60
+```
+
+
 ### Two-Chain Homodimer Design
 
 Include an `&` symbol in both the sequence restraints and structure lines. The two sequences, must be of the same length.
@@ -216,6 +234,11 @@ NNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNN
 
 ```
 
+#### Command:
+
+```
+DesiRNA.py -f Homodimer_design_input.txt -t 60 -d on
+```
 
 
 ### Design with Alternative Structures
@@ -236,6 +259,13 @@ NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 (((((((((((((....)))))...)).).))))).
 ```
 
+#### Command:
+
+```
+DesiRNA.py -f Alternative_structures_design_input.txt -t 60
+```
+
+
 ### Design with Seed Sequence
 
 Include a seed sequence for the starting point of the design simulation.
@@ -252,6 +282,13 @@ NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 >seed_seq
 GCCCCGGCCCCCGGCGAAAGCCGGUGGAGGCGGGGC
 ```
+
+#### Command:
+
+```
+DesiRNA.py -f Seed_sequence_design_input.txt -t 60
+```
+
 
 #### Sequence Restraints Dictionary:
 
