@@ -1189,6 +1189,7 @@ def get_mfe_e_ss(seq):
     (float, float): A tuple containing the MFE and EFE of the sequence.
     """
 
+    print(pks)
     if dimer == "off" and rr_complex == "off":
         pf_struct = RNA.pf_fold(seq)
         structure_nopk = pf_struct[0]
@@ -1888,13 +1889,11 @@ if __name__ == '__main__':
     else:
         rr_complex = "off"
             
-        
-        
-    if set(input_file.sec_struct) != set('.()&'):
-#    if ("[" or "<" or "{") in input_file.sec_struct:
-        pks = "on"
-    else:
+    if set(input_file.sec_struct).issubset('.()&'):
         pks = "off"
+    else:
+        pks = "on"
+
     
     outname = get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, dimer, 
                           param, RE_attempt, scoring_f, point_mutations,  alt_ss, tshelves, in_seed, subopt)
