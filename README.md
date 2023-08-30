@@ -45,8 +45,8 @@ python3 -m pip install viennarna
 Execute the following commands:
 
 ```bash
-conda create -n desirna python=3 numpy matplotlib pandas shutil pathlib
-conda activate desirna
+conda create -n DesiRNA-env python=3 numpy matplotlib pandas pathlib multiprocess
+conda activate DesiRNA-env
 pip install viennarna
 ```
 
