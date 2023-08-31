@@ -97,7 +97,7 @@ DesiRNA.py -f NAME
 - `-t, --timelimit`: Time limit for running the program in seconds (default: 60).
 - `-s, --steps`: Number of Replica Exchange steps, overwrites the `-t` option (default: None).
 - `-r, --results_number`: Number of best results to be reported (default: 10).
-- `-acgu, --ACGU {off,on}`: Keep 'natural' ACGU content, with default content A:15%, C:30%, G:30%, U:15% (default: off).
+- `-acgu, --ACGU {off,on}`: Keep 'natural' ACGU content in designed sequences (A:15%, C:30%, G:30%, U:15%) (default: off).
 
 
 ### Advanced Options
@@ -358,7 +358,7 @@ If you use DesiRNA in your research, please cite our paper:
 
 You can find the full citation details at the link above. Your citation helps support our work and ensures that it reaches a wider audience.
 
-For any inquiries related to the paper or the use of DesiRNA, please feel fr
+For any inquiries related to the paper or the use of DesiRNA, please feel free to contact the authors.
 
 
 ## License
