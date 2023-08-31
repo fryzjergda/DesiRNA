@@ -1877,7 +1877,8 @@ if __name__ == '__main__':
     tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs, dimer = argument_parser()
     
     input_file = read_input(infile)
-
+    print(infile)
+    
 
     if RE_steps != None:
         timlim = 100000000000000000
@@ -1919,7 +1920,10 @@ if __name__ == '__main__':
         pks = "on"
 
     
-    outname = get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, dimer, 
+    filename = os.path.basename(infile)
+
+    
+    outname = get_outname(filename, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, dimer, 
                           param, RE_attempt, scoring_f, point_mutations,  alt_ss, tshelves, in_seed, subopt)
 
     if tshelves == '':
@@ -1927,8 +1931,6 @@ if __name__ == '__main__':
     else: 
         rep_temps_shelfs = [float(temp) for temp in tshelves.split(",")]
 
-    with open(outname+".command", 'w') as f:
-        print(command, file=f)
     
     if in_seed != 0:
         original_seed = 2137+in_seed
@@ -1939,13 +1941,18 @@ if __name__ == '__main__':
 #        original_seed = random.random()
     random.seed(original_seed)
 
+    outname = os.path.basename(outname)
+    
     WORK_DIR = outname+"_"+str(now)
     Path(WORK_DIR).mkdir(parents=True, exist_ok=True)
-    copy(infile, WORK_DIR+"/"+infile)
-    move(outname+".command", WORK_DIR+"/"+(outname+".command"))
+    copy(infile, WORK_DIR+"/"+filename)
     Path(WORK_DIR+"/trajectory_files").mkdir(parents=True, exist_ok=True)
     os.chdir(WORK_DIR)
+    
 
+    with open(outname+".command", 'w') as f:
+        print(command, file=f)
+    
     
     run_functions()
     
