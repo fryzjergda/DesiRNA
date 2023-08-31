@@ -13,7 +13,7 @@ DesiRNA is a state-of-the-art RNA sequence design tool, that stands out for its 
   - Checks if the designed RNA tends to oligomerize
   - Designs RNAs with natural ACGU content
 - **Positive and Negative Design:** Follows both positive and negative design principles.
-- **Exceptional Performance:** Proven extraordinary performance in the EteRNA benchmark, solving 99 out of 100 design problems in under 24 hours.
+- **Exceptional Performance:** Proven extraordinary performance in the EteRNA V! benchmark, solving all 100 design problems in under 24 hours, where 90 were solved under one minute.
 
 
 ## Table of Contents
