@@ -307,7 +307,6 @@ class ScoreSeq:
         self.precision = 0
         self.edesired2 = 0
         self.edesired2_minus_Epf =0
-        self.dimer_Epf = 0    
 
     def get_replica_num(self, rep_num):
         self.replica_num = rep_num
@@ -342,9 +341,6 @@ class ScoreSeq:
     def get_esubopt_minus_Epf(self, Epf, e_subopt):
         self.esubopt_minus_Epf = e_subopt - Epf
 
-    def get_oligomerization(self):
-        Epf_oligo = energy_of_oligomer(self.sequence)
-        self.oligomerization = if_oligomer(self.Epf, Epf_oligo)
 
     def get_precision(self, precision):
         self.precision = 1-precision
@@ -397,6 +393,18 @@ class ScoreSeq:
     def get_scoring_function_w_subopt(self):
         self.scoring_function = self.scoring_function -self.esubopt_minus_Epf 
     
+    
+    def get_scoring_function_monomer(self):
+        self.oligo_fraction = oligo_fraction(self.sequence+"&"+self.sequence)
+        self.monomer_bonus = kTlog_monomer_fraction(self.oligo_fraction)
+        self.scoring_function = self.scoring_function + self.monomer_bonus
+    
+    def get_scoring_function_oligomer(self):
+        self.oligo_fraction = oligo_fraction(self.sequence)
+        self.oligomer_bonus = kTlog_oligo_fraction(self.oligo_fraction)
+        self.scoring_function = self.scoring_function + self.oligomer_bonus
+    
+    '''    
     def get_scoring_function_w_oligo_avoid(self):
         if self.oligomerization == True:
             self.scoring_function = self.scoring_function + 300*self.edesired_minus_Epf
@@ -404,7 +412,8 @@ class ScoreSeq:
     def get_scoring_function_w_oligo_enforce(self):
         if self.oligomerization == False:
             self.scoring_function = self.scoring_function + 300*self.edesired_minus_Epf
-
+    '''
+    
     def update_scoring_function_w_motifs(self, motif_bonus):
         self.scoring_function += motif_bonus
 

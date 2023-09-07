@@ -2,6 +2,25 @@
 # -*- coding: utf-8 -*-
 
 import RNA
+import numpy as np
+
+kB = 0.001987204259
+rho = 55.14       # H2O concentration in mol/L
+temp = 273.15+37  # Physical Temperature
+conc = 1e-3       # RNA concentration im mol/L
+    
+def oligo_fraction(seq_dimer):
+    dimer_ss, pfa, pfb, pfab, dimer_pf = RNA.co_pf_fold(seq_dimer)
+    dF = pfab - pfa - pfb
+    rhs = conc/rho*np.exp(-dF/(kB*temp))
+    return 1-(np.sqrt(1+4*rhs)-1)/(2*rhs)
+
+def kTlog_oligo_fraction(oligo_frac):
+    return -kB*temp*np.log(oligo_frac)
+
+def kTlog_monomer_fraction(oligo_frac):
+    return -kB*temp*np.log(1-oligo_frac)
+
 
 
 def energy_of_oligomer(seq):

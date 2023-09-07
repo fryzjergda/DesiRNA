@@ -118,8 +118,8 @@ def argument_parser():
     advanced_group.add_argument("-acgu_content", "--ACGU_content", required=False, dest="acgu_content", default='', type=str,
                             help="Provide user defined ACGU content. Comma-separated values e.g., 10,40,40,10")
     
-    advanced_group.add_argument("-o", "--oligomerization", required=False, dest="oligo", default='off', choices=['off','enforce', 'avoid'],
-                            help="Check if the designed sequence tends to oligomerize. User may enforce, or avoid oligomerization. Slows down the simulation. [default = off]")
+    advanced_group.add_argument("-o", "--avoid_oligomerization", required=False, dest="oligo", default='off', choices=['off','on'],
+                            help="Designes sequneces that should not tend to oligomerize. Slows down the simulation. [default = off]")
     advanced_group.add_argument("-d", "--dimer", required=False, dest="dimer", default='off', choices=['off','on'],
                             help="Design of a homodimer complex, of two strands. [deafult = off, requires input file complying with RNA-RNA complex format]")
 
@@ -1198,7 +1198,7 @@ def get_mfe_e_ss(seq):
     (float, float): A tuple containing the MFE and EFE of the sequence.
     """
 
-    if dimer == "off" and rr_complex == "off":
+    if oligo_state == "none" or oligo_state == "avoid":
         pf_struct = RNA.pf_fold(seq)
         structure_nopk = pf_struct[0]
         energy = pf_struct[1]
@@ -1212,12 +1212,7 @@ def get_mfe_e_ss(seq):
         elif pks == "on":
             structure = get_pk_struct(seq, structure_nopk)            
     
-    elif rr_complex == "on":
-        
-        dimer_struct = mfe_e_dimer(seq)
-        structure = dimer_struct[3]
-        energy = dimer_struct[0]
-    elif dimer == "on":
+    elif oligo_state == "homodimer" or oligo_state == "heterodimer":
         dimer_struct = mfe_e_dimer(seq)
         structure = dimer_struct[3]
         energy = dimer_struct[0]
@@ -1266,13 +1261,12 @@ def score_sequence(seq):
     is a combination of these metrics.
     """
     
-    if dimer == "off":
+    if oligo_state != "homodimer":
         scored_sequence = func.ScoreSeq(sequence = seq)
     else:
         seq = seq.split("&")[0]
         seq = seq+"&"+seq
         scored_sequence = func.ScoreSeq(sequence = seq)
-
     pf_energy, mfe_structure = get_mfe_e_ss(seq)
     
     scored_sequence.get_Epf(pf_energy)
@@ -1314,13 +1308,13 @@ def score_sequence(seq):
         scored_sequence.get_esubopt_minus_Epf(scored_sequence.Epf, scored_sequence.subopt_e)
         scored_sequence.get_scoring_function_w_subopt()
         
-
-    if oligo != "off":
-        scored_sequence.get_oligomerization()
-        if oligo == "avoid":
-            scored_sequence.get_scoring_function_w_oligo_avoid()
-        elif oligo == "enforce":
-            scored_sequence.get_scoring_function_w_oligo_enforce()
+    if oligo_state == "homodimer" or oligo_state == "heterodimer":
+        scored_sequence.get_scoring_function_oligomer()
+    
+    if oligo_state == "avoid":
+        scored_sequence.get_scoring_function_monomer()
+    
+    
 
     if motifs:
         motif_score = score_motifs(seq, motifs)
@@ -1563,8 +1557,9 @@ def run_functions():
         if stats.global_step % 10 == 0:
             remove_duplicated_results = {item['sequence']: item for item in simulation_data}
             simulation_data_noduplicates = list(remove_duplicated_results.values())
+            
             if oligo != "off":
-                sorted_results_mid = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['oligomerization'],-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse = True)
+                sorted_results_mid = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['oligo_fraction'],-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse = True)
             else:
                 sorted_results_mid = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse = True)
             sorted_results_mid = sorted_results_mid[:num_results]
@@ -1646,7 +1641,7 @@ def run_functions():
     remove_duplicated_results = {item['sequence']: item for item in simulation_data}
     simulation_data_noduplicates = list(remove_duplicated_results.values())
     if oligo != "off":
-        sorted_results = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['oligomerization'], -d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse = True)
+        sorted_results = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['oligo_fraction'], -d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse = True)
     else:
         sorted_results = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse = True)
     sorted_results = sorted_results[:num_results]
@@ -1670,10 +1665,7 @@ def run_functions():
             correct_bool = True
     
     if oligo != "off":
-        if sorted_results[0]['oligomerization'] == True:
-            oligo_txt = ",oligomerize: yes"
-        elif sorted_results[0]['oligomerization'] == False:
-            oligo_txt = ",oligomerize: no"
+        oligo_txt = ",oligo fraction: "+ str(sorted_results[0]['oligo_fraction'])
         correct_result_txt = ">"+infile+","+str(correct_bool)+","+str(correct)+","+sorted_results[0]['sequence']+','+sorted_results[0]['mfe_ss']+","+input_file.sec_struct+oligo_txt+'\n'
     else:
         correct_result_txt = ">"+infile+","+str(correct_bool)+","+str(correct)+","+sorted_results[0]['sequence']+','+sorted_results[0]['mfe_ss']+","+input_file.sec_struct+'\n'
@@ -1905,14 +1897,20 @@ if __name__ == '__main__':
     else:
         alt_ss = "off"    
 
+
+    oligo_state = "none"
+
     if "&" in input_file.sec_struct and dimer == "off":
         too_much = input_file.sec_struct.count("&")
         if too_much != 1:
             print("\nToo much structures in the input. Can only design RNA complexes of max two sequences.\nPlease correct your input file.\n")
             quit()
-        rr_complex = "on"
-    else:
-        rr_complex = "off"
+        oligo_state = "heterodimer"
+    elif "&" in input_file.sec_struct and dimer == "on":
+        oligo_state = "homodimer"
+    elif "&" not in input_file.sec_struct and oligo == "on":
+        oligo_state = "avoid"
+
             
     if set(input_file.sec_struct).issubset('.()&'):
         pks = "off"
