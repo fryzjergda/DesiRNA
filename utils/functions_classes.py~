@@ -341,8 +341,6 @@ class ScoreSeq:
     def get_esubopt_minus_Epf(self, Epf, e_subopt):
         self.esubopt_minus_Epf = e_subopt - Epf
 
-    def get_oligo_fraction(self):
-        self.oligo_fraction = oligo_fraction(self.sequence)
 
     def get_precision(self, precision):
         self.precision = 1-precision
@@ -397,10 +395,12 @@ class ScoreSeq:
     
     
     def get_scoring_function_monomer(self):
+        self.oligo_fraction = oligo_fraction(self.sequence+"&"+self.sequence)
         self.monomer_bonus = kTlog_monomer_fraction(self.oligo_fraction)
         self.scoring_function = self.scoring_function + self.monomer_bonus
     
     def get_scoring_function_oligomer(self):
+        self.oligo_fraction = oligo_fraction(self.sequence)
         self.oligomer_bonus = kTlog_oligo_fraction(self.oligo_fraction)
         self.scoring_function = self.scoring_function + self.oligomer_bonus
     

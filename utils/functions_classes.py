@@ -360,6 +360,14 @@ class ScoreSeq:
     def get_edesired_minus_MFE(self):
         self.edesired_minus_MFE = self.edesired - self.MFE
 
+    def get_ensemble_defect(self, sec_struct):
+        fc = RNA.fold_compound(self.sequence)
+        (_, mfe) = fc.mfe()
+        fc.exp_params_rescale(mfe)
+        (_, pf)  = fc.pf()
+        self.ensemble_defect = fc.ensemble_defect(sec_struct)    
+        
+
     def get_scoring_function(self, scoring_f):
         self.scoring_function = 0
         for function, weight in scoring_f:
@@ -375,6 +383,8 @@ class ScoreSeq:
                 self.scoring_function += self.precision * 10 * weight
             elif function == '1-recall':
                 self.scoring_function += self.recall * 10 * weight
+            elif function == 'Edef':
+                self.scoring_function += self.ensemble_defect * weight
 
     '''
     def get_scoring_function(self, scoring_f):

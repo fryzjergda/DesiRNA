@@ -106,7 +106,7 @@ def argument_parser():
 
     advanced_group.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", type=str, default='Ed-Epf:1.0',
                             help="Scoring functions and weights used to guide the design process, e.g. 'Ed-Epf:0.5,1-MCC:0.5'. \
-                            Scoring functions to choose: Ed-Epf, 1-MCC, sln_Epf, Ed-MFE, 1-precision, 1-recall [default = Ed-Epf:1.0]")
+                            Scoring functions to choose: Ed-Epf, 1-MCC, sln_Epf, Ed-MFE, 1-precision, 1-recall, Edef [default = Ed-Epf:1.0]")
 
 
 
@@ -1074,7 +1074,8 @@ def mc_delta(deltaF_o, deltaF_m,  T_replica):
         rand_num = random.random()
 
         accept = p_dE > rand_num
-    
+
+#    print(deltaF_o, deltaF_m, accept)    
     return accept, accept_e
 
 
@@ -1292,7 +1293,9 @@ def score_sequence(seq):
         if function == 'Ed-MFE':
             scored_sequence.get_MFE()
             scored_sequence.get_edesired_minus_MFE()    
-
+        if function == 'Edef':
+            scored_sequence.get_ensemble_defect(input_file.sec_struct)
+            
 
     scored_sequence.get_scoring_function(scoring_f)
 
@@ -1863,7 +1866,7 @@ if __name__ == '__main__':
     now = datetime.now()
     now = now.strftime("%Y%m%d.%H%M%S")
 
-    available_scoring_functions = ['Ed-Epf', '1-MCC', 'sln_Epf', 'Ed-MFE', '1-precision', '1-recall']
+    available_scoring_functions = ['Ed-Epf', '1-MCC', 'sln_Epf', 'Ed-MFE', '1-precision', '1-recall', 'Edef']
     
     infile, replicas, timlim, acgu_percentages,  T_max, T_min, oligo,  param, RE_attempt, scoring_f, point_mutations,  \
     tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs, dimer = argument_parser()
