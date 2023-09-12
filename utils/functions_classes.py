@@ -361,7 +361,8 @@ class ScoreSeq:
         self.edesired_minus_MFE = self.edesired - self.MFE
 
     def get_ensemble_defect(self, sec_struct):
-        fc = RNA.fold_compound(self.sequence)
+        md = RNA.md()
+        fc = RNA.fold_compound(self.sequence, md)
         (_, mfe) = fc.mfe()
         fc.exp_params_rescale(mfe)
         (_, pf)  = fc.pf()
