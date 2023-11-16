@@ -45,7 +45,7 @@ def mfe_e_dimer(seq_dimer):
 
     return mfe_e_dimer, mfe_e_a, mfe_e_b, mfe_ss_dimer
 
-
+'''
 def if_oligomer(mfe_mono, mfe_oligo):
     
     
@@ -66,8 +66,9 @@ def if_dimer(mfe_dimer, mfe_a, mfe_b):
         dimer = False   
 
     return dimer
-
-
+'''
+'''
 if __name__ == "__main__":
     main()
 
+'''
