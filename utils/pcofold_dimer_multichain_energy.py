@@ -9,8 +9,8 @@ rho = 55.14       # H2O concentration in mol/L
 temp = 273.15+37  # Physical Temperature
 conc = 1e-3       # RNA concentration im mol/L
     
-def oligo_fraction(seq_dimer):
-    dimer_ss, pfa, pfb, pfab, dimer_pf = RNA.co_pf_fold(seq_dimer)
+def oligo_fraction(seq_dimer, fc):
+    dimer_ss, pfa, pfb, pfab, dimer_pf = fc.pf_dimer()  #  RNA.co_pf_fold(seq_dimer)
     dF = pfab - pfa - pfb
     rhs = conc/rho*np.exp(-dF/(kB*temp))
     return 1-(np.sqrt(1+4*rhs)-1)/(2*rhs)

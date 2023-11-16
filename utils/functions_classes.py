@@ -406,12 +406,13 @@ class ScoreSeq:
     
     
     def get_scoring_function_monomer(self):
-        self.oligo_fraction = oligo_fraction(self.sequence+"&"+self.sequence)
+        fc = RNA.fold_compound(self.sequence+"&"+self.sequence)
+        self.oligo_fraction = oligo_fraction(self.sequence+"&"+self.sequence,fc)
         self.monomer_bonus = kTlog_monomer_fraction(self.oligo_fraction)
         self.scoring_function = self.scoring_function + self.monomer_bonus
     
-    def get_scoring_function_oligomer(self):
-        self.oligo_fraction = oligo_fraction(self.sequence)
+    def get_scoring_function_oligomer(self,fc):
+        self.oligo_fraction = oligo_fraction(self.sequence,fc)
         self.oligomer_bonus = kTlog_oligo_fraction(self.oligo_fraction)
         self.scoring_function = self.scoring_function + self.oligomer_bonus
     
@@ -429,7 +430,7 @@ class ScoreSeq:
         self.scoring_function += motif_bonus
 
             
-def get_first_suboptimal_structure_and_energy(sequence):
+def get_first_suboptimal_structure_and_energy(sequence,a):
     """
     Accept a single RNA sequence and report its first possible secondary structure and energy.
     """
@@ -441,7 +442,7 @@ def get_first_suboptimal_structure_and_energy(sequence):
             if structure != None:
                 subopt_list.append([structure, energy])
 
-    a = RNA.fold_compound(sequence)
+#    a = RNA.fold_compound(sequence)
 
     for i in range(100,5000,100):
         a.subopt_cb(i, print_subopt_result, subopt_data)
