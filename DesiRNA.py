@@ -15,6 +15,8 @@ import os
 from datetime import datetime
 import multiprocess as mp
 import pandas as pd
+#from io import StringIO
+
 
 from pathlib import Path
 from shutil import copy
@@ -476,6 +478,7 @@ def wc_pair(nt1):
     return nt2
 
 
+
 def can_pair(nt):
     """
     Returns a list of nucleotide characters that can form a base pair with a given nucleotide character.
@@ -638,26 +641,15 @@ def allowed_choice(allowed, percs):
     Determines the allowed mutations based on nucleotide percentages.
 
     Args:
-        available_mutations (list): List of available mutations.
-        nt_percentages (dict): Dictionary with the percentage of each nucleotide.
+        allowed (list): List of allowed mutations.
+        percs (dict): Dictionary with the percentage of each nucleotide.
 
     Returns:
-        list: List of weights for the available mutations.
+        list: List of weights for the allowed mutations.
     """
-    
-    percs_allowed = percs.copy()
-    
-    #allowed=["C","U"]
-    for nt in percs:
-        if nt not in allowed:
-            percs_allowed[nt] = 0
-    
-    
-    list_percs_allowed = list(percs_allowed.values())
  
-    list_percs_allowed = [i for i in list_percs_allowed if i != 0]
-    
-    return list_percs_allowed
+    return [percs[nt] for nt in allowed]
+
 
 
 def get_rep_temps():
@@ -814,6 +806,7 @@ def mutate_sequence_more(sequence_obj, nt_list):
     return sequence_mutated_re
 
 
+
 def get_mutation_position(seq_obj, available_positions):
     """
     Determine the position of a mutation in the sequence.
@@ -961,7 +954,7 @@ def mutate_sequence(sequence_obj, nt_list):
     return sequence_mutated
 
 
-def get_pk_struct(seq, ss_nopk):
+def get_pk_struct(seq, ss_nopk, fc):
     """
     Get the pseudoknot structure of the sequence.
 
@@ -975,7 +968,7 @@ def get_pk_struct(seq, ss_nopk):
 
     constraints = ss_nopk.replace("(","x").replace(")","x")
 
-    fc = RNA.fold_compound(seq)
+#    fc = RNA.fold_compound(seq)
     
     fc.hc_add_from_db(constraints)
 
@@ -994,7 +987,7 @@ def get_pk_struct(seq, ss_nopk):
 
     if "(" in mfe_structure:
         constraints = ss_pk.replace("(","x").replace(")","x").replace("[","x").replace("]","x")        
-        fc = RNA.fold_compound(seq)
+#        fc = RNA.fold_compound(seq)
         fc.hc_add_from_db(constraints)
 
         mfe_structure, mfe_energy = fc.mfe()
@@ -1011,7 +1004,7 @@ def get_pk_struct(seq, ss_nopk):
         
         if "(" in mfe_structure:
             constraints = ss_pk.replace("(","x").replace(")","x").replace("[","x").replace("]","x").replace("<","x").replace(">","x")
-            fc = RNA.fold_compound(seq)
+#            fc = RNA.fold_compound(seq)
             fc.hc_add_from_db(constraints)
 
             mfe_structure, mfe_energy = fc.mfe()
@@ -1186,46 +1179,39 @@ def replica_exchange(replicas, stats_obj):
 
     return replicas, stats_obj
 
+md = RNA.md()
+md.compute_bpp = 0
+
 
 def get_mfe_e_ss(seq):
     """
     This function calculates the minimum free energy (MFE) and ensemble free energy (EFE) 
     of a given RNA sequence.
-
     Parameters:
     seq (str): The RNA sequence to analyze.
-
     Returns:
     (float, float): A tuple containing the MFE and EFE of the sequence.
     """
+    fc = RNA.fold_compound(seq, md)
+#    structure_mfe, mfe = fc.mfe()
+#    fc.exp_params_rescale(1.0)
+#    print(fc.exp_params_rescale())
+#    fc.adjust_pf_scale(1.0)
 
-    if oligo_state == "none" or oligo_state == "avoid":
-        pf_struct = RNA.pf_fold(seq)
-        structure_nopk = pf_struct[0]
-        energy = pf_struct[1]
+    special_chars = set(",{}|")
+    if oligo_state in {"none", "avoid"}:
         
-        if (any(char in ",{}|" for char in structure_nopk)) or (structure_nopk.count("(") != structure_nopk.count(")")):
-            structure_nopk = RNA.fold(seq)[0]
+        structure, energy = fc.pf()
         
-        if pks == "off":
-            structure = structure_nopk
+        structure = fc.mfe()[0]
     
-        elif pks == "on":
-            structure = get_pk_struct(seq, structure_nopk)            
-    
-    elif oligo_state == "homodimer" or oligo_state == "heterodimer":
-        dimer_struct = mfe_e_dimer(seq)
-        structure = dimer_struct[3]
-        energy = dimer_struct[0]
-
-
-
-#    if oligo == "on":
-#        pf_struct = RNA.fold(seq)
-#        structure_nopk = pf_struct[0]
-#        energy = pf_struct[1]
-
-    return energy, structure
+        if pks == "on":
+            structure = get_pk_struct(seq, structure, fc)            
+    elif oligo_state in {"homodimer", "heterodimer"}:
+        seqa_len = len(seq.split("&")[0])
+        structure_dim, energy = fc.mfe_dimer()
+        structure = structure_dim[:seqa_len]+"&"+structure_dim[seqa_len:]
+    return energy, structure, fc
 
 
 def score_motifs(seq, motifs):
@@ -1268,14 +1254,15 @@ def score_sequence(seq):
         seq = seq.split("&")[0]
         seq = seq+"&"+seq
         scored_sequence = func.ScoreSeq(sequence = seq)
-    pf_energy, mfe_structure = get_mfe_e_ss(seq)
+    pf_energy, mfe_structure, fold_comp = get_mfe_e_ss(seq)
     
     scored_sequence.get_Epf(pf_energy)
     scored_sequence.get_mfe_ss(mfe_structure)
 
 
-    scored_sequence.get_edesired(RNA.energy_of_struct(seq, input_file.sec_struct.replace("&","")))
-
+#    scored_sequence.get_edesired(RNA.energy_of_struct(seq, input_file.sec_struct.replace("&","")))
+    scored_sequence.get_edesired(fold_comp.eval_structure(input_file.sec_struct.replace("&","")))
+    
     scored_sequence.get_edesired_minus_Epf(scored_sequence.Epf, scored_sequence.edesired)
 
 
@@ -1301,18 +1288,18 @@ def score_sequence(seq):
 
 
     if input_file.alt_sec_struct != None:
-        energies = [RNA.energy_of_struct(seq, alt_dbn) for alt_dbn in input_file.alt_sec_structs]
+        energies = [fold_comp.eval_structure(alt_dbn) for alt_dbn in input_file.alt_sec_structs]
         scored_sequence.get_edesired2(sum(energies)/len(energies))
         scored_sequence.get_edesired2_minus_Epf(scored_sequence.Epf, scored_sequence.edesired2)    
         scored_sequence.get_scoring_function_w_alt_ss()
 
     if (subopt == "on") and (scored_sequence.mcc == 0):        
-        scored_sequence.get_subopt_e(func.get_first_suboptimal_structure_and_energy(seq)[1])
+        scored_sequence.get_subopt_e(func.get_first_suboptimal_structure_and_energy(seq, fold_comp)[1])
         scored_sequence.get_esubopt_minus_Epf(scored_sequence.Epf, scored_sequence.subopt_e)
         scored_sequence.get_scoring_function_w_subopt()
         
     if oligo_state == "homodimer" or oligo_state == "heterodimer":
-        scored_sequence.get_scoring_function_oligomer()
+        scored_sequence.get_scoring_function_oligomer(fold_comp)
     
     if oligo_state == "avoid":
         scored_sequence.get_scoring_function_monomer()
@@ -1434,6 +1421,7 @@ def par_wrapper(args):
     return single_replica_design(*args);
 
 
+
 def mutate_sequence_re(lst_seq_obj, nt_list, stats_obj):
     """
     This function mutates a list of sequence objects in parallel.
@@ -1547,7 +1535,6 @@ def run_functions():
         print(vars(stats))
         
         stats.update_global_step()
-
         seqence_score_list, stats = mutate_sequence_re(seqence_score_list, nt_list, stats)
 
 
@@ -1610,7 +1597,7 @@ def run_functions():
     header2 = ['']
     
     df = df.drop_duplicates(subset=['sim_step', 'replica_num'])
-
+    
 
     for metric in ['sequence', 'Epf', 'edesired_minus_Epf', 'subopt_e', 'esubopt_minus_Epf', 'precision', 'recall', 'mcc', 'sln_Epf','temp_shelf', 'scoring_function']:
     # For each metric, create a sub-DataFrame and pivot it
@@ -1841,121 +1828,164 @@ class InputFile:
         self.alt_sec_struct  = alt_sec_structs[0].strip()
         self.alt_sec_structs = [x.strip() for x in alt_sec_structs]
 
-if __name__ == '__main__':
 
+def redirect_stderr_to_file(filename):
+    """Redirect stderr to a file while preserving the original stderr."""
+    # Backup original stderr
+    stderr_fileno = sys.stderr.fileno()
+    stderr_save = os.dup(stderr_fileno)
+    stderr_log = open(filename, 'w')
+    
+    # Redirect stderr to our log file
+    os.dup2(stderr_log.fileno(), stderr_fileno)
+    
+    return stderr_save, stderr_log
+
+def restore_stderr(original_stderr):
+    """Restore stderr from the original backed up version."""
+    os.dup2(original_stderr, sys.stderr.fileno())
+
+def print_filtered_log(filename, exclude_text):
+    """Print log messages that don't contain exclude_text."""
+    with open(filename, 'r') as f:
+        for line in f:
+            if exclude_text not in line:
+                print(line, end='', file=sys.stderr)
+
+
+if __name__ == "__main__":
 
 #    original_stderr = sys.stderr
 #    sys.stderr = SuppressWarnings(original_stderr) 
+    
+    log_filename = "tmp_log.txt"
+    original_stderr, stderr_log = redirect_stderr_to_file(log_filename)
+    
+    try:
+    
+        if len(sys.argv) == 1:
+            print("DesiRNA")
+            print("usage: DesiRNA.py [-h] [-H]")
+            print("\nOptions:")
+            print("  -h  Display basic usage and options.")
+            print("  -H  Display detailed help, including advanced options.")
+            sys.exit(1)
 
-
-    if len(sys.argv) == 1:
         print("DesiRNA")
-        print("usage: DesiRNA.py [-h] [-H]")
-        print("\nOptions:")
-        print("  -h  Display basic usage and options.")
-        print("  -H  Display detailed help, including advanced options.")
-        sys.exit(1)
 
-    print("DesiRNA")
-
-    command = os.path.basename(sys.argv[0])+' '+' '.join(sys.argv[1:])
+        command = os.path.basename(sys.argv[0])+' '+' '.join(sys.argv[1:])
     
-    script_path = os.path.dirname(os.path.abspath(__file__))
+        script_path = os.path.dirname(os.path.abspath(__file__))
 
 
-    now = datetime.now()
-    now = now.strftime("%Y%m%d.%H%M%S")
+        now = datetime.now()
+        now = now.strftime("%Y%m%d.%H%M%S")
 
-    available_scoring_functions = ['Ed-Epf', '1-MCC', 'sln_Epf', 'Ed-MFE', '1-precision', '1-recall', 'Edef']
+        available_scoring_functions = ['Ed-Epf', '1-MCC', 'sln_Epf', 'Ed-MFE', '1-precision', '1-recall', 'Edef']
     
-    infile, replicas, timlim, acgu_percentages,  T_max, T_min, oligo,  param, RE_attempt, scoring_f, point_mutations,  \
-    tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs, dimer = argument_parser()
+        infile, replicas, timlim, acgu_percentages,  T_max, T_min, oligo,  param, RE_attempt, scoring_f, point_mutations,  \
+        tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs, dimer = argument_parser()
     
-    input_file = read_input(infile)
-    print(infile)
+        input_file = read_input(infile)
+        print(infile)
     
 
-    if RE_steps != None:
-        timlim = 100000000000000000
+        if RE_steps != None:
+            timlim = 100000000000000000
     
     
     
-    if param == '1999':
-        RNA.params_load(os.path.join(script_path, "rna_turner1999.par"))
+        if param == '1999':
+            RNA.params_load(os.path.join(script_path, "rna_turner1999.par"))
 
-    L = 504.12
+        L = 504.12
     
-    if acgu_content == '':
-        nt_percentages = {"A":15, "C":30, "G":30,"U":15}
-    else:
-        acgu_l = [int(x) for x in acgu_content.split(',')]
-        if sum(acgu_l) != 100:
-            print("The ACGU content should sum up to 100, check your command.")
-            quit()        
-        nt_percentages = {"A":acgu_l[0], "C":acgu_l[1], "G":acgu_l[2],"U":acgu_l[3]}
+        if acgu_content == '':
+            nt_percentages = {"A":15, "C":30, "G":30,"U":15}
+        else:
+            acgu_l = [int(x) for x in acgu_content.split(',')]
+            if sum(acgu_l) != 100:
+                print("The ACGU content should sum up to 100, check your command.")
+                quit()        
+            nt_percentages = {"A":acgu_l[0], "C":acgu_l[1], "G":acgu_l[2],"U":acgu_l[3]}
     
-    if input_file.alt_sec_struct != None:
-        alt_ss = "on"
+        if input_file.alt_sec_struct != None:
+            alt_ss = "on"
 #        scoring_f = "alt"
-    else:
-        alt_ss = "off"    
+        else:
+            alt_ss = "off"    
 
 
-    oligo_state = "none"
+        oligo_state = "none"
 
-    if "&" in input_file.sec_struct and dimer == "off":
-        too_much = input_file.sec_struct.count("&")
-        if too_much != 1:
-            print("\nToo much structures in the input. Can only design RNA complexes of max two sequences.\nPlease correct your input file.\n")
-            quit()
-        oligo_state = "heterodimer"
-    elif "&" in input_file.sec_struct and dimer == "on":
-        oligo_state = "homodimer"
-    elif "&" not in input_file.sec_struct and oligo == "on":
-        oligo_state = "avoid"
+        if "&" in input_file.sec_struct and dimer == "off":
+            too_much = input_file.sec_struct.count("&")
+            if too_much != 1:
+                print("\nToo much structures in the input. Can only design RNA complexes of max two sequences.\nPlease correct your input file.\n")
+                quit()
+            oligo_state = "heterodimer"
+        elif "&" in input_file.sec_struct and dimer == "on":
+            oligo_state = "homodimer"
+        elif "&" not in input_file.sec_struct and oligo == "on":
+            oligo_state = "avoid"
 
             
-    if set(input_file.sec_struct).issubset('.()&'):
-        pks = "off"
-    else:
-        pks = "on"
+        if set(input_file.sec_struct).issubset('.()&'):
+            pks = "off"
+        else:
+            pks = "on"
 
     
-    filename = os.path.basename(infile)
+        filename = os.path.basename(infile)
 
     
-    outname = get_outname(filename, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, dimer, 
+        outname = get_outname(filename, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, dimer, 
                           param, RE_attempt, scoring_f, point_mutations,  alt_ss, tshelves, in_seed, subopt)
 
-    if tshelves == '':
-        rep_temps_shelfs = get_rep_temps()
-    else: 
-        rep_temps_shelfs = [float(temp) for temp in tshelves.split(",")]
+        if tshelves == '':
+            rep_temps_shelfs = get_rep_temps()
+        else: 
+            rep_temps_shelfs = [float(temp) for temp in tshelves.split(",")]
 
     
-    if in_seed != 0:
-        original_seed = 2137+in_seed
-    else:
-        original_seed = random.random()
+        if in_seed != 0:
+            original_seed = 2137+in_seed
+        else:
+            original_seed = random.random()
 
 #    if rand_seed == 'on':
 #        original_seed = random.random()
-    random.seed(original_seed)
+        random.seed(original_seed)
+        outname = os.path.basename(outname)
+    
+        WORK_DIR = outname+"_"+str(now)
+        Path(WORK_DIR).mkdir(parents=True, exist_ok=True)
+        copy(infile, WORK_DIR+"/"+filename)
+        Path(WORK_DIR+"/trajectory_files").mkdir(parents=True, exist_ok=True)
+        os.chdir(WORK_DIR)
+    
+    #    print(kfl)
+        with open(outname+".command", 'w') as f:
+            print(command, file=f)
+    
+    
+        run_functions()
 
-    outname = os.path.basename(outname)
+    #    print("WARNING: pf_scale too large", file=sys.stderr)
+#        print(kfl)
+    except Exception as e:
+        # Close the log, restore stderr, and raise the exception
+        stderr_log.close()
+        restore_stderr(original_stderr)
+        print("Exception occurred:", e)
     
-    WORK_DIR = outname+"_"+str(now)
-    Path(WORK_DIR).mkdir(parents=True, exist_ok=True)
-    copy(infile, WORK_DIR+"/"+filename)
-    Path(WORK_DIR+"/trajectory_files").mkdir(parents=True, exist_ok=True)
-    os.chdir(WORK_DIR)
-    
+    else:
+        # Restore stderr
+        restore_stderr(original_stderr)
+        stderr_log.close()
 
-    with open(outname+".command", 'w') as f:
-        print(command, file=f)
-    
-    
-    run_functions()
-    
-    
-    
+        # Now, read the log and print messages that are not the warning
+        print_filtered_log("../"+log_filename, "WARNING: pf_scale too large")    
+
+
+    os.remove("../"+log_filename)    
