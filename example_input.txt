@@ -1,6 +1,0 @@
->name
-short_test
->sec_struct
-.(((....))).
->seq_restr
-CNRNNNNNBNWY
