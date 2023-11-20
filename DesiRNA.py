@@ -312,7 +312,8 @@ def check_dot_bracket(ss):
 
     for i in range(0, len(ss)):
         if ss[i] not in allowed_characters:
-            sys.exit("Not allowed characters in structures. Check input file.")
+            print("Not allowed characters in structures. Check input file.")
+            sys.exit()
 
     stack_list = []
     pairs_list = []
@@ -324,12 +325,14 @@ def check_dot_bracket(ss):
                 stack_list.append(c)
             elif s == db_list[i][1]:
                 if len(stack_list) == 0:
-                    sys.exit("There is no opening bracket for nt position " + str(c + 1) + '-' + ss[c])
+                    print("There is no opening bracket for nt position " + str(c + 1) + '-' + ss[c])
+                    sys.exit()
                 elif s == db_list[i][1]:
                     pairs_list.append([stack_list.pop(), c])
         if len(stack_list) > 0:
             err = stack_list.pop()
-            sys.exit("There is no closing bracket for nt position " + str(err) + '-' + ss[err])
+            print("There is no closing bracket for nt position " + str(err) + '-' + ss[err])
+            sys.exit()
 
     return pairs_list
 
@@ -349,7 +352,8 @@ def check_seq_restr(restr):
 
     for i in range(0, len(restr)):
         if restr[i] not in allowed_characters:
-            sys.exit("Not allowed characters in sequence restraints. Check input file.")
+            print("Not allowed characters in sequence restraints. Check input file.")
+            sys.exit()
 
 
 def check_length(ss, restr):
@@ -365,7 +369,8 @@ def check_length(ss, restr):
     """
 
     if len(ss) != len(restr):
-        sys.exit("Secondary structure and sequence restraints are of different length. Check input file.")
+        print("Secondary structure and sequence restraints are of different length. Check input file.")
+        sys.exit()
 
 
 def get_nt_list(input_file):
@@ -464,6 +469,7 @@ def check_input_logic(nt_list):
     for i in range(0, len(nt_list)):
         if nt_list[i].pairs_with != None:
             if_pair(nt_list[i], nt_list[nt_list[i].pairs_with])
+    
 
 
 def if_pair(nt1, nt2):
@@ -491,9 +497,8 @@ def if_pair(nt1, nt2):
     if store == True:
         pass
     else:
-        sys.exit("Wrong restraints in the input file. Nucleotide "\
-                 + str(nt1.number + 1) + " " + str(nt1.letters) + ", cannot pair with nucleotide "\
-                 + str(nt2.number + 1) + " " + str(nt2.letters))
+        print("Wrong restraints in the input file. Nucleotide "+ str(nt1.number + 1) + " " + str(nt1.letters) + ", cannot pair with nucleotide "+ str(nt2.number + 1) + " " + str(nt2.letters))
+        sys.exit()
 
 
 def wc_pair(nt1):
@@ -801,11 +806,11 @@ def get_mutation_position(seq_obj, available_positions):
 
         query_structure = {tuple(pair) for pair in pair_list_mfe}
 
-        false_negatives = target_pairs_tupl - query_structure
+        false_negatives = input_file.target_pairs_tupl - query_structure
         false_negatives = [item for tup in false_negatives for item in tup]
         false_negatives = [item for item in false_negatives if item in available_positions]
 
-        false_positives = query_structure - target_pairs_tupl
+        false_positives = query_structure - input_file.target_pairs_tupl
         false_positives = [item for tup in false_positives for item in tup]
         false_positives = [item for item in false_positives if item in available_positions]
 
@@ -1385,6 +1390,367 @@ def mutate_sequence_re(lst_seq_obj, nt_list, stats_obj):
         return lst_seq_obj_res_new, stats_obj
 
 
+def initialize_simulation(input_file):
+    """
+    Initialize the simulation by setting up the necessary parameters and constraints.
+    
+    Args:
+    input_file (InputFile): An object encapsulating input file parameters.
+
+    Returns:
+    list: List of nucleotides with applied constraints.
+    """
+    
+    input_file.pairs = check_dot_bracket(input_file.sec_struct)  # check dotbracket correctness, assign as list of pairs
+    input_file.set_target_pairs_tupl()
+    
+    if input_file.alt_sec_structs != None:
+        print(input_file.alt_sec_structs)
+        for i in range(0, len(input_file.alt_sec_structs)):
+            print("Checking brackets for alternative structure ", i + 1)
+            check_dot_bracket(input_file.alt_sec_structs[i])
+        print("Alternative structures are ok.")
+
+    check_seq_restr(input_file.seq_restr)
+    check_length(input_file.sec_struct, input_file.seq_restr)
+    nt_list = get_nt_list(input_file)
+    check_input_logic(nt_list)
+
+    return nt_list
+
+
+def generate_sequences(nt_list, input_file):
+    """
+    Generates initial RNA sequences based on nucleotide constraints.
+
+    Args:
+    nt_list (list): A list of nucleotide constraints.
+    input_file (InputFile): The input file object with sequence data.
+
+    Returns:
+    list: A list of initialized sequence objects.
+    """
+    sequence_score_list = generate_initial_list(nt_list, input_file)
+    generate_initial_list_random(nt_list, input_file)
+
+    return sequence_score_list
+
+
+def handle_non_mutable_sequence(input_file, simulation_data, output_name):
+    """
+    Handles the scenario where the sequence cannot be mutated due to sequence constraints.
+    Scores the sequence and writes the results to a CSV file, then exits the program.
+
+    Args:
+    input_file (InputFile): The input file object containing sequence data.
+    simulation_data (list): The simulation data to be processed.
+    output_name (str): The base name for the output file.
+    """
+    if all(char in "ACGU&" for char in input_file.seq_restr):
+        print("Cannot mutate the sequence due to sequence constraints.\nScoring sequence.")
+        sorted_results = sorted(round_floats(simulation_data), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+        with open(outname + '_results.csv', 'w', newline='', encoding='utf-8') as csvfile:
+            fieldnames = sorted_results[0].keys()  # header from keys of the first dictionary
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for data in sorted_results:
+                writer.writerow(data)
+        sys.exit()
+
+    
+def process_intermediate_results(simulation_data, oligo, output_name, num_results):
+    """
+    Processes intermediate results during the simulation by removing duplicates, 
+    sorting the results, and writing them to a CSV file.
+
+    Args:
+    simulation_data (list): The simulation data to be processed.
+    oligo (str): The oligo option to determine the sorting criteria.
+    output_name (str): The base name for the output file.
+    num_results (int): Number of top results to include in the output.
+
+    Returns:
+    list: A list of sorted intermediate results.
+    """
+    remove_duplicates = {item['sequence']: item for item in simulation_data}
+    data_no_duplicates = list(remove_duplicates.values())
+
+    if oligo != "off":
+        sorted_results = sorted(round_floats(data_no_duplicates), key=lambda d: (-d['oligo_fraction'], -d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+    else:
+        sorted_results = sorted(round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+    
+    sorted_results = sorted_results[:num_results]
+
+    with open(output_name + '_mid_results.csv', 'w', newline='', encoding='utf-8') as csvfile:
+        fieldnames = sorted_results[0].keys()
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for data in sorted_results:
+            writer.writerow(data)
+
+
+def generate_replica_csv(simulation_data, output_name):
+    """
+    Generates a CSV file containing simulation data for each replica, pivoted on specified metrics.
+
+    Args:
+    simulation_data (list): The simulation data to be processed.
+    output_name (str): Name of the output CSV file.
+    """
+    df = pd.DataFrame(simulation_data)
+    df.sort_values(['sim_step', 'replica_num'], inplace=True)
+    df = df.drop_duplicates(subset=['sim_step', 'replica_num'])
+
+    final_df = pd.DataFrame()
+    header = ['']
+    header2 = ['']
+
+    
+    for metric in ['sequence', 'Epf', 'edesired_minus_Epf', 'subopt_e', 'esubopt_minus_Epf', 'precision', 'recall', 'mcc', 'sln_Epf', 'temp_shelf', 'scoring_function']:
+        sub_df = df[['sim_step', 'replica_num', metric]].pivot(index='sim_step', columns='replica_num', values=metric)
+        sub_df.columns = [f'replica{col}' for col in sub_df.columns]
+
+        header.extend([metric] * len(sub_df.columns) + [''])
+        header2.extend(sub_df.columns.tolist() + [''])
+
+        final_df = pd.concat([final_df, sub_df, pd.DataFrame(columns=[' '])], axis=1)
+
+    with open(output_name + '_replicas.csv', 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(header)
+        writer.writerow(header2)
+        final_df.to_csv(csvfile, header=False, index=True)
+
+
+def sort_trajectory(simulation_data):
+    """
+    Sorts the simulation data based on simulation step and replica number.
+
+    Args:
+    simulation_data (list): The simulation data to be sorted.
+
+    Returns:
+    list: Sorted simulation data.
+    """
+    return sorted(round_floats(simulation_data), key=lambda d: (d['sim_step'], d['replica_num']))
+
+
+def generate_trajectory_csv(sorted_data, output_name):
+    """
+    Generates a CSV file from the sorted simulation data.
+
+    Args:
+    sorted_data (list): Sorted simulation data.
+    output_name (str): Name of the output CSV file.
+    """
+    with open(output_name + '_traj.csv', 'w', newline='', encoding='utf-8') as csvfile:
+        fieldnames = sorted_data[0].keys()
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for data in sorted_data:
+            writer.writerow(data)
+
+def generate_multifasta(sorted_data, output_name, infile, now):
+    """
+    Generates a multi-FASTA file from the sorted simulation data.
+
+    Args:
+    sorted_data (list): Sorted simulation data.
+    output_name (str): Name of the output FASTA file.
+    infile (str): Name of the input file.
+    now (str): Timestamp or unique identifier.
+    """
+    fasta_txt = ""
+    for item in sorted_data:
+        fasta_txt += f">{infile}|{now}|{item['replica_num']}|{item['sim_step']}|{item['scoring_function']}\n{item['sequence']}\n"
+
+    with open(output_name + '_multifasta.fas', 'w', encoding='utf-8') as fastafile:
+        fastafile.write(fasta_txt)
+
+
+def generate_best_fasta(simulation_data, num_results, output_name, infile, now):
+    """
+    Generates a FASTA file from the best sorted simulation data.
+
+    Args:
+    simulation_data (list): The simulation data to be processed.
+    num_results (int): Number of top results to include in the FASTA file.
+    output_name (str): Name of the output FASTA file.
+    infile (str): Name of the input file.
+    now (str): Timestamp or identifier for the sequence.
+    """
+    sorted_scores = sorted(round_floats(simulation_data), key=lambda d: (-d['scoring_function']), reverse=True)[:num_results]
+
+    fasta_txt = "".join(f">{infile}|{now}|{score['replica_num']}|{score['sim_step']}|{score['scoring_function']}\n{score['sequence']}\n" for score in sorted_scores)
+
+    with open(output_name + '_best_fasta.fas', 'w', encoding='utf-8') as fastafile:
+        fastafile.write(fasta_txt)
+
+
+def sort_and_filter_simulation_data(simulation_data, num_results, oligo):
+    """
+    Sorts and filters the simulation data based on specified criteria.
+
+    Args:
+    simulation_data (list): The simulation data to be processed.
+    num_results (int): Number of top results to retain.
+    oligo (str): The oligo option to determine the sorting criteria.
+
+    Returns:
+    list: Sorted and filtered list of simulation data.
+    """
+    remove_duplicates = {item['sequence']: item for item in simulation_data}
+    data_no_duplicates = list(remove_duplicates.values())
+
+    if oligo != "off":
+        sorted_results = sorted(round_floats(data_no_duplicates), key=lambda d: (-d['oligo_fraction'], -d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+    else:
+        sorted_results = sorted(round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+
+    return sorted_results[:num_results]
+
+
+def generate_csv_from_data(sorted_data, output_name):
+    """
+    Generates a CSV file from sorted simulation data.
+
+    Args:
+    sorted_data (list): Sorted simulation data to be written to CSV.
+    output_name (str): Name of the output CSV file.
+    """
+    fieldnames = sorted_data[0].keys()
+    with open(output_name + '_results.csv', 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for data in sorted_data:
+            writer.writerow(data)
+
+
+def check_if_design_solved(sorted_results, input_file, oligo):
+    """
+    Checks the correctness of the results and generates the corresponding text output.
+
+    Args:
+    sorted_results (list): The sorted results to check.
+    input_file (InputFile): The input file object containing sequence data.
+    oligo (str): The oligo option to determine additional text.
+
+    Returns:
+    str: Text indicating the correctness of the results.
+    """
+    correct_count = sum(result['mcc'] == 0.0 for result in sorted_results[:10])
+    correct_bool = correct_count > 0
+
+    if oligo != "off":
+        oligo_txt = f",oligo fraction: {sorted_results[0]['oligo_fraction']}" if correct_bool else ""
+    else:
+        oligo_txt = ""
+
+    correct_result_txt = f">{input_file.name},{correct_bool},{correct_count},{sorted_results[0]['sequence']},{sorted_results[0]['mfe_ss']}{oligo_txt}"
+    return correct_result_txt, correct_bool, correct_count
+
+
+def write_best_str_file(correct_result_txt, output_name):
+    """
+    Writes the correctness text to a file.
+
+    Args:
+    correct_result_txt (str): The correctness text to be written to the file.
+    output_name (str): The base name for the output file.
+    """
+    with open(output_name + '_best_str', 'w', newline='', encoding='utf-8') as myfile:
+        myfile.write(correct_result_txt)
+
+
+def generate_simulation_stats_text(stats, sorted_results, input_file, timlim, correct_bool):
+    """
+    Generates text summarizing the statistics of the simulation.
+
+    Args:
+    stats (Stats): Object containing simulation statistics.
+    sorted_results (list): The sorted results for correctness check.
+    input_file (InputFile): Object containing input file data.
+    timlim (int): Time limit for the simulation.
+    correct_bool (bool): Indicates if the design was solved successfully.
+
+    Returns:
+    str: Text summarizing the simulation statistics.
+    """
+    sum_mc = stats.acc_mc_step + stats.rej_mc_step
+    acc_perc = round(stats.acc_mc_step / sum_mc, 3) if sum_mc else 0
+    sum_mc_metro = sum_mc - stats.acc_mc_better_e
+    acc_metro = stats.acc_mc_step - stats.acc_mc_better_e
+    sum_replica_att = stats.acc_re_step + stats.rej_re_step if stats.acc_re_step + stats.rej_re_step else 1
+
+    best_solution_txt = "\nDesign solved succesfully!\n\nBest solution:\n" if correct_bool else "\nDesign not solved!\n\nTarget structure:\n"
+    best_solution_txt += f"{sorted_results[0]['sequence']}\nMFE Secondary Structure: {sorted_results[0]['mfe_ss']}\nPartition Function Energy: {round(sorted_results[0]['Epf'], 3)}\n1-MCC: {round(sorted_results[0]['mcc'], 3)}\n"
+
+    stats_txt = f">{outname} time={timlim}s\nAcc_ratio={acc_perc}, Iterations={stats.step}, Accepted={stats.acc_mc_step}/{sum_mc}, Rejected={stats.rej_mc_step}/{sum_mc}\n" \
+                f"Accepted Metropolis={acc_metro}/{sum_mc_metro}, Rejected Metropolis={sum_mc_metro - acc_metro}/{sum_mc_metro}\n" \
+                f"Replica exchange attempts: {stats.global_step}\nReplica swaps attempts: {sum_replica_att}\nReplica swaps accepted: {stats.acc_re_step}\n" \
+                f"Replica swaps rejected: {stats.rej_re_step}\nReplica exchange acc_ratio: {round(stats.acc_re_step / sum_replica_att, 3)}\n{best_solution_txt}"
+
+    return stats_txt
+
+
+def write_stats_to_file(stats_txt, output_name):
+    """
+    Writes simulation statistics text to a file.
+
+    Args:
+    stats_txt (str): The simulation statistics text to be written.
+    output_name (str): The base name for the output file.
+    """
+    with open(output_name + '_stats', 'w', newline='\n', encoding='utf-8') as myfile:
+        myfile.write(stats_txt)
+
+
+def move_results(file_list, directory, output_name):
+    """
+    Moves a list of files to the specified directory.
+
+    Args:
+    file_list (list): List of file names to be moved.
+    directory (str): The target directory where files should be moved.
+    output_name (str): The base name for the output files.
+    """
+    for file in file_list:
+        move(output_name + file, directory + output_name + file)
+
+
+def parse_and_output_results(simulation_data, input_file, stats):
+    """
+    Parses simulation data and generates various outputs including CSV files, FASTA files, and statistics.
+
+    Args:
+    simulation_data (list): The simulation data to be processed.
+    input_file (InputFile): The input file object containing sequence data.
+    stats (Stats): Object containing simulation statistics.
+    """
+    # Generate necessary files and statistics
+    sorted_simulation_trajectory = sort_trajectory(simulation_data)
+    generate_trajectory_csv(sorted_simulation_trajectory, outname)
+    generate_multifasta(sorted_simulation_trajectory, outname, infile, now)
+    generate_replica_csv(simulation_data, outname)
+    generate_best_fasta(simulation_data, num_results, outname, infile, now)
+
+    sorted_results = sort_and_filter_simulation_data(simulation_data, num_results, oligo)
+    generate_csv_from_data(sorted_results, outname)
+
+    correct_result_txt, correct_bool, correct = check_if_design_solved(sorted_results[:10], input_file, oligo)
+    write_best_str_file(correct_result_txt, outname)
+    func.plot_simulation_data_combined(simulation_data, outname, input_file.alt_sec_struct, infile)
+
+    stats_txt = generate_simulation_stats_text(stats, sorted_results, input_file, timlim, correct_bool)
+    print('\n' + stats_txt)
+    write_stats_to_file(stats_txt, outname)
+
+    # Move results to the specified directory
+    files_to_move = ['_best_str', '_traj.csv', '_replicas.csv', '_best_fasta.fas', '_multifasta.fas', '_random.csv', '.command']
+    move_results(files_to_move, "trajectory_files/", outname)
+
+
 def run_functions():
     """
     This function runs the design process, which includes mutation, scoring, and selection.
@@ -1403,46 +1769,18 @@ def run_functions():
     Returns:
     list: A list of sequences that are the result of the design process.
     """
-
-    input_file.pairs = check_dot_bracket(input_file.sec_struct)  # check dotbracket correctness, assign as list of pairs
-
-    if input_file.alt_sec_structs != None:
-        print(input_file.alt_sec_structs)
-        for i in range(0, len(input_file.alt_sec_structs)):
-            print("Checking brackets for alternative structure ", i + 1)
-            check_dot_bracket(input_file.alt_sec_structs[i])
-        print("Alternative structures are ok.")
-
-    check_seq_restr(input_file.seq_restr)
-    check_length(input_file.sec_struct, input_file.seq_restr)
-    nt_list = get_nt_list(input_file)
-    check_input_logic(nt_list)
-
-    global target_pairs_tupl
-    target_pairs_tupl = {tuple(pair) for pair in input_file.pairs}
-
-    seqence_score_list = generate_initial_list(nt_list, input_file)
-    generate_initial_list_random(nt_list, input_file)
+    
+    nt_list = initialize_simulation(input_file)
+    seqence_score_list = generate_sequences(nt_list, input_file)
 
     start_time = time.time()
-
     simulation_data = []
 
     for i in range(len(seqence_score_list)):
         simulation_data.append(vars(seqence_score_list[i]))
-
-    if all(char in "ACGU&" for char in input_file.seq_restr):
-        print("Cannot mutate the sequence due to sequence constraints.\n Scoring sequence.")
-        sorted_results = sorted(round_floats(simulation_data), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
-        with open(outname + '_results.csv', 'w', newline='', encoding='utf-8') as csvfile:
-            fieldnames = sorted_results[0].keys()  # header from keys of the first dictionary
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-            writer.writeheader()
-            for data in sorted_results:
-                writer.writerow(data)
-        sys.exit()
-
+    
+    handle_non_mutable_sequence(input_file, simulation_data, outname)
+    
     stats = func.Stats()
 
     while time.time() - start_time < timlim:
@@ -1460,152 +1798,13 @@ def run_functions():
             simulation_data.append(vars(seqence_score_list[i]))
 
         if stats.global_step % 10 == 0:
-            remove_duplicated_results = {item['sequence']: item for item in simulation_data}
-            simulation_data_noduplicates = list(remove_duplicated_results.values())
-
-            if oligo != "off":
-                sorted_results_mid = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['oligo_fraction'], -d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
-            else:
-                sorted_results_mid = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
-            sorted_results_mid = sorted_results_mid[:num_results]
-            with open(outname + '_mid_results.csv', 'w', newline='', encoding='utf-8') as csvfile:
-                fieldnames = sorted_results_mid[0].keys()  # header from keys of the first dictionary
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-                writer.writeheader()
-                for data in sorted_results_mid:
-                    writer.writerow(data)
+            process_intermediate_results(simulation_data, oligo, outname, num_results)
 
         if stats.global_step == RE_steps:
             break
 
-    sorted_dicts = sorted(round_floats(simulation_data), key=lambda d: (d['sim_step'], d['replica_num']))
-
-    with open(outname + '_traj.csv', 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = sorted_dicts[0].keys()  # header from keys of the first dictionary
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-        writer.writeheader()
-        for data in sorted_dicts:
-            writer.writerow(data)
-
-    fasta_txt = ""
-
-    for i in range(0, len(sorted_dicts)):
-        fasta_txt += ">" + infile + "|" + now + "|" + str(sorted_dicts[i]["replica_num"]) + "|" + str(sorted_dicts[i]["sim_step"]) + "|" + str(sorted_dicts[i]["scoring_function"]) + "\n"
-        fasta_txt += str(sorted_dicts[i]["sequence"]) + "\n"
-
-    with open(outname + '_multifasta.fas', 'w', encoding='utf-8') as fastafile:
-        fastafile.write(fasta_txt)
-
-    df = pd.DataFrame(simulation_data)
-
-    df.sort_values(['sim_step', 'replica_num'], inplace=True)
-
-    final_df = pd.DataFrame()
-
-    header = ['']
-    header2 = ['']
-
-    df = df.drop_duplicates(subset=['sim_step', 'replica_num'])
-
-    for metric in ['sequence', 'Epf', 'edesired_minus_Epf', 'subopt_e', 'esubopt_minus_Epf', 'precision', 'recall', 'mcc', 'sln_Epf', 'temp_shelf', 'scoring_function']:
-        # For each metric, create a sub-DataFrame and pivot it
-        sub_df = df[['sim_step', 'replica_num', metric]].pivot(index='sim_step', columns='replica_num', values=metric)
-        sub_df.columns = [f'replica{col}' for col in sub_df.columns]
-        header.extend([metric] * len(sub_df.columns))
-        header2.extend([f'replica{col}' for col in range(1, len(sub_df.columns) + 1)])
-        header.append('')
-        header2.append('')
-        # Concatenate the pivoted sub-DataFrame to the final DataFrame
-        final_df = pd.concat([final_df, sub_df, pd.DataFrame(columns=[' '])], axis=1)  # Add an empty column here
-
-    with open(outname + '_replicas.csv', 'w', newline='', encoding='utf-8') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(header)
-        writer.writerow(header2)
-    final_df.to_csv(outname + '_replicas.csv', mode='a', header=False)
-
-    sorted_scores = sorted(round_floats(simulation_data), key=lambda d: (-d['scoring_function']), reverse=True)
-    sorted_scores = sorted_scores[:num_results]
-
-    best_fasta_txt = ""
-    for i in range(0, len(sorted_scores)):
-        best_fasta_txt += ">" + infile + "|" + now + "|" + str(sorted_scores[i]["replica_num"]) + "|" + str(sorted_scores[i]["sim_step"]) + "|" + str(sorted_scores[i]["scoring_function"]) + "\n"
-        best_fasta_txt += str(sorted_scores[i]["sequence"]) + "\n"
-
-    with open(outname + '_best_fasta.fas', 'w', encoding='utf-8') as fastafile:
-        fastafile.write(best_fasta_txt)
-
-    remove_duplicated_results = {item['sequence']: item for item in simulation_data}
-    simulation_data_noduplicates = list(remove_duplicated_results.values())
-    if oligo != "off":
-        sorted_results = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['oligo_fraction'], -d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
-    else:
-        sorted_results = sorted(round_floats(simulation_data_noduplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
-    sorted_results = sorted_results[:num_results]
-
-    with open(outname + '_results.csv', 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = sorted_results[0].keys()  # header from keys of the first dictionary
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-        writer.writeheader()
-        for data in sorted_results:
-            writer.writerow(data)
-
-    sorted_results = sorted_results[:10]
-
-    correct = 0
-    correct_bool = False
-    for i in range(0, len(sorted_results)):
-        if sorted_results[i]['mcc'] == 0.0:
-            correct += 1
-            correct_bool = True
-
-    if oligo != "off":
-        oligo_txt = ",oligo fraction: " + str(sorted_results[0]['oligo_fraction'])
-        correct_result_txt = ">" + infile + "," + str(correct_bool) + "," + str(correct) + "," + sorted_results[0]['sequence'] + ',' + sorted_results[0]['mfe_ss'] + "," + input_file.sec_struct + oligo_txt + '\n'
-    else:
-        correct_result_txt = ">" + infile + "," + str(correct_bool) + "," + str(correct) + "," + sorted_results[0]['sequence'] + ',' + sorted_results[0]['mfe_ss'] + "," + input_file.sec_struct + '\n'
-
-    with open(outname + '_best_str', 'w', newline='', encoding='utf-8') as myfile:
-        myfile.write(correct_result_txt)
-
-    func.plot_simulation_data_combined(simulation_data, outname, input_file.alt_sec_struct, infile)
-
-    sum_mc = stats.acc_mc_step + stats.rej_mc_step
-    acc_perc = round(stats.acc_mc_step / sum_mc, 3)
-
-    sum_mc_metro = sum_mc - stats.acc_mc_better_e
-    acc_metro = stats.acc_mc_step - stats.acc_mc_better_e
-
-    sum_replica_att = stats.acc_re_step + stats.rej_re_step
-    if sum_replica_att == 0:
-        sum_replica_att = 1
-    if correct_bool == True:
-        best_solution_txt = "\nDesign solved succesfully!\n\nBest solution:\n" + str(sorted_results[0]['sequence']) + "\n" + str(sorted_results[0]['mfe_ss'])\
-                            + "\nPartition Function Energy:" + str(round(sorted_results[0]['Epf'], 3)) + "\n"
-    else:
-        best_solution_txt = "\nDesign not solved!" + "\n\nTarget structure:\n" + str(input_file.sec_struct) + "\n\nClosest solution:\n" + str(sorted_results[0]['sequence']) + "\n" + str(sorted_results[0]['mfe_ss'])\
-            + "\nPartition Function Energy: " + str(round(sorted_results[0]['Epf'], 3)) + "\n1-MCC: " + str(round(sorted_results[0]['mcc'], 3)) + "\n"
-
-    stats_txt = ">" + outname + " time=" + str(timlim) + "s\n" + 'Acc_ratio= ' + str(acc_perc) + ', Iterations=' + str(stats.step) + ', Accepted='\
-        + str(stats.acc_mc_step) + '/' + str(sum_mc) + ', Rejected=' + str(stats.rej_mc_step) + '/' + str(sum_mc) + '\n'\
-        + 'Accepted Metropolis=' + str(acc_metro) + '/' + str(sum_mc_metro) + ', Rejected Metropolis=' + str(sum_mc_metro - acc_metro) + '/' + str(sum_mc_metro) + '\n'\
-        + "Replica exchange attempts: " + str(stats.global_step) + "\nReplica swaps attempts: " + str(stats.acc_re_step + stats.rej_re_step) + "\nReplica swaps accepted: " + str(stats.acc_re_step)\
-        + "\nReplica swaps rejected: " + str(stats.rej_re_step) + "\nReplica exchange acc_ratio: "\
-        + str(round(stats.acc_re_step / (sum_replica_att), 3)) + '\n' + best_solution_txt
-
-    print('\n' + stats_txt)
-
-    with open(outname + '_stats', 'w', newline='\n', encoding='utf-8') as myfile:
-        myfile.write(stats_txt)
-
-    files_to_move = ['_best_str', '_traj.csv', '_replicas.csv', '_best_fasta.fas', '_multifasta.fas', '_random.csv', '.command']
-
-    for i in range(0, len(files_to_move)):
-        move(outname + files_to_move[i], "trajectory_files/" + (outname + files_to_move[i]))
-
+    parse_and_output_results(simulation_data, input_file, stats)
+    
 
 def get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, dimer, param, RE_attempt, scoring_f, point_mutations, alt_ss, tshelves, in_seed, subopt):
     """
@@ -1745,7 +1944,8 @@ class InputFile:
         self.seed_seq = None
         self.alt_sec_struct = None
         self.alt_sec_structs = None
-
+        self.target_pairs_tupl = {}
+        
     def add_seed_seq(self, seed_seq):
         """
         Adds a seed sequence to the input file data.
@@ -1768,6 +1968,9 @@ class InputFile:
         """
         self.alt_sec_struct = alt_sec_structs[0].strip()
         self.alt_sec_structs = [x.strip() for x in alt_sec_structs]
+    
+    def set_target_pairs_tupl(self):
+        self.target_pairs_tupl = {tuple(pair) for pair in self.pairs}
 
 
 def redirect_stderr_to_file(filename):
