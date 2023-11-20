@@ -469,7 +469,6 @@ def check_input_logic(nt_list):
     for i in range(0, len(nt_list)):
         if nt_list[i].pairs_with != None:
             if_pair(nt_list[i], nt_list[nt_list[i].pairs_with])
-    
 
 
 def if_pair(nt1, nt2):
@@ -497,7 +496,7 @@ def if_pair(nt1, nt2):
     if store == True:
         pass
     else:
-        print("Wrong restraints in the input file. Nucleotide "+ str(nt1.number + 1) + " " + str(nt1.letters) + ", cannot pair with nucleotide "+ str(nt2.number + 1) + " " + str(nt2.letters))
+        print("Wrong restraints in the input file. Nucleotide " + str(nt1.number + 1) + " " + str(nt1.letters) + ", cannot pair with nucleotide " + str(nt2.number + 1) + " " + str(nt2.letters))
         sys.exit()
 
 
@@ -1393,17 +1392,17 @@ def mutate_sequence_re(lst_seq_obj, nt_list, stats_obj):
 def initialize_simulation(input_file):
     """
     Initialize the simulation by setting up the necessary parameters and constraints.
-    
+
     Args:
     input_file (InputFile): An object encapsulating input file parameters.
 
     Returns:
     list: List of nucleotides with applied constraints.
     """
-    
+
     input_file.pairs = check_dot_bracket(input_file.sec_struct)  # check dotbracket correctness, assign as list of pairs
     input_file.set_target_pairs_tupl()
-    
+
     if input_file.alt_sec_structs != None:
         print(input_file.alt_sec_structs)
         for i in range(0, len(input_file.alt_sec_structs)):
@@ -1457,7 +1456,7 @@ def handle_non_mutable_sequence(input_file, simulation_data, output_name):
                 writer.writerow(data)
         sys.exit()
 
-    
+
 def process_intermediate_results(simulation_data, oligo, output_name, num_results):
     """
     Processes intermediate results during the simulation by removing duplicates, 
@@ -1479,7 +1478,7 @@ def process_intermediate_results(simulation_data, oligo, output_name, num_result
         sorted_results = sorted(round_floats(data_no_duplicates), key=lambda d: (-d['oligo_fraction'], -d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
     else:
         sorted_results = sorted(round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
-    
+
     sorted_results = sorted_results[:num_results]
 
     with open(output_name + '_mid_results.csv', 'w', newline='', encoding='utf-8') as csvfile:
@@ -1506,7 +1505,6 @@ def generate_replica_csv(simulation_data, output_name):
     header = ['']
     header2 = ['']
 
-    
     for metric in ['sequence', 'Epf', 'edesired_minus_Epf', 'subopt_e', 'esubopt_minus_Epf', 'precision', 'recall', 'mcc', 'sln_Epf', 'temp_shelf', 'scoring_function']:
         sub_df = df[['sim_step', 'replica_num', metric]].pivot(index='sim_step', columns='replica_num', values=metric)
         sub_df.columns = [f'replica{col}' for col in sub_df.columns]
@@ -1550,6 +1548,7 @@ def generate_trajectory_csv(sorted_data, output_name):
         writer.writeheader()
         for data in sorted_data:
             writer.writerow(data)
+
 
 def generate_multifasta(sorted_data, output_name, infile, now):
     """
@@ -1769,7 +1768,7 @@ def run_functions():
     Returns:
     list: A list of sequences that are the result of the design process.
     """
-    
+
     nt_list = initialize_simulation(input_file)
     seqence_score_list = generate_sequences(nt_list, input_file)
 
@@ -1778,9 +1777,9 @@ def run_functions():
 
     for i in range(len(seqence_score_list)):
         simulation_data.append(vars(seqence_score_list[i]))
-    
+
     handle_non_mutable_sequence(input_file, simulation_data, outname)
-    
+
     stats = func.Stats()
 
     while time.time() - start_time < timlim:
@@ -1804,7 +1803,7 @@ def run_functions():
             break
 
     parse_and_output_results(simulation_data, input_file, stats)
-    
+
 
 def get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, dimer, param, RE_attempt, scoring_f, point_mutations, alt_ss, tshelves, in_seed, subopt):
     """
@@ -1945,7 +1944,7 @@ class InputFile:
         self.alt_sec_struct = None
         self.alt_sec_structs = None
         self.target_pairs_tupl = {}
-        
+
     def add_seed_seq(self, seed_seq):
         """
         Adds a seed sequence to the input file data.
@@ -1968,7 +1967,7 @@ class InputFile:
         """
         self.alt_sec_struct = alt_sec_structs[0].strip()
         self.alt_sec_structs = [x.strip() for x in alt_sec_structs]
-    
+
     def set_target_pairs_tupl(self):
         self.target_pairs_tupl = {tuple(pair) for pair in self.pairs}
 
