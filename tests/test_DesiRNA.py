@@ -43,7 +43,7 @@ class TestReadInput(unittest.TestCase):
 
         # Call read_input and test results
         input_file = read_input(temp_file_path)
-        self.assertEqual(input_file.name, "Design")
+        self.assertEqual(input_file.name, "Desin")
         self.assertEqual(input_file.sec_struct, "((((((.((((((((....))))).)).).))))))")
         self.assertEqual(input_file.seq_restr, "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN")
 
