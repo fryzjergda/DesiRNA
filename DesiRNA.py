@@ -1414,9 +1414,6 @@ def initialize_simulation(input_file):
     check_length(input_file.sec_struct, input_file.seq_restr)
     nt_list = get_nt_list(input_file)
     check_input_logic(nt_list)
-    print(len(nt_list))
-    print(vars(nt_list[8]))
-#    quit()
 
     return nt_list
 
