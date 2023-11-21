@@ -153,7 +153,7 @@ def argument_parser():
                                 help="Custom temperature shelves for replicas in replica exchange simulation. Provide comma-separated values.")
     advanced_group.add_argument("-sf", "--scoring_function", required=False, dest="scoring_f", type=str, default='Ed-Epf:1.0',
                                 help="Scoring functions and weights used to guide the design process, e.g. 'Ed-Epf:0.5,1-MCC:0.5'. \
-                            Scoring functions to choose: Ed-Epf, 1-MCC, sln_Epf, Ed-MFE, 1-precision, 1-recall, Edef [default = Ed-Epf:1.0]")
+                                Scoring functions to choose: Ed-Epf, 1-MCC, sln_Epf, Ed-MFE, 1-precision, 1-recall, Edef [default = Ed-Epf:1.0]")
     advanced_group.add_argument("-nd", "--negative_design", required=False, dest="subopt", default='off', choices=['off', 'on'],
                                 help="Use negative design approach. [default = off]")
     standard_group.add_argument("-acgu", "--ACGU", required=False, dest="percs", default='off', choices=['off', 'on'],
@@ -1414,6 +1414,9 @@ def initialize_simulation(input_file):
     check_length(input_file.sec_struct, input_file.seq_restr)
     nt_list = get_nt_list(input_file)
     check_input_logic(nt_list)
+    print(len(nt_list))
+    print(vars(nt_list[8]))
+#    quit()
 
     return nt_list
 
