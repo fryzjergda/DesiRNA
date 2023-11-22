@@ -49,7 +49,7 @@ function run_test() {
 # Running tests with different inputs and options
 run_test "Standard_design_input.txt" "on" "2004"
 run_test "Alternative_structures_design_input.txt" "off" "2004"
-run_test "Homodimer_design_input.txt" "on" "1999"
+run_test "Homodimer_design_input.txt" "off" "1999"
 run_test "RNA_RNA_complex_design_input.txt" "off" "2004"
 run_test "Pseudoknot_design_input.txt" "off" "2004"
 run_test "Seed_sequence_design_input.txt" "off" "1999"
