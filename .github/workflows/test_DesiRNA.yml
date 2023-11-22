@@ -35,12 +35,21 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-
+    - name: Cache ViennaRNA installation
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/viennarna
+        key: ${{ runner.os }}-viennarna-static-key
+        restore-keys: |
+          ${{ runner.os }}-viennarna-static-key
+          
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install viennarna
+        if [ ! -d ~/.cache/viennarna ]; then
+          pip install viennarna
+        fi
       shell: bash
       
     - name: Run DesiRNA tests
