@@ -1,0 +1,6 @@
+>name
+Pseudoknot_Example
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+((((((....[[[[..))))))......]]]]....

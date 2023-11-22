@@ -1,0 +1,16 @@
+>Pseudoknot_design_input_R10_e100_t2_pkon_ACGUoff_Tmin10_Tmax150_p2004_SFEd-Epf_1.0_Oon_Doff_PMon time=2s
+Acc_ratio=0.553, Iterations=200, Accepted=1107/2000, Rejected=893/2000
+Accepted Metropolis=558/1451, Rejected Metropolis=893/1451
+Replica exchange attempts: 2
+Replica swaps attempts: 9
+Replica swaps accepted: 8
+Replica swaps rejected: 1
+Replica exchange acc_ratio: 0.889
+
+Design not solved!
+
+Target structure:
+CCAUCGGCAUUUUCAACGAUGGAAAAUUGAAAUUGA
+MFE Secondary Structure: ((((((.[[.[[[[[[))))))....]]]]]].]].
+Partition Function Energy: -8.43
+1-MCC: 0.402

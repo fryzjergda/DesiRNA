@@ -1,0 +1,194 @@
+Process ForkPoolWorker-10:
+Process ForkPoolWorker-9:
+Process ForkPoolWorker-5:
+Process ForkPoolWorker-6:
+Process ForkPoolWorker-7:
+Process ForkPoolWorker-4:
+Process ForkPoolWorker-1:
+Process ForkPoolWorker-2:
+Process ForkPoolWorker-8:
+Traceback (most recent call last):
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 258, in _bootstrap
+    self.run()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 93, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 108, in worker
+    task = get()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/queues.py", line 337, in get
+    with self._rlock:
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/synchronize.py", line 101, in __enter__
+    return self._semlock.__enter__()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 258, in _bootstrap
+    self.run()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 93, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 258, in _bootstrap
+    self.run()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 108, in worker
+    task = get()
+KeyboardInterrupt
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/queues.py", line 337, in get
+    with self._rlock:
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 93, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/synchronize.py", line 101, in __enter__
+    return self._semlock.__enter__()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 108, in worker
+    task = get()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/queues.py", line 337, in get
+    with self._rlock:
+KeyboardInterrupt
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/synchronize.py", line 101, in __enter__
+    return self._semlock.__enter__()
+Traceback (most recent call last):
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 258, in _bootstrap
+    self.run()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 93, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 108, in worker
+    task = get()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/queues.py", line 337, in get
+    with self._rlock:
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/synchronize.py", line 101, in __enter__
+    return self._semlock.__enter__()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 258, in _bootstrap
+    self.run()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 93, in run
+    self._target(*self._args, **self._kwargs)
+KeyboardInterrupt
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 108, in worker
+    task = get()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/queues.py", line 337, in get
+    with self._rlock:
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/synchronize.py", line 101, in __enter__
+    return self._semlock.__enter__()
+KeyboardInterrupt
+Traceback (most recent call last):
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 258, in _bootstrap
+    self.run()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 93, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 258, in _bootstrap
+    self.run()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 119, in worker
+    result = (True, func(*args, **kwds))
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 93, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 258, in _bootstrap
+    self.run()
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 1350, in par_wrapper
+    return single_replica_design(*args)
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 108, in worker
+    task = get()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 93, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 1314, in single_replica_design
+    sequence_m = mutate_sequence(sequence_o, nt_list)
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/queues.py", line 338, in get
+    res = self._reader.recv_bytes()
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 935, in mutate_sequence
+    sequence_mutated = score_sequence(sequence_mutated)
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 108, in worker
+    task = get()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/connection.py", line 219, in recv_bytes
+    buf = self._recv_bytes(maxlength)
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 1225, in score_sequence
+    ssc.find_basepairs()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/queues.py", line 337, in get
+    with self._rlock:
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/connection.py", line 410, in _recv_bytes
+    buf = self._recv(4)
+  File "/home/fryzjer/Projects/DesiRNA/utils/SimScore.py", line 77, in find_basepairs
+    self.bp_dict_r = pairing_positions(self.ref_ss)
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/synchronize.py", line 101, in __enter__
+    return self._semlock.__enter__()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/connection.py", line 382, in _recv
+    chunk = read(handle, remaining)
+  File "/home/fryzjer/Projects/DesiRNA/utils/SimScore.py", line 42, in pairing_positions
+    for j in range(lengh + 1):
+KeyboardInterrupt
+KeyboardInterrupt
+KeyboardInterrupt
+Process ForkPoolWorker-3:
+Traceback (most recent call last):
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 258, in _bootstrap
+    self.run()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 93, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 119, in worker
+    result = (True, func(*args, **kwds))
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 1350, in par_wrapper
+    return single_replica_design(*args)
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 1314, in single_replica_design
+    sequence_m = mutate_sequence(sequence_o, nt_list)
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 935, in mutate_sequence
+    sequence_mutated = score_sequence(sequence_mutated)
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 1215, in score_sequence
+    pf_energy, mfe_structure, fold_comp = get_mfe_e_ss(seq)
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 1152, in get_mfe_e_ss
+    structure, energy = fc.pf()
+  File "/usr/lib/python3/dist-packages/RNA/__init__.py", line 3845, in pf
+    return _RNA.fold_compound_pf(self)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 258, in _bootstrap
+    self.run()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/process.py", line 93, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 119, in worker
+    result = (True, func(*args, **kwds))
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 1350, in par_wrapper
+    return single_replica_design(*args)
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 1314, in single_replica_design
+    sequence_m = mutate_sequence(sequence_o, nt_list)
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 935, in mutate_sequence
+    sequence_mutated = score_sequence(sequence_mutated)
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 1215, in score_sequence
+    pf_energy, mfe_structure, fold_comp = get_mfe_e_ss(seq)
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 1152, in get_mfe_e_ss
+    structure, energy = fc.pf()
+  File "/usr/lib/python3/dist-packages/RNA/__init__.py", line 3845, in pf
+    return _RNA.fold_compound_pf(self)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 720, in next
+    item = self._items.popleft()
+IndexError: pop from an empty deque
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 1375, in mutate_sequence_re
+    for result in pool.imap(par_wrapper, inputs):
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 724, in next
+    self._cond.wait(timeout)
+  File "/usr/lib/python3.6/threading.py", line 295, in wait
+    waiter.acquire()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 2122, in <module>
+    run_functions()
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 1791, in run_functions
+    seqence_score_list, stats = mutate_sequence_re(seqence_score_list, nt_list, stats)
+  File "/home/fryzjer/Projects/DesiRNA/DesiRNA.py", line 1389, in mutate_sequence_re
+    return lst_seq_obj_res_new, stats_obj
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 611, in __exit__
+    self.terminate()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 541, in terminate
+    self._terminate()
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/util.py", line 186, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 571, in _terminate_pool
+    cls._help_stuff_finish(inqueue, task_handler, len(pool))
+  File "/home/fryzjer/.local/lib/python3.6/site-packages/multiprocess/pool.py", line 556, in _help_stuff_finish
+    inqueue._rlock.acquire()
+KeyboardInterrupt

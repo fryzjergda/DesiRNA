@@ -1,0 +1,6 @@
+>name
+Design
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+((((((.((((((((....))))).)).).))))))

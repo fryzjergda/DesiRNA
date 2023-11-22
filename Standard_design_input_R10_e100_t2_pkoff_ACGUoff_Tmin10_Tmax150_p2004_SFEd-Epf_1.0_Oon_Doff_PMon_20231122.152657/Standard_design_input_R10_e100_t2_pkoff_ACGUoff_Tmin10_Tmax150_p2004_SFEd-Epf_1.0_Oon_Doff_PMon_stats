@@ -1,0 +1,16 @@
+>Standard_design_input_R10_e100_t2_pkoff_ACGUoff_Tmin10_Tmax150_p2004_SFEd-Epf_1.0_Oon_Doff_PMon time=2s
+Acc_ratio=0.594, Iterations=200, Accepted=1188/2000, Rejected=812/2000
+Accepted Metropolis=638/1450, Rejected Metropolis=812/1450
+Replica exchange attempts: 2
+Replica swaps attempts: 9
+Replica swaps accepted: 8
+Replica swaps rejected: 1
+Replica exchange acc_ratio: 0.889
+
+Design solved succesfully!
+
+Best solution:
+UCUCUAACUGAGGUCAAAAGAUCUACAUGAUAGAGA
+MFE Secondary Structure: ((((((.((((((((....))))).)).).))))))
+Partition Function Energy: -11.386
+1-MCC: 0.0
