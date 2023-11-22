@@ -25,7 +25,7 @@ function run_test() {
     # Run the Python program with specified options	
     
     echo DesiRNA.py -f "$input_path" -t 2 -o "$oligo_option" -p "$p_option"
-    python3 DesiRNA.py -f "$input_path" -t 2 -o "$oligo_option" -p "$p_option"
+    python3 ${BASE_DIR}/DesiRNA.py -f "$input_path" -t 2 -o "$oligo_option" -p "$p_option"
 
     # Find the latest directory matching the pattern
     output_dir=$(find_latest_directory "${input_file%.txt}*")
