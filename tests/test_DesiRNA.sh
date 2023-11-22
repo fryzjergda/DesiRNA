@@ -15,23 +15,34 @@ function run_test() {
     input_file=$1
     expected_phrase="Design solved succesfully!"
     input_path="${BASE_DIR}/example_files/inputs/$input_file"
-    oligo_option=$2
-    p_option=$3
-    
+    t_option=$2
+    acgu_option=$3
+    p_option=$4
+    tmin_option=$5
+    tmax_option=$6
+    sf_option=$7
+    nd_option=$8
+    acgu_content_option=$9
+    oligo_option=${10}
+    dimer_option=${11}
+    tm_option=${12}
+    tm_perc_max_option=${13}
+    tm_perc_min_option=${14}
+    re_seq_option=${15}
 
     # Navigate to the project root directory
     cd ..
 
     # Run the Python program with specified options	
     
-    echo DesiRNA.py -f "$input_path" -t 2 -o "$oligo_option" -p "$p_option"
-    python3 ${BASE_DIR}/DesiRNA.py -f "$input_path" -t 2 -o "$oligo_option" -p "$p_option"
+    echo ${BASE_DIR}/DesiRNA.py -f "$input_path" -t 2 -acgu "$acgu_option" -p "$p_option" -tmin "$tmin_option" -tmax "$tmax_option" -sf "$sf_option" -nd "$nd_option" -acgu_content "$acgu_content_option" -o "$oligo_option" -d "$dimer_option" -tm "$tm_option" -tm_perc_max "$tm_perc_max_option" -tm_perc_min "$tm_perc_min_option" -re_seq "$re_seq_option"
+    python3 ${BASE_DIR}/DesiRNA.py -f "$input_path" -t 2 -acgu "$acgu_option" -p "$p_option" -tmin "$tmin_option" -tmax "$tmax_option" -sf "$sf_option" -nd "$nd_option" -acgu_content "$acgu_content_option" -o "$oligo_option" -d "$dimer_option" -tm "$tm_option" -tm_perc_max "$tm_perc_max_option" -tm_perc_min "$tm_perc_min_option" -re_seq "$re_seq_option"
 
     # Find the latest directory matching the pattern
     output_dir=$(find_latest_directory "${input_file%.txt}*")
-    echo $(find_latest_directory "${input_file%.txt}*")
+#    echo $(find_latest_directory "${input_file%.txt}*")
     output_stats_file=$(find "$output_dir" -name "*stats")
-    echo $(find "$output_dir" -name "*stats")
+#    echo $(find "$output_dir" -name "*stats")
 
     # Check if the output stats file exists and contains the expected phrase
     if [ -f "$output_stats_file" ] && grep -q "$expected_phrase" "$output_stats_file"; then
@@ -47,12 +58,13 @@ function run_test() {
 }
 
 # Running tests with different inputs and options
-run_test "Standard_design_input.txt" "on" "2004"
-run_test "Alternative_structures_design_input.txt" "off" "2004"
-run_test "Homodimer_design_input.txt" "off" "1999"
-run_test "RNA_RNA_complex_design_input.txt" "off" "2004"
-run_test "Pseudoknot_design_input.txt" "off" "2004"
-run_test "Seed_sequence_design_input.txt" "off" "1999"
-# Add more test cases here with different inputs and options...
+run_test "Standard_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
+run_test "Alternative_structures_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
+run_test "Homodimer_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "on" "on" "0.7" "0.0" "same"
+run_test "RNA_RNA_complex_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
+run_test "Pseudoknot_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
+run_test "Seed_sequence_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
+
+
 
 echo "All tests passed!"
