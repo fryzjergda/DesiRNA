@@ -36,7 +36,7 @@ import RNA
 
 from utils import functions_classes as func
 from utils.SimScore import SimScore
-#from utils import sequence_utils as seq_utils
+from utils import sequence_utils as seq_utils
 #from DesiRNA.utils import sequence_utils
 
 def print_action_group_help(parser, action_group, include_all=False, print_usage=True):
@@ -295,7 +295,7 @@ def parse_scoring_functions(scoring_f_str):
         scoring_func.append((function, float(weight)))
     return scoring_func
 
-
+'''
 def check_dot_bracket(ss):
     """
     Checks if the given secondary structure string is in the correct dot-bracket notation.
@@ -339,8 +339,8 @@ def check_dot_bracket(ss):
             sys.exit()
 
     return pairs_list
-
-
+'''
+'''
 def check_seq_restr(restr):
     """
     Checks if the given sequence restraints string only contains allowed characters.
@@ -358,8 +358,8 @@ def check_seq_restr(restr):
         if restr[i] not in allowed_characters:
             print("Not allowed characters in sequence restraints. Check input file.")
             sys.exit()
-
-
+'''
+'''
 def check_length(ss, restr):
     """
     Checks if the secondary structure string and the sequence restraints string are of the same length.
@@ -422,8 +422,8 @@ def get_nt_list(input_file):
             list_of_nt[i].letters_allowed = list_of_nt[i].letters
 
     return list_of_nt
-
-
+'''
+'''
 def nt_dictionary(nt):
     """
     Maps a nucleotide character to a list of nucleotide characters based on the IUPAC convention.
@@ -457,7 +457,7 @@ def nt_dictionary(nt):
     nt_all = constraints_dict[nt]
 
     return nt_all
-
+'''
 
 def check_input_logic(nt_list):
     """
@@ -521,7 +521,7 @@ def wc_pair(nt1):
 
     return nt2
 
-
+'''
 def can_pair(nt):
     """
     Returns a list of nucleotide characters that can form a base pair with a given nucleotide character.
@@ -538,7 +538,7 @@ def can_pair(nt):
     pairing_l = pair_dict[nt]
 
     return pairing_l
-
+'''
 
 def random_sequence_generator(nt_list, input_file):
     """
@@ -557,7 +557,7 @@ def random_sequence_generator(nt_list, input_file):
 
     for i in range(0, len(nt_list)):
         if nt_list[i].pairs_with == None:
-            random.choice(nt_dictionary(seq_l[i]))
+            random.choice(seq_utils.nt_dictionary(seq_l[i]))
 
     for i in range(0, len(pair_list)):
         nt1 = nt_list[pair_list[i][0]].letters_allowed
@@ -574,7 +574,7 @@ def random_sequence_generator(nt_list, input_file):
 
     for i in range(0, len(seq_l)):
         if seq_l[i] not in ["A", "C", "G", "U"]:
-            seq_l[i] = random.choice(nt_dictionary(seq_l[i]))
+            seq_l[i] = random.choice(seq_utils.nt_dictionary(seq_l[i]))
 
     result_sequence = ''.join(seq_l)
 
@@ -656,7 +656,7 @@ def initial_sequence_generator(nt_list, input_file):
     # random choice (from allowed letters) of whatever left
     for i in range(0, len(seq_l)):
         if seq_l[i] not in ["A", "C", "G", "U"]:
-            seq_l[i] = random.choice(nt_dictionary(seq_l[i]))
+            seq_l[i] = random.choice(seq_utils.nt_dictionary(seq_l[i]))
 
     result_sequence = ''.join(seq_l)
 
@@ -805,7 +805,7 @@ def get_mutation_position(seq_obj, available_positions):
         max_perc_prob = tm_max
         min_perc_prob = tm_min
 
-        pair_list_mfe = check_dot_bracket(seq_obj.mfe_ss)
+        pair_list_mfe = seq_utils.check_dot_bracket(seq_obj.mfe_ss)
 
         query_structure = {tuple(pair) for pair in pair_list_mfe}
 
@@ -915,7 +915,7 @@ def mutate_sequence(sequence_obj, nt_list):
         elif acgu_percentages == "off":
             mutated_nt1 = random.choice(available_mutations_nt1)
 
-        allowed_pairings_nt2 = can_pair(mutated_nt1)
+        allowed_pairings_nt2 = seq_utils.can_pair(mutated_nt1)
         available_mutations_nt2 = list(set(allowed_mutations_nt2).intersection(allowed_pairings_nt2))
 
         allowed_mutations_nt2.sort()
@@ -1404,19 +1404,19 @@ def initialize_simulation(input_file):
     list: List of nucleotides with applied constraints.
     """
 
-    input_file.pairs = check_dot_bracket(input_file.sec_struct)  # check dotbracket correctness, assign as list of pairs
+    input_file.pairs = seq_utils.check_dot_bracket(input_file.sec_struct)  # check dotbracket correctness, assign as list of pairs
     input_file.set_target_pairs_tupl()
 
     if input_file.alt_sec_structs != None:
         print(input_file.alt_sec_structs)
         for i in range(0, len(input_file.alt_sec_structs)):
             print("Checking brackets for alternative structure ", i + 1)
-            check_dot_bracket(input_file.alt_sec_structs[i])
+            seq_utils.check_dot_bracket(input_file.alt_sec_structs[i])
         print("Alternative structures are ok.")
 
-    check_seq_restr(input_file.seq_restr)
-    check_length(input_file.sec_struct, input_file.seq_restr)
-    nt_list = get_nt_list(input_file)
+    seq_utils.check_seq_restr(input_file.seq_restr)
+    seq_utils.check_length(input_file.sec_struct, input_file.seq_restr)
+    nt_list = seq_utils.get_nt_list(input_file)
     check_input_logic(nt_list)
 
     return nt_list
@@ -1853,7 +1853,7 @@ def get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, o
         "_Tmin" + str(T_min) + "_Tmax" + str(T_max) + "_p" + str(param) + "_SF" + scoring_f_str + "_O" + (str(oligo)) + "_D" + (str(dimer)) + "_PM" + (str(point_mutations))
     return outname
 
-
+'''
 class Nucleotide:
     """
     Represents a nucleotide in an RNA sequence.
@@ -1917,7 +1917,7 @@ class Nucleotide:
         list (list): The list of letters that are allowed for this nucleotide.
         """
         self.letters_allowed = list
-
+'''
 
 class InputFile:
     """
