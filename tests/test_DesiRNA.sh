@@ -58,11 +58,11 @@ function run_test() {
 }
 
 # Running tests with different inputs and options
-run_test "Standard_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
-run_test "Alternative_structures_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
+run_test "Standard_design_input.txt" "5" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
+run_test "Alternative_structures_design_input.txt" "5" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
 run_test "Homodimer_design_input.txt" "10" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "on" "on" "0.7" "0.0" "same"
 run_test "RNA_RNA_complex_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
-run_test "Pseudoknot_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
+run_test "Pseudoknot_design_input.txt" "10" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
 run_test "Seed_sequence_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
 run_test "Standard_design_input.txt" "2" "on" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
 run_test "Standard_design_input.txt" "2" "off" "2004" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
