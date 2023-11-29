@@ -52,7 +52,7 @@ def get_replica_color(replica_num, num_replicas):
     return colors[color_index]
 
 
-def plot_simulation_data_combined(simulation_data, outname, alt, infile):
+def plot_simulation_data_combined(simulation_data, alt, sim_options):
     """
     Plot combined simulation data for various metrics across different replicas.
 
@@ -142,7 +142,7 @@ def plot_simulation_data_combined(simulation_data, outname, alt, infile):
         ax.yaxis.labelpad = max_width   # Adjust the padding as needed
 
     # Add overall title to the plot
-    fig.suptitle(infile.split(".")[0], fontsize=16, fontweight='bold')
+    fig.suptitle(sim_options.infile.split(".")[0], fontsize=16, fontweight='bold')
 
     num_replica_columns = min(num_replicas, 4)
 
@@ -161,7 +161,7 @@ def plot_simulation_data_combined(simulation_data, outname, alt, infile):
     fig.tight_layout(rect=[0, 0.0, 1, 0.95])
 
     # Save the plot to a file
-    plt.savefig(outname + '_replicas.png', dpi=400)
+    plt.savefig(sim_options.outname + '_replicas.png', dpi=400)
 
 
 class Stats:

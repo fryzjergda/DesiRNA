@@ -1,6 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+This Python module is designed for the analysis and visualization of RNA sequence simulation data.
+It includes functionalities for plotting simulation metrics, calculating various statistical
+properties of RNA sequences, and assessing their structural and energetic characteristics.
+
+Key components of this module include:
+- Functions for generating color-coded plots of simulation data across different replicas.
+- A 'Stats' class for tracking statistical data during simulation processes.
+- A 'ScoreSeq' class for representing and scoring RNA sequences based on various criteria.
+- Utility functions for calculating suboptimal RNA structures and their energies.
+
+The module makes use of the RNA package for RNA secondary structure prediction and energy calculations,
+and matplotlib for generating plots. It's tailored for use in RNA sequence analysis and simulation environments.
+
+Dependencies:
+- matplotlib: For plotting simulation data.
+- RNA: For RNA secondary structure prediction and energy calculations.
+"""
+
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import ticker

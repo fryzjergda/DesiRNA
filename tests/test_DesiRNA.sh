@@ -29,14 +29,15 @@ function run_test() {
     tm_perc_max_option=${13}
     tm_perc_min_option=${14}
     re_seq_option=${15}
+    sws_option=${16}
 
     # Navigate to the project root directory
     cd ..
 
     # Run the Python program with specified options	
     
-    echo ${BASE_DIR}/DesiRNA.py -f "$input_path" -t 2 -acgu "$acgu_option" -p "$p_option" -tmin "$tmin_option" -tmax "$tmax_option" -sf "$sf_option" -nd "$nd_option" -acgu_content "$acgu_content_option" -o "$oligo_option" -d "$dimer_option" -tm "$tm_option" -tm_perc_max "$tm_perc_max_option" -tm_perc_min "$tm_perc_min_option" -re_seq "$re_seq_option"
-    python3 ${BASE_DIR}/DesiRNA.py -f "$input_path" -t 2 -acgu "$acgu_option" -p "$p_option" -tmin "$tmin_option" -tmax "$tmax_option" -sf "$sf_option" -nd "$nd_option" -acgu_content "$acgu_content_option" -o "$oligo_option" -d "$dimer_option" -tm "$tm_option" -tm_perc_max "$tm_perc_max_option" -tm_perc_min "$tm_perc_min_option" -re_seq "$re_seq_option"
+    echo ${BASE_DIR}/DesiRNA.py -f "$input_path" -t "$t_option" -acgu "$acgu_option" -p "$p_option" -tmin "$tmin_option" -tmax "$tmax_option" -sf "$sf_option" -nd "$nd_option" -acgu_content "$acgu_content_option" -o "$oligo_option" -d "$dimer_option" -tm "$tm_option" -tm_perc_max "$tm_perc_max_option" -tm_perc_min "$tm_perc_min_option" -re_seq "$re_seq_option" -sws "$sws_option"
+    python3 ${BASE_DIR}/DesiRNA.py -f "$input_path" -t "$t_option" -acgu "$acgu_option" -p "$p_option" -tmin "$tmin_option" -tmax "$tmax_option" -sf "$sf_option" -nd "$nd_option" -acgu_content "$acgu_content_option" -o "$oligo_option" -d "$dimer_option" -tm "$tm_option" -tm_perc_max "$tm_perc_max_option" -tm_perc_min "$tm_perc_min_option" -re_seq "$re_seq_option" -sws "$sws_option"
 
     # Find the latest directory matching the pattern
     output_dir=$(find_latest_directory "${input_file%.txt}*")
@@ -58,20 +59,21 @@ function run_test() {
 }
 
 # Running tests with different inputs and options
-run_test "Standard_design_input.txt" "5" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
-run_test "Alternative_structures_design_input.txt" "5" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
-run_test "Homodimer_design_input.txt" "10" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "on" "on" "0.7" "0.0" "same"
-run_test "RNA_RNA_complex_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
-run_test "Pseudoknot_design_input.txt" "10" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
-run_test "Seed_sequence_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
-run_test "Standard_design_input.txt" "2" "on" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
-run_test "Standard_design_input.txt" "2" "off" "2004" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
-run_test "Standard_design_input.txt" "2" "off" "1999" "20" "160" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same"
-run_test "Standard_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:0.9,1-MCC:0.05,sln_Epf:0.01,Ed-MFE:0.01,1-precision:0.01,1-recall:0.01,Edef:0.01" "off" "" "off" "off" "on" "0.7" "0.0" "same"
-run_test "Standard_design_input.txt" "2" "on" "1999" "10" "150" "Ed-Epf:1.0" "off" "10,40,40,10" "off" "off" "on" "0.7" "0.0" "same"
-run_test "Standard_design_input.txt" "10" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "on" "off" "on" "0.7" "0.0" "same"
-run_test "Standard_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.8" "0.1" "same"
-run_test "Standard_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "different"
+run_test "Standard_design_input.txt" "5" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same" "on"
+run_test "Standard_design_input.txt" "5" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same" "off"
+run_test "Alternative_structures_design_input.txt" "5" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same" "on"
+run_test "Homodimer_design_input.txt" "10" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "on" "on" "0.7" "0.0" "same" "on"
+run_test "RNA_RNA_complex_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same" "on"
+run_test "Pseudoknot_design_input.txt" "10" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same" "on"
+run_test "Seed_sequence_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same" "on"
+run_test "Standard_design_input.txt" "2" "on" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same" "on"
+run_test "Standard_design_input.txt" "2" "off" "2004" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same" "on"
+run_test "Standard_design_input.txt" "2" "off" "1999" "20" "160" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same" "on"
+run_test "Standard_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:0.9,1-MCC:0.05,sln_Epf:0.01,Ed-MFE:0.01,1-precision:0.01,1-recall:0.01,Edef:0.01" "off" "" "off" "off" "on" "0.7" "0.0" "same" "on"
+run_test "Standard_design_input.txt" "2" "on" "1999" "10" "150" "Ed-Epf:1.0" "off" "10,40,40,10" "off" "off" "on" "0.7" "0.0" "same" "on"
+run_test "Standard_design_input.txt" "10" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "on" "off" "on" "0.7" "0.0" "same" "on"
+run_test "Standard_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.8" "0.1" "same" "on"
+run_test "Standard_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "different" "on"
 
 
 

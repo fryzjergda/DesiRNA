@@ -234,10 +234,13 @@ def argument_parser():
     tm_max = args.tm_max
     tm_min = args.tm_min
     sws = args.sws
-    
-    return infile, replicas, timlim, acgu_percs, t_max, t_min, oligo, param, exchange_rate, scoring_f, pm, tshelves,\
-        in_seed, subopt, diff_start_replicas, num_results, acgu_content, steps, tm_max, tm_min, motifs, dimer, sws
 
+
+    sim_options = DesignOptions(infile, replicas, timlim, acgu_percs, t_max, t_min, oligo, param, exchange_rate, scoring_f, pm, tshelves,\
+        in_seed, subopt, diff_start_replicas, num_results, acgu_content, steps, tm_max, tm_min, motifs, dimer, sws)
+    
+    return sim_options
+    
 
 def read_input(infile):
     """
@@ -293,7 +296,7 @@ def parse_scoring_functions(scoring_f_str):
             raise ValueError(f"Invalid scoring function format: {item}. Expected format: 'function:weight'")
         function, weight = item.split(':')
         scoring_func.append((function, float(weight)))
-    return scoring_func
+        return scoring_func
 
 '''
 def check_dot_bracket(ss):
@@ -458,7 +461,7 @@ def nt_dictionary(nt):
 
     return nt_all
 '''
-
+'''
 def check_input_logic(nt_list):
     """
     Checks if the logic of the input is correct, specifically if the pairing restrictions make sense.
@@ -502,8 +505,8 @@ def if_pair(nt1, nt2):
     else:
         print("Wrong restraints in the input file. Nucleotide " + str(nt1.number + 1) + " " + str(nt1.letters) + ", cannot pair with nucleotide " + str(nt2.number + 1) + " " + str(nt2.letters))
         sys.exit()
-
-
+'''
+'''
 def wc_pair(nt1):
     """
     Returns the Watson-Crick pair of a given nucleotide character.
@@ -520,7 +523,7 @@ def wc_pair(nt1):
     nt2 = pair_dict[nt1]
 
     return nt2
-
+'''
 '''
 def can_pair(nt):
     """
@@ -539,7 +542,7 @@ def can_pair(nt):
 
     return pairing_l
 '''
-
+'''
 def random_sequence_generator(nt_list, input_file):
     """
     Generates a random sequence that satisfies the sequence restraints.
@@ -570,7 +573,7 @@ def random_sequence_generator(nt_list, input_file):
         allowed_choices = allowed_choice(nt1, nt_percentages)
 
         seq_l[nt1num] = random.choices(nt1, weights=allowed_choices)[0]
-        seq_l[nt2num] = wc_pair(seq_l[nt1num])
+        seq_l[nt2num] = seq_utils.wc_pair(seq_l[nt1num])
 
     for i in range(0, len(seq_l)):
         if seq_l[i] not in ["A", "C", "G", "U"]:
@@ -579,8 +582,8 @@ def random_sequence_generator(nt_list, input_file):
     result_sequence = ''.join(seq_l)
 
     return result_sequence
-
-
+'''
+'''
 def initial_sequence_generator(nt_list, input_file):
     """
     Generates the initial RNA sequence. The function iterates over the secondary structure
@@ -621,7 +624,7 @@ def initial_sequence_generator(nt_list, input_file):
             nt2num = nt_list[pair_list[i][1]].number
             if ("C" in nt1 and "G" in nt1) and ("C" in nt2 and "G" in nt2):
                 seq_l[nt1num] = random.choice(["C", "G"])
-                seq_l[nt2num] = wc_pair(seq_l[nt1num])
+                seq_l[nt2num] = seq_utils.wc_pair(seq_l[nt1num])
             elif "C" in nt1 and "G" in nt2:
                 seq_l[nt1num] = "C"
                 seq_l[nt2num] = "G"
@@ -630,7 +633,7 @@ def initial_sequence_generator(nt_list, input_file):
                 seq_l[nt2num] = "C"
             elif ("A" in nt1 and "U" in nt1) and ("A" in nt2 and "U" in nt2):
                 seq_l[nt1num] = random.choice(["A", "U"])
-                seq_l[nt2num] = wc_pair(seq_l[nt1num])
+                seq_l[nt2num] = seq_utils.wc_pair(seq_l[nt1num])
             elif "A" in nt1 and "U" in nt2:
                 seq_l[nt1num] = "A"
                 seq_l[nt2num] = "U"
@@ -651,7 +654,7 @@ def initial_sequence_generator(nt_list, input_file):
 
             seq_l[nt1num] = random.choices(nt1, weights=allowed_choices)[0]
 
-            seq_l[nt2num] = wc_pair(seq_l[nt1num])
+            seq_l[nt2num] = seq_utils.wc_pair(seq_l[nt1num])
 
     # random choice (from allowed letters) of whatever left
     for i in range(0, len(seq_l)):
@@ -664,8 +667,8 @@ def initial_sequence_generator(nt_list, input_file):
         result_sequence = input_file.seed_seq
 
     return result_sequence
-
-
+'''
+'''
 def allowed_choice(allowed, percs):
     """
     Determines the allowed mutations based on nucleotide percentages.
@@ -679,9 +682,9 @@ def allowed_choice(allowed, percs):
     """
 
     return [percs[nt] for nt in allowed]
+'''
 
-
-def get_rep_temps():
+def get_rep_temps(sim_options):
     """
     Generates the temperature shelves for each replica in the simulation.
 
@@ -693,24 +696,24 @@ def get_rep_temps():
         list: List of temperatures for each replica.
     """
 
-    if replicas != 1:
-        delta = (T_max - T_min) / (replicas - 1)
+    if sim_options.replicas != 1:
+        delta = (sim_options.T_max - sim_options.T_min) / (sim_options.replicas - 1)
     else:
-        delta = (T_max - T_min) / 2
+        delta = (sim_options.T_max - sim_options.T_min) / 2
     rep_temps = []
 
-    T_curr = T_min
+    T_curr = sim_options.T_min
 
-    for i in range(replicas):
-        if replicas != 1:
+    for i in range(sim_options.replicas):
+        if sim_options.replicas != 1:
             rep_temps.append(round(T_curr, 3))
             T_curr += delta
         else:
             T_curr += delta
             rep_temps.append(round(T_curr, 3))
 
-    if replicas == 1:
-        rep_temps = [T_max]
+    if sim_options.replicas == 1:
+        rep_temps = [sim_options.T_max]
 
     # this piece of code is experimental, it may be used to generate non equally distributed temp shelves
     pot = 1.5
@@ -720,7 +723,7 @@ def get_rep_temps():
         if i == 0:
             rep_temps_mod.append(rep_temps[i])
         else:
-            rep_temps_mod.append((1 - (1 - (rep_temps[i] / T_max)**pot)**(1 / pot)) * T_max)
+            rep_temps_mod.append((1 - (1 - (rep_temps[i] / sim_options.T_max)**pot)**(1 / pot)) * sim_options.T_max)
 
     una = False
     if una == True:
@@ -729,7 +732,7 @@ def get_rep_temps():
     return rep_temps
 
 
-def generate_initial_list(nt_list, input_file):
+def generate_initial_list(nt_list, input_file, sim_options):
     """
     Generates an initial list of RNA sequences based on the input nucleotide list and input file.
 
@@ -741,23 +744,23 @@ def generate_initial_list(nt_list, input_file):
     list: A list of initialized sequence objects.
     """
 
-    sequence = initial_sequence_generator(nt_list, input_file)
+    sequence = seq_utils.initial_sequence_generator(nt_list, input_file, sim_options)
 
     seq_list = []
 
-    for i in range(0, replicas):
-        if diff_start_replicas == "different":
-            sequence = initial_sequence_generator(nt_list, input_file)
-        sequence_object = score_sequence(sequence)
+    for i in range(0, sim_options.replicas):
+        if sim_options.diff_start_replicas == "different":
+            sequence = seq_utils.initial_sequence_generator(nt_list, input_file, sim_options)
+        sequence_object = score_sequence(sequence, sim_options)
         sequence_object.get_replica_num(i + 1)
-        sequence_object.get_temp_shelf(rep_temps_shelfs[i])
+        sequence_object.get_temp_shelf(sim_options.rep_temps_shelfs[i])
         sequence_object.get_sim_step(0)
         seq_list.append(sequence_object)
 
     return seq_list
 
 
-def generate_initial_list_random(nt_list, input_file):
+def generate_initial_list_random(nt_list, input_file, sim_options):
     """
     Generate an initial list of random RNA sequences based on the input nucleotide list and input file.
 
@@ -770,11 +773,11 @@ def generate_initial_list_random(nt_list, input_file):
     """
 
     seq_list = []
-    for i in range(0, replicas):
-        sequence = random_sequence_generator(nt_list, input_file)
-        sequence_object = score_sequence(sequence)
+    for i in range(0, sim_options.replicas):
+        sequence = seq_utils.random_sequence_generator(nt_list, input_file, sim_options)
+        sequence_object = score_sequence(sequence, sim_options)
         sequence_object.get_replica_num(i + 1)
-        sequence_object.get_temp_shelf(rep_temps_shelfs[i])
+        sequence_object.get_temp_shelf(sim_options.rep_temps_shelfs[i])
         sequence_object.get_sim_step(0)
         seq_list.append(sequence_object)
 
@@ -782,11 +785,11 @@ def generate_initial_list_random(nt_list, input_file):
     for i in range(0, len(seq_list)):
         rand_sequences_txt += str(vars(seq_list[i])) + "\n"
 
-    with open(outname + '_random.csv', 'w', newline='\n', encoding='utf-8') as myfile:
+    with open(sim_options.outname + '_random.csv', 'w', newline='\n', encoding='utf-8') as myfile:
         myfile.write(rand_sequences_txt)
 
 
-def get_mutation_position(seq_obj, available_positions):
+def get_mutation_position(seq_obj, available_positions, sim_options):
     """
     Determines a position in the sequence to mutate.
 
@@ -798,12 +801,12 @@ def get_mutation_position(seq_obj, available_positions):
     int: The position in the sequence selected for mutation.
     """
 
-    if point_mutations == "off":
+    if sim_options.point_mutations == "off":
         mutation_position = random.choice(available_positions)
-    elif point_mutations == "on":
+    elif sim_options.point_mutations == "on":
 
-        max_perc_prob = tm_max
-        min_perc_prob = tm_min
+        max_perc_prob = sim_options.tm_max
+        min_perc_prob = sim_options.tm_min
 
         pair_list_mfe = seq_utils.check_dot_bracket(seq_obj.mfe_ss)
 
@@ -820,9 +823,9 @@ def get_mutation_position(seq_obj, available_positions):
         false_cases = false_negatives + false_positives
         false_cases = list(set(false_cases))
 
-        prob_shelfs = [round(i, 2) for i in np.linspace(max_perc_prob, min_perc_prob, num=len(rep_temps_shelfs))]
+        prob_shelfs = [round(i, 2) for i in np.linspace(max_perc_prob, min_perc_prob, num=len(sim_options.rep_temps_shelfs))]
 
-        shelf = rep_temps_shelfs.index(seq_obj.temp_shelf)
+        shelf = sim_options.rep_temps_shelfs.index(seq_obj.temp_shelf)
 
         mutat_point_prob = prob_shelfs[shelf]
 
@@ -862,7 +865,7 @@ def expand_cases(cases, max_value, range_expansion=3):
     return sorted(list(expanded_cases))
 
 
-def mutate_sequence(sequence_obj, nt_list):
+def mutate_sequence(sequence_obj, nt_list, sim_options):
     """
     Mutate the given sequence and return the mutated sequence.
 
@@ -881,7 +884,7 @@ def mutate_sequence(sequence_obj, nt_list):
         if len(nt_list[i].letters_allowed) != 1:
             range_pos.append(i)
 
-    nt_pos = get_mutation_position(sequence_obj, range_pos)
+    nt_pos = get_mutation_position(sequence_obj, range_pos, sim_options)
     nt2_pos = None
 
     if (nt_list[nt_pos].pairs_with == None) and (len(nt_list[nt_pos].letters_allowed) != 1):
@@ -909,10 +912,10 @@ def mutate_sequence(sequence_obj, nt_list):
         nt2 = nt_list[nt1.pairs_with]
         allowed_mutations_nt2 = nt2.letters_allowed.copy()
         nt2_pos = nt2.number
-        if acgu_percentages == "on":
-            allowed_choices_nt1 = allowed_choice(available_mutations_nt1, nt_percentages)
+        if sim_options.acgu_percentages == "on":
+            allowed_choices_nt1 = seq_utils.allowed_choice(available_mutations_nt1, sim_options.nt_percentages)
             mutated_nt1 = random.choices(available_mutations_nt1, weights=allowed_choices_nt1)[0]
-        elif acgu_percentages == "off":
+        elif sim_options.acgu_percentages == "off":
             mutated_nt1 = random.choice(available_mutations_nt1)
 
         allowed_pairings_nt2 = seq_utils.can_pair(mutated_nt1)
@@ -920,10 +923,10 @@ def mutate_sequence(sequence_obj, nt_list):
 
         allowed_mutations_nt2.sort()
 
-        if acgu_percentages == "on":
-            allowed_choices_nt2 = allowed_choice(available_mutations_nt2, nt_percentages)
+        if sim_options.acgu_percentages == "on":
+            allowed_choices_nt2 = seq_utils.allowed_choice(available_mutations_nt2, sim_options.nt_percentages)
             mutated_nt2 = random.choices(available_mutations_nt2, weights=allowed_choices_nt2)[0]
-        elif acgu_percentages == "off":
+        elif sim_options.acgu_percentages == "off":
             mutated_nt2 = random.choice(available_mutations_nt2)
 
         sequence_list[nt_pos] = mutated_nt1
@@ -936,7 +939,7 @@ def mutate_sequence(sequence_obj, nt_list):
     if nt2_pos != None:
         mut_position[nt2_pos] = "#"
 
-    sequence_mutated = score_sequence(sequence_mutated)
+    sequence_mutated = score_sequence(sequence_mutated, sim_options)
     sequence_mutated.get_replica_num(sequence_obj.replica_num)
     sequence_mutated.get_temp_shelf(sequence_obj.temp_shelf)
 
@@ -1008,7 +1011,7 @@ def get_pk_struct(seq, ss_nopk, fc):
     return ss_pk
 
 
-def mc_delta(deltaF_o, deltaF_m, T_replica):
+def mc_delta(deltaF_o, deltaF_m, T_replica, sim_options):
     """
     Determine whether a mutation is accepted based on the Metropolis criterion.
 
@@ -1027,7 +1030,7 @@ def mc_delta(deltaF_o, deltaF_m, T_replica):
         accept_e = True
     else:
         diff = deltaF_m - deltaF_o
-        p_dE = metropolis_score(T_replica, diff)
+        p_dE = metropolis_score(T_replica, diff, sim_options)
         rand_num = random.random()
 
         accept = p_dE > rand_num
@@ -1035,7 +1038,7 @@ def mc_delta(deltaF_o, deltaF_m, T_replica):
     return accept, accept_e
 
 
-def metropolis_score(temp, dE):
+def metropolis_score(temp, dE, sim_options):
     """
     Calculate the Metropolis score.
 
@@ -1047,12 +1050,12 @@ def metropolis_score(temp, dE):
     float: Metropolis score.
     """
 
-    score = math.exp((-L / temp) * (dE))
+    score = math.exp((-sim_options.L / temp) * (dE))
 
     return score
 
 
-def replica_exchange_attempt(T0, T1, dE0, dE1):
+def replica_exchange_attempt(T0, T1, dE0, dE1, sim_options):
     """
     Attempt to exchange replicas.
 
@@ -1072,13 +1075,13 @@ def replica_exchange_attempt(T0, T1, dE0, dE1):
         accept_e = True
     else:
         rand_num = random.random()
-        p = math.exp(L * (1 / T0 - 1 / T1) * (dE0 - dE1))
+        p = math.exp(sim_options.L * (1 / T0 - 1 / T1) * (dE0 - dE1))
         accept = p > rand_num
 
     return accept, accept_e
 
 
-def replica_exchange(replicas, stats_obj):
+def replica_exchange(seq_score_list, stats_obj, sim_options):
     """
     Perform the replica exchange.
 
@@ -1092,12 +1095,12 @@ def replica_exchange(replicas, stats_obj):
 
     re_pairs = []
 
-    num_shelfs = [i for i in range(1, len(replicas))]
+    num_shelfs = [i for i in range(1, len(seq_score_list))]
 
     temps = []
 
-    for i in range(0, len(replicas)):
-        temps.append(replicas[i].temp_shelf)
+    for i in range(0, len(seq_score_list)):
+        temps.append(seq_score_list[i].temp_shelf)
 
     temps = sorted(temps)
 
@@ -1109,39 +1112,39 @@ def replica_exchange(replicas, stats_obj):
         for i in range(0, len(num_shelfs), 2):
             re_pairs.append([i, i + 1])
 
-    replicas = sorted(replicas, key=lambda obj: obj.temp_shelf)
+    seq_score_list = sorted(seq_score_list, key=lambda obj: obj.temp_shelf)
 
     for i in range(len(re_pairs)):
         rep_i = re_pairs[i][0]  # replica temporary number
         rep_j = re_pairs[i][1]  # replica temporary number
 
-        T_i = replicas[rep_i].temp_shelf
-        T_j = replicas[rep_j].temp_shelf
+        T_i = seq_score_list[rep_i].temp_shelf
+        T_j = seq_score_list[rep_j].temp_shelf
 
-        dE_i = replicas[rep_i].scoring_function
-        dE_j = replicas[rep_j].scoring_function
+        dE_i = seq_score_list[rep_i].scoring_function
+        dE_j = seq_score_list[rep_j].scoring_function
 
-        accept, accept_e = replica_exchange_attempt(T_i, T_j, dE_i, dE_j)
+        accept, accept_e = replica_exchange_attempt(T_i, T_j, dE_i, dE_j, sim_options)
 
         if accept == True:
-            replicas[rep_i].get_temp_shelf(T_j)
-            replicas[rep_j].get_temp_shelf(T_i)
+            seq_score_list[rep_i].get_temp_shelf(T_j)
+            seq_score_list[rep_j].get_temp_shelf(T_i)
             stats_obj.update_acc_re_step()
             if accept_e == True:
                 stats_obj.update_acc_re_better_e()
         else:
             stats_obj.update_rej_re_step()
 
-    replicas = sorted(replicas, key=lambda obj: obj.replica_num)
+    seq_score_list = sorted(seq_score_list, key=lambda obj: obj.replica_num)
 
-    return replicas, stats_obj
+    return seq_score_list, stats_obj
 
 
 md = RNA.md()
 md.compute_bpp = 0
 
 
-def get_mfe_e_ss(seq):
+def get_mfe_e_ss(seq, sim_options):
     """
     This function calculates the minimum free energy (MFE) and ensemble free energy (EFE)
     of a given RNA sequence.
@@ -1152,19 +1155,19 @@ def get_mfe_e_ss(seq):
     """
     fc = RNA.fold_compound(seq, md)
 
-    if oligo_state in {"none", "avoid"}:
+    if sim_options.oligo_state in {"none", "avoid"}:
         structure, energy = fc.pf()
         structure = fc.mfe()[0]
-        if pks == "on":
+        if sim_options.pks == "on":
             structure = get_pk_struct(seq, structure, fc)
-    elif oligo_state in {"homodimer", "heterodimer"}:
+    elif sim_options.oligo_state in {"homodimer", "heterodimer"}:
         seqa_len = len(seq.split("&")[0])
         structure_dim, energy = fc.mfe_dimer()
         structure = structure_dim[:seqa_len] + "&" + structure_dim[seqa_len:]
     return energy, structure, fc
 
 
-def score_motifs(seq, motifs):
+def score_motifs(seq, sim_options):
     """
     Calculates the scoring of specific motifs within a given RNA sequence.
 
@@ -1179,13 +1182,13 @@ def score_motifs(seq, motifs):
     """
 
     motif_score = 0
-    for motif in motifs:
-        if motifs[motif][0].search(seq):
-            motif_score += motifs[motif][1]
+    for motif in sim_options.motifs:
+        if sim_options.motifs[motif][0].search(seq):
+            motif_score += sim_options.motifs[motif][1]
     return motif_score
 
 
-def score_sequence(seq):
+def score_sequence(seq, sim_options):
     """
     Calculate various scoring metrics for a given RNA sequence.
 
@@ -1210,13 +1213,13 @@ def score_sequence(seq):
     is a combination of these metrics.
     """
 
-    if oligo_state != "homodimer":
+    if sim_options.oligo_state != "homodimer":
         scored_sequence = func.ScoreSeq(sequence=seq)
     else:
         seq = seq.split("&")[0]
         seq = seq + "&" + seq
         scored_sequence = func.ScoreSeq(sequence=seq)
-    pf_energy, mfe_structure, fold_comp = get_mfe_e_ss(seq)
+    pf_energy, mfe_structure, fold_comp = get_mfe_e_ss(seq, sim_options)
 
     scored_sequence.get_Epf(pf_energy)
     scored_sequence.get_mfe_ss(mfe_structure)
@@ -1233,7 +1236,7 @@ def score_sequence(seq):
     scored_sequence.get_recall(ssc.recall())
     scored_sequence.get_mcc(ssc.mcc())
 
-    for function, weight in scoring_f:
+    for function, weight in sim_options.scoring_f:
         if function == 'sln_Epf':
             scored_sequence.get_sln_Epf()
         if function == 'Ed-MFE':
@@ -1242,7 +1245,7 @@ def score_sequence(seq):
         if function == 'Edef':
             scored_sequence.get_ensemble_defect(input_file.sec_struct)
 
-    scored_sequence.get_scoring_function(scoring_f)
+    scored_sequence.get_scoring_function(sim_options.scoring_f)
 
     if input_file.alt_sec_struct != None:
         energies = [fold_comp.eval_structure(alt_dbn) for alt_dbn in input_file.alt_sec_structs]
@@ -1250,19 +1253,19 @@ def score_sequence(seq):
         scored_sequence.get_edesired2_minus_Epf(scored_sequence.Epf, scored_sequence.edesired2)
         scored_sequence.get_scoring_function_w_alt_ss()
 
-    if (subopt == "on") and (scored_sequence.mcc == 0):
+    if (sim_options.subopt == "on") and (scored_sequence.mcc == 0):
         scored_sequence.get_subopt_e(func.get_first_suboptimal_structure_and_energy(seq, fold_comp)[1])
         scored_sequence.get_esubopt_minus_Epf(scored_sequence.Epf, scored_sequence.subopt_e)
         scored_sequence.get_scoring_function_w_subopt()
 
-    if oligo_state == "homodimer" or oligo_state == "heterodimer":
+    if sim_options.oligo_state == "homodimer" or sim_options.oligo_state == "heterodimer":
         scored_sequence.get_scoring_function_oligomer(fold_comp)
 
-    if oligo_state == "avoid":
+    if sim_options.oligo_state == "avoid":
         scored_sequence.get_scoring_function_monomer()
 
-    if motifs:
-        motif_score = score_motifs(seq, motifs)
+    if sim_options.motifs:
+        motif_score = score_motifs(seq, sim_options)
         scored_sequence.update_scoring_function_w_motifs(motif_score)
 
     return scored_sequence
@@ -1291,7 +1294,7 @@ def round_floats(obj):
     return obj
 
 
-def single_replica_design(sequence_o, nt_list, worker_stats):
+def single_replica_design(sequence_o, nt_list, worker_stats, sim_options):
     """
     Perform the replica design for a single replica.
 
@@ -1314,13 +1317,13 @@ def single_replica_design(sequence_o, nt_list, worker_stats):
 
     worker_stats.reset_mc_stats()
 
-    for i in range(0, RE_attempt):
-        sequence_m = mutate_sequence(sequence_o, nt_list)
+    for i in range(0, sim_options.RE_attempt):
+        sequence_m = mutate_sequence(sequence_o, nt_list, sim_options)
 
         deltaF_o = sequence_o.scoring_function
         deltaF_m = sequence_m.scoring_function
 
-        accept, accept_e = mc_delta(deltaF_o, deltaF_m, sequence_o.temp_shelf)
+        accept, accept_e = mc_delta(deltaF_o, deltaF_m, sequence_o.temp_shelf, sim_options)
 
         if accept == True:
             sequence_o = sequence_m
@@ -1354,7 +1357,7 @@ def par_wrapper(args):
     return single_replica_design(*args)
 
 
-def mutate_sequence_re(lst_seq_obj, nt_list, stats_obj):
+def mutate_sequence_re(lst_seq_obj, nt_list, stats_obj, sim_options):
     """
     This function mutates a list of sequence objects in parallel.
 
@@ -1367,12 +1370,12 @@ def mutate_sequence_re(lst_seq_obj, nt_list, stats_obj):
     list: A list of mutated sequence objects.
     """
 
-    with mp.Pool(replicas) as pool:
+    with mp.Pool(sim_options.replicas) as pool:
         # Generate a unique seed for each worker based on original_seed
         seeds = [original_seed + i for i in range(len(lst_seq_obj))]
 
         # inputs = [(seq_obj, nt_list, stats_obj) for seq_obj in lst_seq_obj]
-        inputs = [(seq_obj, nt_list, stats_obj, seed) for seq_obj, seed in zip(lst_seq_obj, seeds)]
+        inputs = [(seq_obj, nt_list, stats_obj, sim_options, seed) for seq_obj, seed in zip(lst_seq_obj, seeds)]
         lst_seq_obj_res_new = []
         workers_stats = []
 
@@ -1382,7 +1385,7 @@ def mutate_sequence_re(lst_seq_obj, nt_list, stats_obj):
 
         attributes_to_update = ['acc_mc_step', 'acc_mc_better_e', 'rej_mc_step']
 
-        stats_obj.update_step(RE_attempt)
+        stats_obj.update_step(sim_options.RE_attempt)
 
         for stats in workers_stats:
             for attr in attributes_to_update:
@@ -1417,12 +1420,12 @@ def initialize_simulation(input_file):
     seq_utils.check_seq_restr(input_file.seq_restr)
     seq_utils.check_length(input_file.sec_struct, input_file.seq_restr)
     nt_list = seq_utils.get_nt_list(input_file)
-    check_input_logic(nt_list)
+    seq_utils.check_input_logic(nt_list)
 
     return nt_list
 
 
-def generate_sequences(nt_list, input_file):
+def generate_sequences(nt_list, input_file, sim_options):
     """
     Generates initial RNA sequences based on nucleotide constraints.
 
@@ -1433,13 +1436,13 @@ def generate_sequences(nt_list, input_file):
     Returns:
     list: A list of initialized sequence objects.
     """
-    sequence_score_list = generate_initial_list(nt_list, input_file)
-    generate_initial_list_random(nt_list, input_file)
+    sequence_score_list = generate_initial_list(nt_list, input_file, sim_options)
+    generate_initial_list_random(nt_list, input_file, sim_options)
 
     return sequence_score_list
 
 
-def handle_non_mutable_sequence(input_file, simulation_data, output_name):
+def handle_non_mutable_sequence(input_file, simulation_data, sim_options):
     """
     Handles the scenario where the sequence cannot be mutated due to sequence constraints.
     Scores the sequence and writes the results to a CSV file, then exits the program.
@@ -1452,7 +1455,7 @@ def handle_non_mutable_sequence(input_file, simulation_data, output_name):
     if all(char in "ACGU&" for char in input_file.seq_restr):
         print("Cannot mutate the sequence due to sequence constraints.\nScoring sequence.")
         sorted_results = sorted(round_floats(simulation_data), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
-        with open(outname + '_results.csv', 'w', newline='', encoding='utf-8') as csvfile:
+        with open(sim_options.outname + '_results.csv', 'w', newline='', encoding='utf-8') as csvfile:
             fieldnames = sorted_results[0].keys()  # header from keys of the first dictionary
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
@@ -1461,7 +1464,7 @@ def handle_non_mutable_sequence(input_file, simulation_data, output_name):
         sys.exit()
 
 
-def process_intermediate_results(simulation_data, oligo, output_name, num_results):
+def process_intermediate_results(simulation_data, sim_options):
     """
     Processes intermediate results during the simulation by removing duplicates, 
     sorting the results, and writing them to a CSV file.
@@ -1478,15 +1481,15 @@ def process_intermediate_results(simulation_data, oligo, output_name, num_result
     remove_duplicates = {item['sequence']: item for item in simulation_data}
     data_no_duplicates = list(remove_duplicates.values())
 
-    if oligo != "off":
+    if sim_options.oligo != "off":
         sorted_results = sorted(round_floats(data_no_duplicates), key=lambda d: (-d['oligo_fraction'], -d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
     else:
         sorted_results = sorted(round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
 
-    sorted_results = sorted_results[:num_results]
+    sorted_results = sorted_results[:sim_options.num_results]
     mcc_zero_count = sum(1 for item in sorted_results if item['mcc'] == 0.0)
 
-    with open(output_name + '_mid_results.csv', 'w', newline='', encoding='utf-8') as csvfile:
+    with open(sim_options.outname + '_mid_results.csv', 'w', newline='', encoding='utf-8') as csvfile:
         fieldnames = sorted_results[0].keys()
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
@@ -1557,7 +1560,7 @@ def generate_trajectory_csv(sorted_data, output_name):
             writer.writerow(data)
 
 
-def generate_multifasta(sorted_data, output_name, infile, now):
+def generate_multifasta(sorted_data, sim_options, now):
     """
     Generates a multi-FASTA file from the sorted simulation data.
 
@@ -1569,13 +1572,13 @@ def generate_multifasta(sorted_data, output_name, infile, now):
     """
     fasta_txt = ""
     for item in sorted_data:
-        fasta_txt += f">{infile}|{now}|{item['replica_num']}|{item['sim_step']}|{item['scoring_function']}\n{item['sequence']}\n"
+        fasta_txt += f">{sim_options.infile}|{now}|{item['replica_num']}|{item['sim_step']}|{item['scoring_function']}\n{item['sequence']}\n"
 
-    with open(output_name + '_multifasta.fas', 'w', encoding='utf-8') as fastafile:
+    with open(sim_options.outname + '_multifasta.fas', 'w', encoding='utf-8') as fastafile:
         fastafile.write(fasta_txt)
 
 
-def generate_best_fasta(simulation_data, num_results, output_name, infile, now):
+def generate_best_fasta(simulation_data, sim_options, now):
     """
     Generates a FASTA file from the best sorted simulation data.
 
@@ -1586,15 +1589,15 @@ def generate_best_fasta(simulation_data, num_results, output_name, infile, now):
     infile (str): Name of the input file.
     now (str): Timestamp or identifier for the sequence.
     """
-    sorted_scores = sorted(round_floats(simulation_data), key=lambda d: (-d['scoring_function']), reverse=True)[:num_results]
+    sorted_scores = sorted(round_floats(simulation_data), key=lambda d: (-d['scoring_function']), reverse=True)[:sim_options.num_results]
 
-    fasta_txt = "".join(f">{infile}|{now}|{score['replica_num']}|{score['sim_step']}|{score['scoring_function']}\n{score['sequence']}\n" for score in sorted_scores)
+    fasta_txt = "".join(f">{sim_options.infile}|{now}|{score['replica_num']}|{score['sim_step']}|{score['scoring_function']}\n{score['sequence']}\n" for score in sorted_scores)
 
-    with open(output_name + '_best_fasta.fas', 'w', encoding='utf-8') as fastafile:
+    with open(sim_options.outname + '_best_fasta.fas', 'w', encoding='utf-8') as fastafile:
         fastafile.write(fasta_txt)
 
 
-def sort_and_filter_simulation_data(simulation_data, num_results, oligo):
+def sort_and_filter_simulation_data(simulation_data, sim_options):
     """
     Sorts and filters the simulation data based on specified criteria.
 
@@ -1609,12 +1612,12 @@ def sort_and_filter_simulation_data(simulation_data, num_results, oligo):
     remove_duplicates = {item['sequence']: item for item in simulation_data}
     data_no_duplicates = list(remove_duplicates.values())
 
-    if oligo != "off":
+    if sim_options.oligo != "off":
         sorted_results = sorted(round_floats(data_no_duplicates), key=lambda d: (-d['oligo_fraction'], -d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
     else:
         sorted_results = sorted(round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
 
-    return sorted_results[:num_results]
+    return sorted_results[:sim_options.num_results]
 
 
 def generate_csv_from_data(sorted_data, output_name):
@@ -1633,7 +1636,7 @@ def generate_csv_from_data(sorted_data, output_name):
             writer.writerow(data)
 
 
-def check_if_design_solved(sorted_results, input_file, oligo):
+def check_if_design_solved(sorted_results, input_file, sim_options):
     """
     Checks the correctness of the results and generates the corresponding text output.
 
@@ -1648,7 +1651,7 @@ def check_if_design_solved(sorted_results, input_file, oligo):
     correct_count = sum(result['mcc'] == 0.0 for result in sorted_results[:10])
     correct_bool = correct_count > 0
 
-    if oligo != "off":
+    if sim_options.oligo != "off":
         oligo_txt = f",oligo fraction: {sorted_results[0]['oligo_fraction']}" if correct_bool else ""
     else:
         oligo_txt = ""
@@ -1669,7 +1672,7 @@ def write_best_str_file(correct_result_txt, output_name):
         myfile.write(correct_result_txt)
 
 
-def generate_simulation_stats_text(stats, sorted_results, input_file, timlim, correct_bool, finish_time):
+def generate_simulation_stats_text(stats, sorted_results, input_file,  correct_bool, finish_time, sim_options):
     """
     Generates text summarizing the statistics of the simulation.
 
@@ -1693,7 +1696,7 @@ def generate_simulation_stats_text(stats, sorted_results, input_file, timlim, co
     best_solution_txt = "\nDesign solved succesfully!\n\nBest solution:\n" if correct_bool else "\nDesign not solved!\n\nTarget structure:\n"
     best_solution_txt += f"{sorted_results[0]['sequence']}\nMFE Secondary Structure: {sorted_results[0]['mfe_ss']}\nPartition Function Energy: {round(sorted_results[0]['Epf'], 3)}\n1-MCC: {round(sorted_results[0]['mcc'], 3)}\n"
 
-    stats_txt = f">{outname} time={timlim}s\nAcc_ratio={acc_perc}, Iterations={stats.step}, Accepted={stats.acc_mc_step}/{sum_mc}, Rejected={stats.rej_mc_step}/{sum_mc}\n" \
+    stats_txt = f">{sim_options.outname} time={sim_options.timlim}s\nAcc_ratio={acc_perc}, Iterations={stats.step}, Accepted={stats.acc_mc_step}/{sum_mc}, Rejected={stats.rej_mc_step}/{sum_mc}\n" \
                 f"Accepted Metropolis={acc_metro}/{sum_mc_metro}, Rejected Metropolis={sum_mc_metro - acc_metro}/{sum_mc_metro}\n" \
                 f"Replica exchange attempts: {stats.global_step}\nReplica swaps attempts: {sum_replica_att}\nReplica swaps accepted: {stats.acc_re_step}\n" \
                 f"Replica swaps rejected: {stats.rej_re_step}\nReplica exchange acc_ratio: {round(stats.acc_re_step / sum_replica_att, 3)}\n{best_solution_txt}\n\n" \
@@ -1727,7 +1730,7 @@ def move_results(file_list, directory, output_name):
         move(output_name + file, directory + output_name + file)
 
 
-def parse_and_output_results(simulation_data, input_file, stats, finish_time):
+def parse_and_output_results(simulation_data, input_file, stats, finish_time, sim_options):
     """
     Parses simulation data and generates various outputs including CSV files, FASTA files, and statistics.
 
@@ -1738,28 +1741,28 @@ def parse_and_output_results(simulation_data, input_file, stats, finish_time):
     """
     # Generate necessary files and statistics
     sorted_simulation_trajectory = sort_trajectory(simulation_data)
-    generate_trajectory_csv(sorted_simulation_trajectory, outname)
-    generate_multifasta(sorted_simulation_trajectory, outname, infile, now)
-    generate_replica_csv(simulation_data, outname)
-    generate_best_fasta(simulation_data, num_results, outname, infile, now)
+    generate_trajectory_csv(sorted_simulation_trajectory, sim_options.outname)
+    generate_multifasta(sorted_simulation_trajectory, sim_options, now)
+    generate_replica_csv(simulation_data, sim_options.outname)
+    generate_best_fasta(simulation_data, sim_options, now)
 
-    sorted_results = sort_and_filter_simulation_data(simulation_data, num_results, oligo)
-    generate_csv_from_data(sorted_results, outname)
+    sorted_results = sort_and_filter_simulation_data(simulation_data, sim_options)
+    generate_csv_from_data(sorted_results, sim_options.outname)
 
-    correct_result_txt, correct_bool, correct = check_if_design_solved(sorted_results[:10], input_file, oligo)
-    write_best_str_file(correct_result_txt, outname)
-    func.plot_simulation_data_combined(simulation_data, outname, input_file.alt_sec_struct, infile)
+    correct_result_txt, correct_bool, correct = check_if_design_solved(sorted_results[:10], input_file, sim_options)
+    write_best_str_file(correct_result_txt, sim_options.outname)
+    func.plot_simulation_data_combined(simulation_data, input_file.alt_sec_struct, sim_options)
 
-    stats_txt = generate_simulation_stats_text(stats, sorted_results, input_file, timlim, correct_bool, finish_time)
+    stats_txt = generate_simulation_stats_text(stats, sorted_results, input_file, correct_bool, finish_time, sim_options)
     print('\n' + stats_txt)
-    write_stats_to_file(stats_txt, outname)
+    write_stats_to_file(stats_txt, sim_options.outname)
 
     # Move results to the specified directory
     files_to_move = ['_best_str', '_traj.csv', '_replicas.csv', '_best_fasta.fas', '_multifasta.fas', '_random.csv', '.command']
-    move_results(files_to_move, "trajectory_files/", outname)
+    move_results(files_to_move, "trajectory_files/", sim_options.outname)
 
 
-def run_functions():
+def run_functions(sim_options):
     """
     This function runs the design process, which includes mutation, scoring, and selection.
 
@@ -1779,7 +1782,7 @@ def run_functions():
     """
 
     nt_list = initialize_simulation(input_file)
-    seqence_score_list = generate_sequences(nt_list, input_file)
+    seqence_score_list = generate_sequences(nt_list, input_file, sim_options)
 
     start_time = time.time()
     simulation_data = []
@@ -1787,37 +1790,37 @@ def run_functions():
     for i in range(len(seqence_score_list)):
         simulation_data.append(vars(seqence_score_list[i]))
 
-    handle_non_mutable_sequence(input_file, simulation_data, outname)
+    handle_non_mutable_sequence(input_file, simulation_data, sim_options.outname)
 
     stats = func.Stats()
 
-    while time.time() - start_time < timlim:
+    while time.time() - start_time < sim_options.timlim:
 
-        print('ETA', round((timlim - (time.time() - start_time)), 0), 'seconds', end='\r')
+        print('ETA', round((sim_options.timlim - (time.time() - start_time)), 0), 'seconds', end='\r')
 #        print(vars(stats))
 
         stats.update_global_step()
-        seqence_score_list, stats = mutate_sequence_re(seqence_score_list, nt_list, stats)
+        seqence_score_list, stats = mutate_sequence_re(seqence_score_list, nt_list, stats, sim_options)
 
-        seqence_score_list, stats = replica_exchange(seqence_score_list, stats)
+        seqence_score_list, stats = replica_exchange(seqence_score_list, stats, sim_options)
 
         for i in range(len(seqence_score_list)):
             seqence_score_list[i].get_sim_step(stats.step)
             simulation_data.append(vars(seqence_score_list[i]))
 
         if stats.global_step % 10 == 0:
-            mcc_zero = process_intermediate_results(simulation_data, oligo, outname, num_results)
-            if mcc_zero == num_results and sws == "on":
+            mcc_zero = process_intermediate_results(simulation_data, sim_options)
+            if mcc_zero == sim_options.num_results and sim_options.sws == "on":
                 break
 
-        if stats.global_step == RE_steps:
+        if stats.global_step == sim_options.RE_steps:
             break
     finish_time = time.time() - start_time
 
-    parse_and_output_results(simulation_data, input_file, stats, finish_time)
+    parse_and_output_results(simulation_data, input_file, stats, finish_time, sim_options)
 
 
-def get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, dimer, param, RE_attempt, scoring_f, point_mutations, alt_ss, tshelves, in_seed, subopt):
+def get_outname(infile, sim_options):
     """
     Generate an output name for a file based on the current parameters.
 
@@ -1842,15 +1845,15 @@ def get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, o
         The generated output name.
     """
 
-    for i in range(0, len(scoring_f)):
-        if scoring_f[i][0] not in available_scoring_functions:
-            print(scoring_f[i][0], "is not an available option for scoring function. Check your command.")
+    for i in range(0, len(sim_options.scoring_f)):
+        if sim_options.scoring_f[i][0] not in available_scoring_functions:
+            print(sim_options.scoring_f[i][0], "is not an available option for scoring function. Check your command.")
             sys.exit()
 
-    scoring_f_str = "_".join([f"{func}_{weight}" for func, weight in scoring_f])
+    scoring_f_str = "_".join([f"{func}_{weight}" for func, weight in sim_options.scoring_f])
 
-    outname = infile.split(".")[0] + '_R' + str(replicas) + "_e" + str(RE_attempt) + "_t" + str(timlim) + "_pk" + str(pks) + "_ACGU" + str(acgu_percentages) +\
-        "_Tmin" + str(T_min) + "_Tmax" + str(T_max) + "_p" + str(param) + "_SF" + scoring_f_str + "_O" + (str(oligo)) + "_D" + (str(dimer)) + "_PM" + (str(point_mutations))
+    outname = sim_options.infile.split(".")[0] + '_R' + str(sim_options.replicas) + "_e" + str(sim_options.RE_attempt) + "_t" + str(sim_options.timlim) + "_pk" + str(sim_options.pks) + "_ACGU" + str(sim_options.acgu_percentages) +\
+        "_Tmin" + str(sim_options.T_min) + "_Tmax" + str(sim_options.T_max) + "_p" + str(sim_options.param) + "_SF" + scoring_f_str + "_O" + (str(sim_options.oligo)) + "_D" + (str(sim_options.dimer)) + "_PM" + (str(sim_options.point_mutations))
     return outname
 
 '''
@@ -1918,6 +1921,60 @@ class Nucleotide:
         """
         self.letters_allowed = list
 '''
+
+
+class DesignOptions:
+
+
+    def __init__(self,infile, replicas, timlim, acgu_percentages, T_max, T_min, oligo, param, RE_attempt, scoring_f, point_mutations,
+            tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs, dimer, sws):
+        self.infile = infile 
+        self.replicas = replicas
+        self.timlim = timlim
+        self.acgu_percentages = acgu_percentages
+        self.T_max = T_max
+        self.T_min = T_min
+        self.oligo = oligo
+        self.param = param
+        self.RE_attempt = RE_attempt
+        self.scoring_f = scoring_f
+        self.point_mutations = point_mutations
+        self.tshelves = tshelves
+        self.in_seed = in_seed
+        self.subopt = subopt
+        self.diff_start_replicas = diff_start_replicas
+        self.num_results = num_results
+        self.acgu_content = acgu_content
+        self.RE_steps = RE_steps
+        self.tm_max = tm_max
+        self.tm_min = tm_min
+        self.motifs = motifs
+        self.dimer = dimer
+        self.sws = sws
+        self.L = 504.12   
+        
+        
+    def update_timlim(self, timlim):
+        self.timlim = timlim
+        
+        
+    def add_nt_perc(self, nt_percentages):
+        self.nt_percentages = nt_percentages
+    
+    def add_oligo_state(self, oligo_state):
+        self.oligo_state = oligo_state
+    
+    def add_alt_ss(self, alt_ss):
+        self.alt_ss = alt_ss
+    
+    def add_pks(self, pks):
+        self.pks = pks
+    
+    def add_rep_temps_shelfs(self, rep_temps_shelfs):
+        self.rep_temps_shelfs = rep_temps_shelfs
+    
+    def add_outname(self, outname):
+        self.outname = os.path.basename(outname)
 
 class InputFile:
     """
@@ -2031,11 +2088,75 @@ def print_filtered_log(filename, exclude_text):
             if exclude_text not in line:
                 print(line, end='', file=sys.stderr)
 
+def update_options(sim_options, input_file_obj):
+
+    if sim_options.RE_steps != None:
+        sim_options.update_timlim(100000000000000000)
+
+    if sim_options.param == '1999':
+        RNA.params_load(os.path.join(script_path, "rna_turner1999.par"))
+
+
+    if sim_options.acgu_content == '':
+        sim_options.add_nt_perc({"A": 15, "C": 30, "G": 30, "U": 15})
+    else:
+        acgu_l = [int(x) for x in sim_options.acgu_content.split(',')]
+        if sum(acgu_l) != 100:
+            print("The ACGU content should sum up to 100, check your command.")
+            sys.exit()
+        sim_options.add_nt_perc({"A": acgu_l[0], "C": acgu_l[1], "G": acgu_l[2], "U": acgu_l[3]})
+
+
+
+    if input_file_obj.alt_sec_struct != None:
+        sim_options.add_alt_ss("on")
+    else:
+        sim_options.add_alt_ss("off")
+
+
+    oligo_opt = "none"
+
+    if "&" in input_file_obj.sec_struct and sim_options.dimer == "off":
+        too_much = input_file_obj.sec_struct.count("&")
+        if too_much != 1:
+            print("\nToo much structures in the input. Can only design RNA complexes of max two sequences.\nPlease correct your input file.\n")
+            sys.exit()
+        oligo_opt = "heterodimer"
+    elif "&" in input_file_obj.sec_struct and sim_options.dimer == "on":
+        oligo_opt = "homodimer"
+    elif "&" not in input_file_obj.sec_struct and sim_options.oligo == "on":
+        oligo_opt = "avoid"
+
+    sim_options.add_oligo_state(oligo_opt)
+
+
+    if set(input_file_obj.sec_struct).issubset('.()&'):
+        sim_options.add_pks("off")
+    else:
+        sim_options.add_pks("on")
+
+
+
+    filename = os.path.basename(sim_options.infile)
+
+
+    sim_options.add_outname(get_outname(filename, sim_options))
+
+    if sim_options.tshelves == '':
+        rep_temps_shelfs_opt = get_rep_temps(sim_options)
+    else:
+        rep_temps_shelfs_opt = [float(temp) for temp in sim_options.tshelves.split(",")]
+
+    sim_options.add_rep_temps_shelfs(rep_temps_shelfs_opt)
+
+    
+    
+    return sim_options, filename
 
 if __name__ == "__main__":
 
     log_filename = "tmp_log.txt"
-    original_stderr, stderr_log = redirect_stderr_to_file(log_filename)
+#    original_stderr, stderr_log = redirect_stderr_to_file(log_filename)
 
     try:
 
@@ -2058,80 +2179,97 @@ if __name__ == "__main__":
 
         available_scoring_functions = ['Ed-Epf', '1-MCC', 'sln_Epf', 'Ed-MFE', '1-precision', '1-recall', 'Edef']
 
-        infile, replicas, timlim, acgu_percentages, T_max, T_min, oligo, param, RE_attempt, scoring_f, point_mutations,  \
-            tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs, dimer, sws = argument_parser()
 
-        input_file = read_input(infile)
-        print(infile)
+        simulation_options = argument_parser()
+        
 
-        if RE_steps != None:
-            timlim = 100000000000000000
+        input_file = read_input(simulation_options.infile)
+        print(simulation_options.infile)
 
-        if param == '1999':
+        '''
+        if simulation_options.RE_steps != None:
+            simulation_options.update_timlim(100000000000000000)
+
+        if simulation_options.param == '1999':
             RNA.params_load(os.path.join(script_path, "rna_turner1999.par"))
 
-        L = 504.12
 
-        if acgu_content == '':
-            nt_percentages = {"A": 15, "C": 30, "G": 30, "U": 15}
+        if simulation_options.acgu_content == '':
+            simulation_options.add_nt_perc({"A": 15, "C": 30, "G": 30, "U": 15})
         else:
-            acgu_l = [int(x) for x in acgu_content.split(',')]
+            acgu_l = [int(x) for x in simulation_options.acgu_content.split(',')]
             if sum(acgu_l) != 100:
                 print("The ACGU content should sum up to 100, check your command.")
                 sys.exit()
-            nt_percentages = {"A": acgu_l[0], "C": acgu_l[1], "G": acgu_l[2], "U": acgu_l[3]}
+            simulation_options.add_nt_perc({"A": acgu_l[0], "C": acgu_l[1], "G": acgu_l[2], "U": acgu_l[3]})
 
+        
+        
+        
         if input_file.alt_sec_struct != None:
-            alt_ss = "on"
+            simulation_options.add_alt_ss("on")
         else:
-            alt_ss = "off"
+            simulation_options.add_alt_ss("off")
 
-        oligo_state = "none"
+        
+        oligo_opt = "none"
 
-        if "&" in input_file.sec_struct and dimer == "off":
+        if "&" in input_file.sec_struct and simulation_options.dimer == "off":
             too_much = input_file.sec_struct.count("&")
             if too_much != 1:
                 print("\nToo much structures in the input. Can only design RNA complexes of max two sequences.\nPlease correct your input file.\n")
                 sys.exit()
-            oligo_state = "heterodimer"
-        elif "&" in input_file.sec_struct and dimer == "on":
-            oligo_state = "homodimer"
-        elif "&" not in input_file.sec_struct and oligo == "on":
-            oligo_state = "avoid"
+            oligo_opt = "heterodimer"
+        elif "&" in input_file.sec_struct and simulation_options.dimer == "on":
+            oligo_opt = "homodimer"
+        elif "&" not in input_file.sec_struct and simulation_options.oligo == "on":
+            oligo_opt = "avoid"
+        
+        simulation_options.add_oligo_state(oligo_opt)
+        
 
         if set(input_file.sec_struct).issubset('.()&'):
-            pks = "off"
+            simulation_options.add_pks("off")
         else:
-            pks = "on"
+            simulation_options.add_pks("on")
 
-        filename = os.path.basename(infile)
+        
+        
+        filename = os.path.basename(simulation_options.infile)
 
-        outname = get_outname(filename, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, dimer,
-                              param, RE_attempt, scoring_f, point_mutations, alt_ss, tshelves, in_seed, subopt)
 
-        if tshelves == '':
-            rep_temps_shelfs = get_rep_temps()
+        simulation_options.add_outname(get_outname(filename, simulation_options))
+        
+        if simulation_options.tshelves == '':
+            rep_temps_shelfs_opt = get_rep_temps(simulation_options)
         else:
-            rep_temps_shelfs = [float(temp) for temp in tshelves.split(",")]
+            rep_temps_shelfs_opt = [float(temp) for temp in simulation_options.tshelves.split(",")]
 
-        if in_seed != 0:
-            original_seed = 2137 + in_seed
+        simulation_options.add_rep_temps_shelfs(rep_temps_shelfs_opt)
+        '''
+        
+
+        simulation_options, filename = update_options(simulation_options, input_file)
+
+        if simulation_options.in_seed != 0:
+            original_seed = 2137 + simulation_options.in_seed
         else:
             original_seed = random.random()
 
         random.seed(original_seed)
-        outname = os.path.basename(outname)
 
-        WORK_DIR = outname + "_" + str(now)
+        WORK_DIR = simulation_options.outname + "_" + str(now)
         Path(WORK_DIR).mkdir(parents=True, exist_ok=True)
-        copy(infile, WORK_DIR + "/" + filename)
+        copy(simulation_options.infile, WORK_DIR + "/" + filename)
         Path(WORK_DIR + "/trajectory_files").mkdir(parents=True, exist_ok=True)
         os.chdir(WORK_DIR)
 
-        with open(outname + ".command", 'w', encoding='utf-8') as f:
+        
+        
+        with open(simulation_options.outname + ".command", 'w', encoding='utf-8') as f:
             print(command, file=f)
 
-        run_functions()
+        run_functions(simulation_options)
 
     except Exception as e:
         # Close the log, restore stderr, and raise the exception
