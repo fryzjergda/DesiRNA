@@ -36,7 +36,8 @@ import RNA
 
 from utils import functions_classes as func
 from utils.SimScore import SimScore
-
+#from utils import sequence_utils as seq_utils
+#from DesiRNA.utils import sequence_utils
 
 def print_action_group_help(parser, action_group, include_all=False, print_usage=True):
     """
@@ -143,6 +144,8 @@ def argument_parser():
                                 help="Number of Replica Exchange steps after which the simulation ends. Overwrites the -t option. [default = None]")
     standard_group.add_argument("-r", "--results_number", required=False, dest="num_results", default=10, type=int,
                                 help="Number of best results to be reported in the output. [default = 10]")
+    advanced_group.add_argument("-sws", "--stop_when_solved", required=False, dest="sws", default='off', choices=['off', 'on'],
+                                help="Stop after finding desired number of solutions (--results_number). [default = off]")
     advanced_group.add_argument("-p", "--param", required=False, dest="param", default='1999', choices=['2004', '1999'],
                                 help="Turner energy parameter for calculating MFE. [default = 1999]")
     advanced_group.add_argument("-tmin", "--tmin", required=False, dest="t_min", default=10, type=float,
@@ -230,9 +233,10 @@ def argument_parser():
     acgu_content = args.acgu_content
     tm_max = args.tm_max
     tm_min = args.tm_min
-
+    sws = args.sws
+    
     return infile, replicas, timlim, acgu_percs, t_max, t_min, oligo, param, exchange_rate, scoring_f, pm, tshelves,\
-        in_seed, subopt, diff_start_replicas, num_results, acgu_content, steps, tm_max, tm_min, motifs, dimer
+        in_seed, subopt, diff_start_replicas, num_results, acgu_content, steps, tm_max, tm_min, motifs, dimer, sws
 
 
 def read_input(infile):
@@ -1480,6 +1484,7 @@ def process_intermediate_results(simulation_data, oligo, output_name, num_result
         sorted_results = sorted(round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
 
     sorted_results = sorted_results[:num_results]
+    mcc_zero_count = sum(1 for item in sorted_results if item['mcc'] == 0.0)
 
     with open(output_name + '_mid_results.csv', 'w', newline='', encoding='utf-8') as csvfile:
         fieldnames = sorted_results[0].keys()
@@ -1487,6 +1492,8 @@ def process_intermediate_results(simulation_data, oligo, output_name, num_result
         writer.writeheader()
         for data in sorted_results:
             writer.writerow(data)
+
+    return mcc_zero_count
 
 
 def generate_replica_csv(simulation_data, output_name):
@@ -1662,7 +1669,7 @@ def write_best_str_file(correct_result_txt, output_name):
         myfile.write(correct_result_txt)
 
 
-def generate_simulation_stats_text(stats, sorted_results, input_file, timlim, correct_bool):
+def generate_simulation_stats_text(stats, sorted_results, input_file, timlim, correct_bool, finish_time):
     """
     Generates text summarizing the statistics of the simulation.
 
@@ -1681,6 +1688,7 @@ def generate_simulation_stats_text(stats, sorted_results, input_file, timlim, co
     sum_mc_metro = sum_mc - stats.acc_mc_better_e
     acc_metro = stats.acc_mc_step - stats.acc_mc_better_e
     sum_replica_att = stats.acc_re_step + stats.rej_re_step if stats.acc_re_step + stats.rej_re_step else 1
+    formatted_time = time.strftime("%H:%M:%S", time.gmtime(finish_time))
 
     best_solution_txt = "\nDesign solved succesfully!\n\nBest solution:\n" if correct_bool else "\nDesign not solved!\n\nTarget structure:\n"
     best_solution_txt += f"{sorted_results[0]['sequence']}\nMFE Secondary Structure: {sorted_results[0]['mfe_ss']}\nPartition Function Energy: {round(sorted_results[0]['Epf'], 3)}\n1-MCC: {round(sorted_results[0]['mcc'], 3)}\n"
@@ -1688,7 +1696,8 @@ def generate_simulation_stats_text(stats, sorted_results, input_file, timlim, co
     stats_txt = f">{outname} time={timlim}s\nAcc_ratio={acc_perc}, Iterations={stats.step}, Accepted={stats.acc_mc_step}/{sum_mc}, Rejected={stats.rej_mc_step}/{sum_mc}\n" \
                 f"Accepted Metropolis={acc_metro}/{sum_mc_metro}, Rejected Metropolis={sum_mc_metro - acc_metro}/{sum_mc_metro}\n" \
                 f"Replica exchange attempts: {stats.global_step}\nReplica swaps attempts: {sum_replica_att}\nReplica swaps accepted: {stats.acc_re_step}\n" \
-                f"Replica swaps rejected: {stats.rej_re_step}\nReplica exchange acc_ratio: {round(stats.acc_re_step / sum_replica_att, 3)}\n{best_solution_txt}"
+                f"Replica swaps rejected: {stats.rej_re_step}\nReplica exchange acc_ratio: {round(stats.acc_re_step / sum_replica_att, 3)}\n{best_solution_txt}\n\n" \
+                f"Simulation time: {formatted_time}\n"
 
     return stats_txt
 
@@ -1718,7 +1727,7 @@ def move_results(file_list, directory, output_name):
         move(output_name + file, directory + output_name + file)
 
 
-def parse_and_output_results(simulation_data, input_file, stats):
+def parse_and_output_results(simulation_data, input_file, stats, finish_time):
     """
     Parses simulation data and generates various outputs including CSV files, FASTA files, and statistics.
 
@@ -1741,7 +1750,7 @@ def parse_and_output_results(simulation_data, input_file, stats):
     write_best_str_file(correct_result_txt, outname)
     func.plot_simulation_data_combined(simulation_data, outname, input_file.alt_sec_struct, infile)
 
-    stats_txt = generate_simulation_stats_text(stats, sorted_results, input_file, timlim, correct_bool)
+    stats_txt = generate_simulation_stats_text(stats, sorted_results, input_file, timlim, correct_bool, finish_time)
     print('\n' + stats_txt)
     write_stats_to_file(stats_txt, outname)
 
@@ -1797,12 +1806,15 @@ def run_functions():
             simulation_data.append(vars(seqence_score_list[i]))
 
         if stats.global_step % 10 == 0:
-            process_intermediate_results(simulation_data, oligo, outname, num_results)
+            mcc_zero = process_intermediate_results(simulation_data, oligo, outname, num_results)
+            if mcc_zero == num_results and sws == "on":
+                break
 
         if stats.global_step == RE_steps:
             break
+    finish_time = time.time() - start_time
 
-    parse_and_output_results(simulation_data, input_file, stats)
+    parse_and_output_results(simulation_data, input_file, stats, finish_time)
 
 
 def get_outname(infile, replicas, timlim, acgu_percentages, pks, T_max, T_min, oligo, dimer, param, RE_attempt, scoring_f, point_mutations, alt_ss, tshelves, in_seed, subopt):
@@ -2047,7 +2059,7 @@ if __name__ == "__main__":
         available_scoring_functions = ['Ed-Epf', '1-MCC', 'sln_Epf', 'Ed-MFE', '1-precision', '1-recall', 'Edef']
 
         infile, replicas, timlim, acgu_percentages, T_max, T_min, oligo, param, RE_attempt, scoring_f, point_mutations,  \
-            tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs, dimer = argument_parser()
+            tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs, dimer, sws = argument_parser()
 
         input_file = read_input(infile)
         print(infile)
