@@ -1,5 +1,14 @@
 import random
 import sys
+import math
+
+import multiprocess as mp
+import numpy as np
+import RNA
+
+from utils import energy_scores as es
+#from utils.SimScore import SimScore 
+
 
 def check_dot_bracket(ss):
     """
@@ -386,14 +395,374 @@ def allowed_choice(allowed, percs):
 
     return [percs[nt] for nt in allowed]
 
+def get_rep_temps(sim_options):
+    """
+    Generates the temperature shelves for each replica in the simulation.
+
+    The function generates a list of temperatures using a geometric progression,
+    with the first temperature being T_min and the last being T_max. The generated
+    list of temperatures is returned.
+
+    Returns:
+        list: List of temperatures for each replica.
+    """
+
+    if sim_options.replicas != 1:
+        delta = (sim_options.T_max - sim_options.T_min) / (sim_options.replicas - 1)
+    else:
+        delta = (sim_options.T_max - sim_options.T_min) / 2
+    rep_temps = []
+
+    T_curr = sim_options.T_min
+
+    for i in range(sim_options.replicas):
+        if sim_options.replicas != 1:
+            rep_temps.append(round(T_curr, 3))
+            T_curr += delta
+        else:
+            T_curr += delta
+            rep_temps.append(round(T_curr, 3))
+
+    if sim_options.replicas == 1:
+        rep_temps = [sim_options.T_max]
+
+    # this piece of code is experimental, it may be used to generate non equally distributed temp shelves
+    pot = 1.5
+    rep_temps_mod = []
+
+    for i in range(0, len(rep_temps)):
+        if i == 0:
+            rep_temps_mod.append(rep_temps[i])
+        else:
+            rep_temps_mod.append((1 - (1 - (rep_temps[i] / sim_options.T_max)**pot)**(1 / pot)) * sim_options.T_max)
+
+    una = False
+    if una == True:
+        rep_temps = rep_temps_mod
+
+    return rep_temps
+
+
+def generate_initial_list(nt_list, input_file, sim_options):
+    """
+    Generates an initial list of RNA sequences based on the input nucleotide list and input file.
+
+    Parameters:
+    nt_list (list): A list of Nucleotide objects.
+    input_file (InputFile): The InputFile object containing data from the input file.
+
+    Returns:
+    list: A list of initialized sequence objects.
+    """
+
+    sequence = initial_sequence_generator(nt_list, input_file, sim_options)
+
+    seq_list = []
+
+    for i in range(0, sim_options.replicas):
+        if sim_options.diff_start_replicas == "different":
+            sequence = initial_sequence_generator(nt_list, input_file, sim_options)
+        sequence_object = es.score_sequence(sequence, input_file, sim_options)
+        sequence_object.get_replica_num(i + 1)
+        sequence_object.get_temp_shelf(sim_options.rep_temps_shelfs[i])
+        sequence_object.get_sim_step(0)
+        seq_list.append(sequence_object)
+
+    return seq_list
+
+def generate_initial_list_random(nt_list, input_file, sim_options):
+    """
+    Generate an initial list of random RNA sequences based on the input nucleotide list and input file.
+
+    Parameters:
+    nt_list (list): A list of Nucleotide objects.
+    input_file (InputFile): The InputFile object containing data from the input file.
+
+    Returns:
+    list: A list of initialized random sequence objects.
+    """
+
+    seq_list = []
+    for i in range(0, sim_options.replicas):
+        sequence = random_sequence_generator(nt_list, input_file, sim_options)
+        sequence_object = es.score_sequence(sequence, input_file, sim_options)
+        sequence_object.get_replica_num(i + 1)
+        sequence_object.get_temp_shelf(sim_options.rep_temps_shelfs[i])
+        sequence_object.get_sim_step(0)
+        seq_list.append(sequence_object)
+
+    rand_sequences_txt = ""
+    for i in range(0, len(seq_list)):
+        rand_sequences_txt += str(vars(seq_list[i])) + "\n"
+
+    with open(sim_options.outname + '_random.csv', 'w', newline='\n', encoding='utf-8') as myfile:
+        myfile.write(rand_sequences_txt)
 
 
 
+def get_mutation_position(seq_obj, available_positions, sim_options, input_file):
+    """
+    Determines a position in the sequence to mutate.
+
+    Parameters:
+    sequence_obj (ScoreSeq): A ScoreSeq object representing an RNA sequence.
+    range_pos (list): A list of positions eligible for mutation.
+
+    Returns:
+    int: The position in the sequence selected for mutation.
+    """
+
+    if sim_options.point_mutations == "off":
+        mutation_position = random.choice(available_positions)
+    elif sim_options.point_mutations == "on":
+
+        max_perc_prob = sim_options.tm_max
+        min_perc_prob = sim_options.tm_min
+
+        pair_list_mfe = check_dot_bracket(seq_obj.mfe_ss)
+
+        query_structure = {tuple(pair) for pair in pair_list_mfe}
+
+        false_negatives = input_file.target_pairs_tupl - query_structure
+        false_negatives = [item for tup in false_negatives for item in tup]
+        false_negatives = [item for item in false_negatives if item in available_positions]
+
+        false_positives = query_structure - input_file.target_pairs_tupl
+        false_positives = [item for tup in false_positives for item in tup]
+        false_positives = [item for item in false_positives if item in available_positions]
+
+        false_cases = false_negatives + false_positives
+        false_cases = list(set(false_cases))
+
+        prob_shelfs = [round(i, 2) for i in np.linspace(max_perc_prob, min_perc_prob, num=len(sim_options.rep_temps_shelfs))]
+
+        shelf = sim_options.rep_temps_shelfs.index(seq_obj.temp_shelf)
+
+        mutat_point_prob = prob_shelfs[shelf]
+
+        if len(false_cases) == 0:
+            range_pos = available_positions
+        else:
+            false_cases = expand_cases(false_cases, len(seq_obj.sequence) - 1)
+            range_pos = random.choices([false_cases, available_positions], weights=[mutat_point_prob, 1 - mutat_point_prob])[0]
+
+        mutation_position = random.choice(range_pos)
+
+    return mutation_position
+
+
+def expand_cases(cases, max_value, range_expansion=3):
+    """
+    Expands a set of cases within a specified range without exceeding the maximum value.
+
+    Parameters:
+    cases (set): A set of initial cases.
+    max_value (int): The maximum allowable value in the range.
+    range_expansion (int): The range expansion value around each case.
+
+    Returns:
+    list: A sorted list of expanded cases.
+    """
+
+    expanded_cases = set()  # Using a set to avoid duplicates
+
+    for case in cases:
+        # Adding the cases in the range, taking care not to exceed the maximum value
+        for i in range(-range_expansion, range_expansion + 1):
+            expanded_value = case + i
+            if 0 < expanded_value <= max_value:  # Checking the boundaries
+                expanded_cases.add(expanded_value)
+
+    return sorted(list(expanded_cases))
+
+
+def mutate_sequence(sequence_obj, nt_list, sim_options, input_file):
+    """
+    Mutate the given sequence and return the mutated sequence.
+
+    Args:
+    sequence_obj (ScoreSeq): A ScoreSeq object representing an RNA sequence.
+    nt_list (list): List of nucleotide objects.
+
+    Returns:
+    ScoreSeq: A ScoreSeq object representing the mutated RNA sequence.
+    """
+
+    sequence = sequence_obj.sequence
+    sequence_list = list(sequence)
+    range_pos = []
+    for i in range(0, len(sequence)):
+        if len(nt_list[i].letters_allowed) != 1:
+            range_pos.append(i)
+
+    nt_pos = get_mutation_position(sequence_obj, range_pos, sim_options, input_file)
+    nt2_pos = None
+
+    if (nt_list[nt_pos].pairs_with == None) and (len(nt_list[nt_pos].letters_allowed) != 1):
+        available_mutations = nt_list[nt_pos].letters_allowed.copy()
+        if len(available_mutations) > 1:
+            if sequence_list[nt_pos] in available_mutations:
+                available_mutations.remove(sequence_list[nt_pos])
+            mutated_nt = random.choice(available_mutations)
+            sequence_list[nt_pos] = mutated_nt
+        else:
+            print("cannot mutate")
+    elif (nt_list[nt_pos].pairs_with == None) and (len(nt_list[nt_pos].letters_allowed) == 1):
+        # No mutation needed if there's only one letter allowed and it's not paired
+        pass
+    elif nt_list[nt_pos].pairs_with != None:
+        nt1 = nt_list[nt_pos]
+
+        available_mutations_nt1 = nt1.letters_allowed.copy()
+
+        if (sequence_list[nt_pos] in available_mutations_nt1) and len(available_mutations_nt1) != 1:
+
+            available_mutations_nt1.remove(sequence_list[nt_pos])
+        available_mutations_nt1.sort()
+
+        nt2 = nt_list[nt1.pairs_with]
+        allowed_mutations_nt2 = nt2.letters_allowed.copy()
+        nt2_pos = nt2.number
+        if sim_options.acgu_percentages == "on":
+            allowed_choices_nt1 = allowed_choice(available_mutations_nt1, sim_options.nt_percentages)
+            mutated_nt1 = random.choices(available_mutations_nt1, weights=allowed_choices_nt1)[0]
+        elif sim_options.acgu_percentages == "off":
+            mutated_nt1 = random.choice(available_mutations_nt1)
+
+        allowed_pairings_nt2 = can_pair(mutated_nt1)
+        available_mutations_nt2 = list(set(allowed_mutations_nt2).intersection(allowed_pairings_nt2))
+
+        allowed_mutations_nt2.sort()
+
+        if sim_options.acgu_percentages == "on":
+            allowed_choices_nt2 = allowed_choice(available_mutations_nt2, sim_options.nt_percentages)
+            mutated_nt2 = random.choices(available_mutations_nt2, weights=allowed_choices_nt2)[0]
+        elif sim_options.acgu_percentages == "off":
+            mutated_nt2 = random.choice(available_mutations_nt2)
+
+        sequence_list[nt_pos] = mutated_nt1
+        sequence_list[nt2_pos] = mutated_nt2
+
+    sequence_mutated = ''.join(sequence_list)
+    mut_position = list(' ' * len(sequence))
+    mut_position[nt_pos] = "#"
+
+    if nt2_pos != None:
+        mut_position[nt2_pos] = "#"
+
+    sequence_mutated = es.score_sequence(sequence_mutated, input_file, sim_options)
+    sequence_mutated.get_replica_num(sequence_obj.replica_num)
+    sequence_mutated.get_temp_shelf(sequence_obj.temp_shelf)
+
+    return sequence_mutated
+
+def get_pk_struct(seq, ss_nopk, fc):
+    """
+    Get the pseudoknot structure of the sequence.
+
+    Args:
+    seq (str): RNA sequence.
+    ss_nopk (str): Secondary structure of the RNA sequence without pseudoknots.
+    fc (FoldCompound): RNA fold compound object.
+
+    Returns:
+    str: Secondary structure of the RNA sequence with pseudoknots.
+    """
+
+    constraints = ss_nopk.replace("(", "x").replace(")", "x")
+
+    fc.hc_add_from_db(constraints)
+
+    mfe_structure, mfe_energy = fc.mfe()
+
+    l_ss_nopk = list(ss_nopk)
+    l_mfe = list(mfe_structure)
+
+    for i in range(0, len(l_ss_nopk)):
+        if l_mfe[i] == "(":
+            l_ss_nopk[i] = "["
+        if l_mfe[i] == ")":
+            l_ss_nopk[i] = "]"
+
+    ss_pk = ''.join(l_ss_nopk)
+
+    if "(" in mfe_structure:
+        constraints = ss_pk.replace("(", "x").replace(")", "x").replace("[", "x").replace("]", "x")
+        fc.hc_add_from_db(constraints)
+
+        mfe_structure, mfe_energy = fc.mfe()
+        l_ss_pk = list(ss_pk)
+        l_mfe_pk2 = list(mfe_structure)
+
+        for i in range(0, len(l_ss_pk)):
+            if l_mfe_pk2[i] == "(":
+                l_ss_pk[i] = "<"
+            if l_mfe_pk2[i] == ")":
+                l_ss_pk[i] = ">"
+
+        ss_pk = ''.join(l_ss_pk)
+
+        if "(" in mfe_structure:
+            constraints = ss_pk.replace("(", "x").replace(")", "x").replace("[", "x").replace("]", "x").replace("<", "x").replace(">", "x")
+            fc.hc_add_from_db(constraints)
+
+            mfe_structure, mfe_energy = fc.mfe()
+            l_ss_pk = list(ss_pk)
+            l_mfe_pk2 = list(mfe_structure)
+
+            for i in range(0, len(l_ss_pk)):
+                if l_mfe_pk2[i] == "(":
+                    l_ss_pk[i] = "{"
+                if l_mfe_pk2[i] == ")":
+                    l_ss_pk[i] = "}"
+
+                ss_pk = ''.join(l_ss_pk)
+
+    return ss_pk
 
 
 
+def score_motifs(seq, sim_options):
+    """
+    Calculates the scoring of specific motifs within a given RNA sequence.
 
+    This function assesses how well the given RNA sequence matches a set of specified motifs and assigns a score based on this assessment. Each motif has a predefined score, and the function calculat
 
+    Parameters:
+    seq (str): The RNA sequence to be analyzed.
+    motifs (dict): A dictionary where keys are motifs (as strings) and values are their respective scores.
+
+    Returns:
+    float: The total score for all motifs found in the sequence. This score is a sum of individual motif scores for all motifs present in the sequence.
+    """
+
+    motif_score = 0
+    for motif in sim_options.motifs:
+        if sim_options.motifs[motif][0].search(seq):
+            motif_score += sim_options.motifs[motif][1]
+    return motif_score
+
+def round_floats(obj):
+    """
+    Round float values in an object to 3 decimal places.
+
+    Parameters
+    ----------
+    obj : float or dict
+        If a float, the float is rounded to 3 decimal places.
+        If a dictionary, all float values in the dictionary are rounded to 3 decimal places.
+
+    Returns
+    -------
+    obj : float or dict
+        The input object with float values rounded to 3 decimal places.
+    """
+
+    if isinstance(obj, float):
+        return round(obj, 3)
+    elif isinstance(obj, dict):
+        return {k: round_floats(v) for k, v in obj.items()}
+    return obj
 
 
 class Nucleotide:
@@ -459,6 +828,5 @@ class Nucleotide:
         list (list): The list of letters that are allowed for this nucleotide.
         """
         self.letters_allowed = list
-
 
 
