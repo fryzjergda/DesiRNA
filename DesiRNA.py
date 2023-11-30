@@ -2156,7 +2156,7 @@ def update_options(sim_options, input_file_obj):
 if __name__ == "__main__":
 
     log_filename = "tmp_log.txt"
-#    original_stderr, stderr_log = redirect_stderr_to_file(log_filename)
+    original_stderr, stderr_log = redirect_stderr_to_file(log_filename)
 
     try:
 

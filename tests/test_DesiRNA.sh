@@ -36,7 +36,7 @@ function run_test() {
 
     # Run the Python program with specified options	
     
-    echo ${BASE_DIR}/DesiRNA.py -f "$input_path" -t "$t_option" -acgu "$acgu_option" -p "$p_option" -tmin "$tmin_option" -tmax "$tmax_option" -sf "$sf_option" -nd "$nd_option" -acgu_content "$acgu_content_option" -o "$oligo_option" -d "$dimer_option" -tm "$tm_option" -tm_perc_max "$tm_perc_max_option" -tm_perc_min "$tm_perc_min_option" -re_seq "$re_seq_option" -sws "$sws_option"
+    echo DesiRNA.py -f "$input_path" -t "$t_option" -acgu "$acgu_option" -p "$p_option" -tmin "$tmin_option" -tmax "$tmax_option" -sf "$sf_option" -nd "$nd_option" -acgu_content "$acgu_content_option" -o "$oligo_option" -d "$dimer_option" -tm "$tm_option" -tm_perc_max "$tm_perc_max_option" -tm_perc_min "$tm_perc_min_option" -re_seq "$re_seq_option" -sws "$sws_option"
     python3 ${BASE_DIR}/DesiRNA.py -f "$input_path" -t "$t_option" -acgu "$acgu_option" -p "$p_option" -tmin "$tmin_option" -tmax "$tmax_option" -sf "$sf_option" -nd "$nd_option" -acgu_content "$acgu_content_option" -o "$oligo_option" -d "$dimer_option" -tm "$tm_option" -tm_perc_max "$tm_perc_max_option" -tm_perc_min "$tm_perc_min_option" -re_seq "$re_seq_option" -sws "$sws_option"
 
     # Find the latest directory matching the pattern
@@ -47,10 +47,10 @@ function run_test() {
 
     # Check if the output stats file exists and contains the expected phrase
     if [ -f "$output_stats_file" ] && grep -q "$expected_phrase" "$output_stats_file"; then
-        echo "Test with input $input_file and options -o $oligo_option -p $p_option PASSED"
+        echo -e "Test with input $input_file and options -t $t_option -acgu $acgu_option -p $p_option -tmin $tmin_option -tmax $tmax_option -sf $sf_option -nd $nd_option -acgu_content $acgu_content_option -o $oligo_option -d $dimer_option -tm $tm_option -tm_perc_max $tm_perc_max_option -tm_perc_min $tm_perc_min_option -re_seq $re_seq_option -sws $sws_option\n\nPASSED\n"
         rm -rf "$output_dir" # Clean up the directory after the test
     else
-        echo "Test with input $input_file and options -o $oligo_option -p $p_option FAILED"
+        echo -e "Test with input $input_file and options -t $t_option -acgu $acgu_option -p $p_option -tmin $tmin_option -tmax $tmax_option -sf $sf_option -nd $nd_option -acgu_content $acgu_content_option -o $oligo_option -d $dimer_option -tm $tm_option -tm_perc_max $tm_perc_max_option -tm_perc_min $tm_perc_min_option -re_seq $re_seq_option -sws $sws_option\n\nFAILED\n"
         exit 1
     fi
 
