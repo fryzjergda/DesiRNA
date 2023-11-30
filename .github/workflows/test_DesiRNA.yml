@@ -44,3 +44,6 @@ jobs:
     - name: Run DesiRNA tests
       run: bash ./tests/test_DesiRNA.sh
 
+    - name: Run DesiRNA error handling tests
+      run: bash ./tests/test_DesiRNA_errors.sh
+      

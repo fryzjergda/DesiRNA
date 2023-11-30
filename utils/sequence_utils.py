@@ -1,4 +1,5 @@
 import random
+import sys
 
 def check_dot_bracket(ss):
     """

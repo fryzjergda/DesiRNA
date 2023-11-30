@@ -1790,14 +1790,13 @@ def run_functions(sim_options):
     for i in range(len(seqence_score_list)):
         simulation_data.append(vars(seqence_score_list[i]))
 
-    handle_non_mutable_sequence(input_file, simulation_data, sim_options.outname)
+    handle_non_mutable_sequence(input_file, simulation_data, sim_options)
 
     stats = func.Stats()
 
     while time.time() - start_time < sim_options.timlim:
 
         print('ETA', round((sim_options.timlim - (time.time() - start_time)), 0), 'seconds', end='\r')
-#        print(vars(stats))
 
         stats.update_global_step()
         seqence_score_list, stats = mutate_sequence_re(seqence_score_list, nt_list, stats, sim_options)
@@ -2186,69 +2185,6 @@ if __name__ == "__main__":
         input_file = read_input(simulation_options.infile)
         print(simulation_options.infile)
 
-        '''
-        if simulation_options.RE_steps != None:
-            simulation_options.update_timlim(100000000000000000)
-
-        if simulation_options.param == '1999':
-            RNA.params_load(os.path.join(script_path, "rna_turner1999.par"))
-
-
-        if simulation_options.acgu_content == '':
-            simulation_options.add_nt_perc({"A": 15, "C": 30, "G": 30, "U": 15})
-        else:
-            acgu_l = [int(x) for x in simulation_options.acgu_content.split(',')]
-            if sum(acgu_l) != 100:
-                print("The ACGU content should sum up to 100, check your command.")
-                sys.exit()
-            simulation_options.add_nt_perc({"A": acgu_l[0], "C": acgu_l[1], "G": acgu_l[2], "U": acgu_l[3]})
-
-        
-        
-        
-        if input_file.alt_sec_struct != None:
-            simulation_options.add_alt_ss("on")
-        else:
-            simulation_options.add_alt_ss("off")
-
-        
-        oligo_opt = "none"
-
-        if "&" in input_file.sec_struct and simulation_options.dimer == "off":
-            too_much = input_file.sec_struct.count("&")
-            if too_much != 1:
-                print("\nToo much structures in the input. Can only design RNA complexes of max two sequences.\nPlease correct your input file.\n")
-                sys.exit()
-            oligo_opt = "heterodimer"
-        elif "&" in input_file.sec_struct and simulation_options.dimer == "on":
-            oligo_opt = "homodimer"
-        elif "&" not in input_file.sec_struct and simulation_options.oligo == "on":
-            oligo_opt = "avoid"
-        
-        simulation_options.add_oligo_state(oligo_opt)
-        
-
-        if set(input_file.sec_struct).issubset('.()&'):
-            simulation_options.add_pks("off")
-        else:
-            simulation_options.add_pks("on")
-
-        
-        
-        filename = os.path.basename(simulation_options.infile)
-
-
-        simulation_options.add_outname(get_outname(filename, simulation_options))
-        
-        if simulation_options.tshelves == '':
-            rep_temps_shelfs_opt = get_rep_temps(simulation_options)
-        else:
-            rep_temps_shelfs_opt = [float(temp) for temp in simulation_options.tshelves.split(",")]
-
-        simulation_options.add_rep_temps_shelfs(rep_temps_shelfs_opt)
-        '''
-        
-
         simulation_options, filename = update_options(simulation_options, input_file)
 
         if simulation_options.in_seed != 0:
@@ -2285,4 +2221,7 @@ if __name__ == "__main__":
         # Now, read the log and print messages that are not the warning
         print_filtered_log("../" + log_filename, "WARNING: pf_scale too large")
 
-    os.remove("../" + log_filename)
+    try:
+        os.remove("../" + log_filename)
+    except FileNotFoundError:
+        pass
