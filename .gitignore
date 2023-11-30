@@ -5,6 +5,7 @@ __pycache__/
 utils/__pycache__/
 utils/__pycache__/
 utils/__pycache__/*pyc
+tmp_log.txt
 
 *~
 *.pyc
