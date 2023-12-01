@@ -1,0 +1,6 @@
+>name
+Design
+>seq_restr
+ACGUACGUA
+>sec_struct
+.........

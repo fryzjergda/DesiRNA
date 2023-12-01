@@ -35,14 +35,14 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install viennarna
       shell: bash
       
     - name: Run DesiRNA tests
       run: bash ./tests/test_DesiRNA.sh
 
+    - name: Run DesiRNA error handling tests
+      run: bash ./tests/test_DesiRNA_errors.sh

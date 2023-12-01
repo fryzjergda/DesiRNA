@@ -2,12 +2,21 @@
 # -*- coding: utf-8 -*-
 
 """
-This module is designed for analyzing RNA secondary structures. It includes functionality to
-identify base pairing positions in RNA structures and calculate statistical scores like MCC (Matthews 
-correlation coefficient), precision, recall, and F-score for comparing two RNA secondary structures.
+This module provides functionality for analyzing RNA secondary structures, including identifying base pairing positions in RNA structures and calculating statistical scores like MCC (Matthews correlation coefficient), precision, recall, and F-score for comparing two RNA secondary structures.
 
-The module defines a class `SimScore` for calculating these statistical measures, and a utility
-function `pairing_positions` to map the base pairs in RNA secondary structures.
+The module defines a class `SimScore` for calculating these statistical measures and a utility function `pairing_positions` to map the base pairs in RNA secondary structures.
+
+Module Structure:
+- `SimScore` class: Calculates statistical scores for RNA secondary structure comparison.
+- `pairing_positions` function: Maps base pairing positions in an RNA secondary structure.
+
+Usage:
+- Import the module using `import sim_score`.
+- Create instances of the `SimScore` class to compare RNA secondary structures.
+- Use the provided methods to calculate MCC, precision, recall, and F-score.
+
+Author: [Author Name]
+Last Updated: [Date]
 """
 
 import math
@@ -26,6 +35,7 @@ def pairing_positions(s1):
     Returns:
     dict: A dictionary with key-value pairs representing the base pairing positions.
     """
+
     final_pairs = []
     l_opens = []
     l_closes = []
