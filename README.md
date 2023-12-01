@@ -21,9 +21,10 @@ DesiRNA is a state-of-the-art RNA sequence design tool, that stands out for its 
 - [Usage](#usage)
 - [Input Files](#input-files)
 - [Output Files](#output-files)
-- [Citation](#citation)
 - [Benchmark](#benchmark)
-- [Tests]()
+- [Example Files](#example-files)
+- [Tests](#tests)
+- [Citation](#citation)
 - [License](#license)
 - [Contact](#contact)
 
@@ -351,23 +352,40 @@ This directory contains the input files used for the benchmark tests. There are 
 
 These files are organized in the same format as described in the [Input Files](#input-files) section.
 
+## Example Files
+
+The "example_files" directory contains a set of input and output files related to RNA sequence design. These files are used as examples and reference data for various design scenarios. The contents of this directory are organized into two main subdirectories:
+
+### Inputs
+
+This subdirectory contains input files that serve as the starting point for RNA sequence design. Each input file represents a specific design scenario and includes the necessary information for the design process. The input files include:
+
+- `Alternative_structures_design_input.txt`: Input file for designing RNA sequences with alternative structures.
+- `Homodimer_design_input.txt`: Input file for designing RNA sequences involved in homodimer interactions.
+- `Pseudoknot_design_input.txt`: Input file for designing RNA sequences with pseudoknot structures.
+- `RNA_RNA_complex_design_input.txt`: Input file for designing RNA-RNA complex structures.
+- `Seed_sequence_design_input.txt`: Input file for designing RNA sequences based on a seed sequence.
+- `Standard_design_input.txt`: Input file for standard RNA sequence design.
+
+### Outputs
+
+This subdirectory contains output files and data generated as a result of RNA sequence design simulations. Each subdirectory within "outputs" corresponds to a specific design scenario and is named based on the input file used for that scenario. The output files and data include:
+
+- `Mid_results.csv`: Intermediate results data during the design process.
+- `Replicas.png`: Replicas of the designed RNA structures.
+- `Results.csv`: Final results of the RNA sequence design.
+- `Stats`: Additional statistics related to the design process.
+- `trajectory_files`: Trajectory files that provide detailed information about the design trajectory, including sequence and structural data.
+
+
 ## Tests
 
 The "Tests" directory contains a variety of test cases and scripts designed to evaluate the robustness and correctness of the program. These tests are essential for detecting errors and ensuring that the program behaves as expected. The contents of this directory include:
 
-    Error_inputs: This subdirectory contains a set of input files that intentionally trigger specific error conditions. These files are used to test the program's error-handling capabilities and include scenarios such as invalid sequences, structural constraints, or formatting errors.
-        Error_input_cannot_mutate.txt: Input file with constraints that prevent mutation.
-        Error_input_different_length.txt: Input file with sequences of different lengths.
-        Error_input_no_closing_bracket.txt: Input file with missing closing brackets in structural constraints.
-        Error_input_no_opening_bracket.txt: Input file with missing opening brackets in structural constraints.
-        Error_input_sec_struct_character.txt: Input file with invalid characters in secondary structure constraints.
-        Error_input_sequence_character.txt: Input file with invalid characters in sequence data.
-        Error_input_too_much_structures.txt: Input file with an excessive number of structural constraints.
-        Error_input_wrong_seq_restraints.txt: Input file with incorrect sequence restraints.
+- `test_DesiRNA.sh`: This script runs various test cases to assess the overall functionality and performance of the program.
+- `test_DesiRNA_errors.sh`: This script executes tests using the error input files to check if the program correctly identifies and handles errors.    
 
-    test_DesiRNA_errors.sh: This script executes tests using the error input files to check if the program correctly identifies and handles errors.
-
-    test_DesiRNA.sh: This script runs various test cases to assess the overall functionality and performance of the program.
+- `Error_inputs`: This subdirectory contains a set of input files that intentionally trigger specific error conditions. These files are used to test the program's error-handling capabilities and include scenarios such as invalid sequences, structural constraints, or formatting errors.
 
 These tests are an integral part of quality assurance, helping to identify and address issues within the program. Users can run these tests to verify the correctness of their program installation and ensure that it can handle different error scenarios gracefully.
 
