@@ -1,13 +1,40 @@
+"""
+This module provides utility functions for working with RNA secondary structures and sequences.
+
+Functions:
+- check_dot_bracket(ss): Checks if a secondary structure string is in the correct dot-bracket notation.
+- check_seq_restr(restr): Checks if a sequence restraints string contains allowed characters.
+- check_length(ss, restr): Checks if the secondary structure and sequence restraints strings have the same length.
+- get_nt_list(input_file): Constructs a list of Nucleotide objects from an InputFile object.
+- nt_dictionary(nt): Maps a nucleotide character to a list of nucleotide characters based on the IUPAC convention.
+- check_input_logic(nt_list): Checks if the logic of the input is correct.
+- if_pair(nt1, nt2): Checks if two nucleotides can form a base pair.
+- wc_pair(nt1): Returns the Watson-Crick pair of a nucleotide character.
+- can_pair(nt): Returns a list of nucleotide characters that can form a base pair with a given nucleotide character.
+- random_sequence_generator(nt_list, input_file, sim_options): Generates a random sequence that satisfies sequence restraints.
+- initial_sequence_generator(nt_list, input_file, sim_options): Generates the initial RNA sequence based on secondary structure.
+- allowed_choice(allowed, percs): Determines allowed mutations based on nucleotide percentages.
+- get_rep_temps(sim_options): Generates temperature shelves for each replica in the simulation.
+- generate_initial_list(nt_list, input_file, sim_options): Generates an initial list of RNA sequences.
+- generate_initial_list_random(nt_list, input_file, sim_options): Generates an initial list of random RNA sequences.
+- get_mutation_position(seq_obj, available_positions, sim_options, input_file): Determines a position to mutate.
+- expand_cases(cases, max_value, range_expansion=3): Expands a set of cases within a specified range.
+- mutate_sequence(sequence_obj, nt_list, sim_options, input_file): Mutates a sequence and returns the mutated sequence.
+
+Classes:
+- Nucleotide: Represents a nucleotide with properties like letters, pairs_with, etc.
+- InputFile: Represents an input file with secondary structure, sequence restraints, etc.
+- ScoreSeq: Represents an RNA sequence with scoring information.
+
+"""
+
 import random
 import sys
-import math
 
-import multiprocess as mp
 import numpy as np
-import RNA
 
 from utils import energy_scores as es
-#from utils.SimScore import SimScore 
+# from utils.SimScore import SimScore
 
 
 def check_dot_bracket(ss):
@@ -254,17 +281,17 @@ def can_pair(nt):
     return pairing_l
 
 
-
 def random_sequence_generator(nt_list, input_file, sim_options):
     """
-    Generates a random sequence that satisfies the sequence restraints.
+    Generate a random RNA sequence that complies with specified sequence restraints.
 
     Args:
     nt_list (list): A list of Nucleotide objects representing sequence restraints.
-    input_file (InputFile): The InputFile object containing the data from the input file.
+    input_file (InputFile): An InputFile object containing input data.
+    sim_options (DesignOptions): A SimulationOptions object with simulation settings.
 
     Returns:
-    str: The randomly generated sequence that complies with the specified restraints.
+    str: The randomly generated RNA sequence that complies with the specified restraints.
     """
 
     seq_l = list(input_file.seq_restr).copy()
@@ -298,13 +325,15 @@ def random_sequence_generator(nt_list, input_file, sim_options):
 
 def initial_sequence_generator(nt_list, input_file, sim_options):
     """
-    Generates the initial RNA sequence. The function iterates over the secondary structure
-    of the RNA (input.sec_struct) and generates a corresponding sequence based on the type
-    of structure at each position (e.g., pair, unpair). The generated sequence is returned
-    as a string.
+    Generate the initial RNA sequence based on the secondary structure information.
+
+    The function iterates over the secondary structure of the RNA (input.sec_struct) and generates
+    a corresponding sequence based on the type of structure at each position (e.g., pair, unpair).
 
     Args:
-        input_file (object): An InputFile object that contains the secondary structure of the RNA.
+        nt_list (list): A list of Nucleotide objects representing sequence restraints.
+        input_file (InputFile): An InputFile object containing the secondary structure of the RNA.
+        sim_options (DesignOptions): A DesignOptions object with simulation settings.
 
     Returns:
         str: The generated initial RNA sequence.
@@ -395,16 +424,20 @@ def allowed_choice(allowed, percs):
 
     return [percs[nt] for nt in allowed]
 
+
 def get_rep_temps(sim_options):
     """
-    Generates the temperature shelves for each replica in the simulation.
+    Generate temperature shelves for each replica in the simulation.
 
     The function generates a list of temperatures using a geometric progression,
     with the first temperature being T_min and the last being T_max. The generated
     list of temperatures is returned.
 
+    Args:
+        sim_options (DesignOptions): A DesignOptions object with simulation settings.
+
     Returns:
-        list: List of temperatures for each replica.
+        list: A list of temperatures for each replica.
     """
 
     if sim_options.replicas != 1:
@@ -445,14 +478,15 @@ def get_rep_temps(sim_options):
 
 def generate_initial_list(nt_list, input_file, sim_options):
     """
-    Generates an initial list of RNA sequences based on the input nucleotide list and input file.
+    Generate an initial list of RNA sequences based on the input nucleotide list and input file.
 
-    Parameters:
-    nt_list (list): A list of Nucleotide objects.
-    input_file (InputFile): The InputFile object containing data from the input file.
+    Args:
+        nt_list (list): A list of Nucleotide objects.
+        input_file (InputFile): An InputFile object containing data from the input file.
+        sim_options (DesignOptions): A DesignOptions object with simulation settings.
 
     Returns:
-    list: A list of initialized sequence objects.
+        list: A list of initialized sequence objects.
     """
 
     sequence = initial_sequence_generator(nt_list, input_file, sim_options)
@@ -470,16 +504,23 @@ def generate_initial_list(nt_list, input_file, sim_options):
 
     return seq_list
 
+
 def generate_initial_list_random(nt_list, input_file, sim_options):
     """
     Generate an initial list of random RNA sequences based on the input nucleotide list and input file.
 
-    Parameters:
-    nt_list (list): A list of Nucleotide objects.
-    input_file (InputFile): The InputFile object containing data from the input file.
+    Args:
+        nt_list (list): A list of Nucleotide objects.
+        input_file (InputFile): An InputFile object containing data from the input file.
+        sim_options (DesignOptions): A DesignOptions object with simulation settings.
 
     Returns:
-    list: A list of initialized random sequence objects.
+        list: A list of initialized random sequence objects.
+
+    This function generates random RNA sequences based on the provided nucleotide list and input file.
+    It creates a list of random sequences for the specified number of replicas and calculates scores
+    for each sequence using the provided simulation options. The sequences and their details are
+    saved to a CSV file with a name based on the simulation options.
     """
 
     seq_list = []
@@ -499,17 +540,22 @@ def generate_initial_list_random(nt_list, input_file, sim_options):
         myfile.write(rand_sequences_txt)
 
 
-
 def get_mutation_position(seq_obj, available_positions, sim_options, input_file):
     """
-    Determines a position in the sequence to mutate.
+    Determines a position in the sequence for mutation.
 
-    Parameters:
-    sequence_obj (ScoreSeq): A ScoreSeq object representing an RNA sequence.
-    range_pos (list): A list of positions eligible for mutation.
+    Args:
+        seq_obj (ScoreSeq): A ScoreSeq object representing an RNA sequence.
+        available_positions (list): A list of positions eligible for mutation.
+        sim_options (DesignOptions): A DesignOptions object with simulation settings.
+        input_file (InputFile): An InputFile object containing data from the input file.
 
     Returns:
-    int: The position in the sequence selected for mutation.
+        int: The position in the sequence selected for mutation.
+
+    This function determines a position in the RNA sequence for mutation based on the provided
+    parameters and simulation settings. It considers various factors such as point mutations,
+    temperature shelves, and structural information to make the selection.
     """
 
     if sim_options.point_mutations == "off":
@@ -578,14 +624,20 @@ def expand_cases(cases, max_value, range_expansion=3):
 
 def mutate_sequence(sequence_obj, nt_list, sim_options, input_file):
     """
-    Mutate the given sequence and return the mutated sequence.
+    Mutate the given RNA sequence and return the mutated sequence as a ScoreSeq object.
 
     Args:
-    sequence_obj (ScoreSeq): A ScoreSeq object representing an RNA sequence.
-    nt_list (list): List of nucleotide objects.
+        sequence_obj (ScoreSeq): A ScoreSeq object representing an RNA sequence.
+        nt_list (list): List of Nucleotide objects.
+        sim_options (DesignOptions): A DesignOptions object with simulation settings.
+        input_file (InputFile): An InputFile object containing data from the input file.
 
     Returns:
-    ScoreSeq: A ScoreSeq object representing the mutated RNA sequence.
+        ScoreSeq: A ScoreSeq object representing the mutated RNA sequence.
+
+    This function performs mutations on the provided RNA sequence object based on the given
+    nucleotide list and simulation settings. It returns a ScoreSeq object representing the
+    mutated RNA sequence.
     """
 
     sequence = sequence_obj.sequence
@@ -656,6 +708,7 @@ def mutate_sequence(sequence_obj, nt_list, sim_options, input_file):
 
     return sequence_mutated
 
+
 def get_pk_struct(seq, ss_nopk, fc):
     """
     Get the pseudoknot structure of the sequence.
@@ -721,19 +774,20 @@ def get_pk_struct(seq, ss_nopk, fc):
     return ss_pk
 
 
-
 def score_motifs(seq, sim_options):
     """
     Calculates the scoring of specific motifs within a given RNA sequence.
 
-    This function assesses how well the given RNA sequence matches a set of specified motifs and assigns a score based on this assessment. Each motif has a predefined score, and the function calculat
+    This function assesses how well the given RNA sequence matches a set of specified motifs and assigns a score based on this assessment. Each motif has a predefined score, and the function calculates the total score by summing the individual motif scores for all motifs found in the sequence.
 
-    Parameters:
-    seq (str): The RNA sequence to be analyzed.
-    motifs (dict): A dictionary where keys are motifs (as strings) and values are their respective scores.
+    Args:
+        seq (str): The RNA sequence to be analyzed.
+        sim_options (DesignOptions): A DesignOptions object with simulation settings, including motif definitions.
 
     Returns:
-    float: The total score for all motifs found in the sequence. This score is a sum of individual motif scores for all motifs present in the sequence.
+        float: The total score for all motifs found in the sequence.
+
+    This function iterates through the specified motifs in the simulation options and checks if each motif is present in the RNA sequence. If a motif is found, its corresponding score is added to the total motif score. The final total score is returned as a float.
     """
 
     motif_score = 0
@@ -741,6 +795,7 @@ def score_motifs(seq, sim_options):
         if sim_options.motifs[motif][0].search(seq):
             motif_score += sim_options.motifs[motif][1]
     return motif_score
+
 
 def round_floats(obj):
     """
@@ -828,5 +883,3 @@ class Nucleotide:
         list (list): The list of letters that are allowed for this nucleotide.
         """
         self.letters_allowed = list
-
-

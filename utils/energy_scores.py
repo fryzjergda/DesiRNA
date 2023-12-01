@@ -1,3 +1,22 @@
+"""
+Energy Scores Module
+
+This module contains functions and utilities for scoring RNA sequences based on their thermodynamic properties and structural conformations. It leverages the RNA package for energy calculations and utilizes various utility functions from the 'dimer_multichain_energy' and 'sequence_utils' submodules.
+
+Primary functionality includes calculating scoring metrics for RNA sequences, which encompasses minimum free energy (MFE), target energy, energy difference, precision, recall, and Matthews correlation coefficient (MCC). Additional calculations such as oligomerization are performed depending on simulation options.
+
+Functions:
+- score_sequence: Calculates and returns a variety of scoring metrics for a given RNA sequence.
+
+Dependencies:
+- RNA: For RNA secondary structure and energy calculations.
+- dimer_multichain_energy, sequence_utils: Utility modules for specific energy and sequence manipulations.
+- SimScore: A utility class for representing simulation scores.
+
+Note:
+This module is part of a larger suite of tools for RNA sequence design and analysis, and it should be used in conjunction with other modules in the suite for comprehensive analysis and simulation tasks.
+"""
+
 import RNA
 
 from utils import dimer_multichain_energy as dme
@@ -13,25 +32,33 @@ def score_sequence(seq, input_file, sim_options):
     """
     Calculate various scoring metrics for a given RNA sequence.
 
-    Parameters
-    ----------
-    seq : str
-        RNA sequence to score.
+    Args:
+    seq (str): The RNA sequence to score.
+    input_file (InputFile): An object encapsulating input file parameters.
+    sim_options (DesignOptions): An object containing design options and simulation parameters.
 
-    Returns
-    -------
-    scored_sequence : ScoreSeq object
-        Object with various scoring metrics, including mfe, target energy,
-        energy difference, precision, recall, mcc, and overall score.
-        If the 'oligo' option is set, the oligomerization of the sequence
-        is also calculated.
+    Returns:
+    ScoreSeq: An object with various scoring metrics, including minimum free energy (MFE),
+    target energy, energy difference, precision, recall, MCC (Matthews correlation
+    coefficient), and overall score. If the 'oligo' option is set, the oligomerization
+    of the sequence is also calculated.
 
-    Notes
-    -----
-    This function uses the ViennaRNA package to calculate the mfe
-    and the energy of the target structure. The precision, recall,
-    and MCC are calculated using the SimScore class. The overall score
-    is a combination of these metrics.
+    Notes:
+    This function uses the ViennaRNA package to calculate the MFE and the energy of
+    the target structure. The precision, recall, and MCC are calculated using the
+    SimScore class. The overall score is a combination of these metrics.
+
+    If the 'oligo' option is set to 'homodimer,' the sequence is duplicated, and a
+    homodimerization is considered.
+
+    If the 'alt_sec_struct' option is provided in 'input_file,' alternative secondary
+    structures are considered, and their energies are factored into the scoring.
+
+    If the 'subopt' option is set to 'on' and the MCC is 0, suboptimal structures are
+    considered, and their energies are factored into the scoring.
+
+    If the 'motifs' option is enabled, sequence motifs are scored and contribute to
+    the overall score.
     """
 
     if sim_options.oligo_state != "homodimer":
@@ -52,7 +79,6 @@ def score_sequence(seq, input_file, sim_options):
     ssc = SimScore(input_file.sec_struct.replace("&", "Ee"), scored_sequence.mfe_ss.replace("&", "Ee"))
     ssc.find_basepairs()
     ssc.cofusion_matrix()
-
 
     scored_sequence.get_precision(ssc.precision())
     scored_sequence.get_recall(ssc.recall())
@@ -76,7 +102,7 @@ def score_sequence(seq, input_file, sim_options):
         scored_sequence.get_scoring_function_w_alt_ss()
 
     if (sim_options.subopt == "on") and (scored_sequence.mcc == 0):
-        scored_sequence.get_subopt_e(func.get_first_suboptimal_structure_and_energy(seq, fold_comp)[1])
+        scored_sequence.get_subopt_e(get_first_suboptimal_structure_and_energy(seq, fold_comp)[1])
         scored_sequence.get_esubopt_minus_Epf(scored_sequence.Epf, scored_sequence.subopt_e)
         scored_sequence.get_scoring_function_w_subopt()
 
@@ -87,7 +113,7 @@ def score_sequence(seq, input_file, sim_options):
         scored_sequence.get_scoring_function_monomer()
 
     if sim_options.motifs:
-        motif_score = score_motifs(seq, sim_options)
+        motif_score = seq_utils.score_motifs(seq, sim_options)
         scored_sequence.update_scoring_function_w_motifs(motif_score)
 
     return scored_sequence
@@ -95,13 +121,23 @@ def score_sequence(seq, input_file, sim_options):
 
 def get_mfe_e_ss(seq, sim_options):
     """
-    This function calculates the minimum free energy (MFE) and ensemble free energy (EFE)
-    of a given RNA sequence.
-    Parameters:
+    Calculate the minimum free energy (MFE) and ensemble free energy (EFE) of a given RNA sequence.
+
+    Args:
     seq (str): The RNA sequence to analyze.
+    sim_options (DesignOptions): An object containing design options and simulation parameters.
+
     Returns:
-    (float, float): A tuple containing the MFE and EFE of the sequence.
+    tuple: A tuple containing the MFE and EFE of the sequence as floats.
+
+    Notes:
+    This function uses the ViennaRNA package to calculate the MFE and EFE of the RNA sequence.
+    Depending on the 'oligo_state' option in 'sim_options,' different calculations are performed:
+    - If 'oligo_state' is 'none' or 'avoid,' the MFE structure and energy are calculated.
+    - If 'oligo_state' is 'homodimer' or 'heterodimer,' the MFE dimer structure and energy are calculated.
+    The 'pks' option in 'sim_options' determines whether pseudoknots are considered in the structure.
     """
+
     fc = RNA.fold_compound(seq, md)
 
     if sim_options.oligo_state in {"none", "avoid"}:
@@ -143,7 +179,6 @@ class ScoreSeq:
         self.subopt_e = 0
         self.esubopt_minus_Epf = 0
         self.sln_Epf = 0
-#        self.score = 0
         self.MFE = 0
         self.edesired_minus_MFE = 0
         self.recall = 0
@@ -297,6 +332,7 @@ class ScoreSeq:
         Calculate and set the difference between the desired energy and MFE for this sequence.
         """
         self.edesired_minus_MFE = self.edesired - self.MFE
+
     def get_ensemble_defect(self, sec_struct):
         """
         Calculate and set the ensemble defect for a given secondary structure of this sequence.
@@ -334,6 +370,7 @@ class ScoreSeq:
                 self.scoring_function += self.recall * 10 * weight
             elif function == 'Edef':
                 self.scoring_function += self.ensemble_defect * weight
+
     def get_scoring_function_w_alt_ss(self):
         """
         Update the scoring function for this sequence by including the effect of an alternative secondary structure.
@@ -375,6 +412,7 @@ class ScoreSeq:
         """
         self.scoring_function += motif_bonus
 
+
 def get_first_suboptimal_structure_and_energy(sequence, a):
     """
     Find the first suboptimal secondary structure and its energy for a given RNA sequence.
@@ -386,6 +424,7 @@ def get_first_suboptimal_structure_and_energy(sequence, a):
     Returns:
     tuple: A tuple containing the first suboptimal structure and its corresponding energy.
     """
+
     RNA.cvar.uniq_ML = 1
     subopt_data = {'sequence': sequence}
     subopt_list = []

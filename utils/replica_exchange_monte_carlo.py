@@ -1,3 +1,20 @@
+"""
+This module contains functions for performing replica exchange Monte Carlo simulations.
+
+Replica exchange Monte Carlo (REMC) is a simulation technique used in computational biology to explore
+conformational space and predict the folding behavior of RNA molecules. This module provides functions
+for replica exchange, Metropolis criterion, and mutation processes necessary for REMC simulations.
+
+Functions:
+- mc_delta(deltaF_o, deltaF_m, T_replica, sim_options): Determine whether a mutation is accepted based on the Metropolis criterion.
+- metropolis_score(temp, dE, sim_options): Calculate the Metropolis score.
+- replica_exchange_attempt(T0, T1, dE0, dE1, sim_options): Attempt to exchange replicas.
+- replica_exchange(seq_score_list, stats_obj, sim_options): Perform the replica exchange.
+- single_replica_design(sequence_o, nt_list, worker_stats, sim_options, input_file): Perform replica design for a single replica.
+- par_wrapper(args): Wrapper function for parallel processing.
+- mutate_sequence_re(lst_seq_obj, nt_list, stats_obj, sim_options, input_file): Mutate a list of sequence objects in parallel.
+"""
+
 import random
 import math
 
@@ -5,17 +22,25 @@ import multiprocess as mp
 
 from utils import sequence_utils as seq_utils
 
+
 def mc_delta(deltaF_o, deltaF_m, T_replica, sim_options):
     """
     Determine whether a mutation is accepted based on the Metropolis criterion.
 
-    Args:
-    T_replica (float): Temperature of the replica.
-    deltaF_o (float): Original free energy.
-    deltaF_m (float): Mutated free energy.
+    Parameters:
+        T_replica (float): Temperature of the replica.
+            The temperature of the replica at which the mutation is being considered.
+        deltaF_o (float): Original free energy.
+            The free energy of the original sequence.
+        deltaF_m (float): Mutated free energy.
+            The free energy of the mutated sequence.
+        sim_options (object): DesignOptions object.
+            An object containing simulation options and parameters.
 
     Returns:
-    tuple: A tuple containing two boolean values indicating whether the mutation is accepted and whether the mutated scoring function is better.
+        tuple: A tuple containing two boolean values indicating whether the mutation is accepted and whether the mutated scoring function is better.
+            - accept (bool): True if the mutation is accepted, False otherwise.
+            - accept_e (bool): True if the mutated scoring function is better, False otherwise.
     """
 
     accept_e = False
@@ -37,11 +62,15 @@ def metropolis_score(temp, dE, sim_options):
     Calculate the Metropolis score.
 
     Args:
-    temp (float): Temperature.
-    dE (float): Energy difference.
+        temp (float): Temperature of the replica.
+            The temperature at which the Metropolis score is calculated.
+        dE (float): Energy difference.
+            The energy difference between two states or configurations.
+        sim_options (object): DesignOptions object.
+            An object containing simulation options and parameters.
 
     Returns:
-    float: Metropolis score.
+        tuple: A tuple containing two boolean values indicating whether the mutation is accepted and whether the mutated scoring function is better.
     """
 
     score = math.exp((-sim_options.L / temp) * (dE))
@@ -54,13 +83,19 @@ def replica_exchange_attempt(T0, T1, dE0, dE1, sim_options):
     Attempt to exchange replicas.
 
     Args:
-    T0 (float): Temperature of the first replica.
-    T1 (float): Temperature of the second replica.
-    dE0 (float): Energy of the first replica.
-    dE1 (float): Energy of the second replica.
+        T0 (float): Temperature of the first replica.
+            The temperature of the first replica.
+        T1 (float): Temperature of the second replica.
+            The temperature of the second replica.
+        dE0 (float): Energy of the first replica.
+            The energy of the first replica.
+        dE1 (float): Energy of the second replica.
+            The energy of the second replica.
+        sim_options (object): DesignOptions object.
+            An object containing simulation options and parameters.
 
     Returns:
-    tuple: A tuple containing two boolean values indicating whether the exchange is accepted and whether the exchange resulted in a better energy.
+        tuple: A tuple containing two boolean values indicating whether the exchange is accepted and whether the exchange resulted in a better energy.
     """
 
     accept_e = False
@@ -80,11 +115,15 @@ def replica_exchange(seq_score_list, stats_obj, sim_options):
     Perform the replica exchange.
 
     Args:
-        replicas (list): List of replica objects.
+        seq_score_list (list): List of ScoreSeq objects.
+            A list of sequence objects representing the replicas.
         stats_obj (object): Statistics object.
+            An object for storing statistics related to the replica exchange.
+        sim_options (object): DesignOptions object.
+            An object containing simulation options and parameters.
 
     Returns:
-        tuple: A tuple containing the list of replicas after exchange and the updated statistics object.
+        tuple: A tuple containing the list of replicas after exchange (seq_score_list) and the updated statistics object (stats_obj).
     """
 
     re_pairs = []
@@ -133,25 +172,20 @@ def replica_exchange(seq_score_list, stats_obj, sim_options):
 
     return seq_score_list, stats_obj
 
+
 def single_replica_design(sequence_o, nt_list, worker_stats, sim_options, input_file):
     """
     Perform the replica design for a single replica.
 
-    Parameters
-    ----------
-    sequence_o : ScoreSeq object
-        The original sequence to be mutated.
-    nt_list : list
-        List of possible nucleotides for mutation.
-    worker_stats : Stats object
-        Object to store the statistics of the worker.
+    Args:
+        sequence_o (ScoreSeq object): The original sequence to be mutated.
+        nt_list (list): List of possible nucleotides for mutation.
+        worker_stats (Stats object): Object to store the statistics of the worker.
+        sim_options (DesignOptions object): Object containing simulation options and parameters.
+        input_file (object): Object containing input file data.
 
-    Returns
-    -------
-    best_score : ScoreSeq object
-        The best scored sequence after performing the replica design.
-    worker_stats : Stats object
-        Updated statistics of the worker.
+    Returns:
+        tuple: A tuple containing the best scored sequence after performing the replica design (sequence_o) and the updated statistics of the worker (worker_stats).
     """
 
     worker_stats.reset_mc_stats()
@@ -175,6 +209,7 @@ def single_replica_design(sequence_o, nt_list, worker_stats, sim_options, input_
 
     return sequence_o, worker_stats
 
+
 def par_wrapper(args):
     """
     Wrapper function for parallel processing.
@@ -194,17 +229,20 @@ def par_wrapper(args):
 
     return single_replica_design(*args)
 
+
 def mutate_sequence_re(lst_seq_obj, nt_list, stats_obj, sim_options, input_file):
     """
-    This function mutates a list of sequence objects in parallel.
+    Mutate a list of sequence objects in parallel.
 
-    Parameters:
-    lst_seq_obj (list): A list of sequence objects to mutate.
-    nt_list (list): A list of possible nucleotides to use in mutation.
-    stats_obj (object): A statistical object to keep track of the mutation process.
+    Args:
+        lst_seq_obj (list): List of sequence objects to mutate.
+        nt_list (list): List of possible nucleotides for mutation.
+        stats_obj (Stats object): Object to keep track of mutation statistics.
+        sim_options (DesignOptions object): Object containing simulation options and parameters.
+        input_file (object): Object containing input file data.
 
     Returns:
-    list: A list of mutated sequence objects.
+        tuple: A tuple containing the list of mutated sequence objects and the updated statistics object.
     """
 
     with mp.Pool(sim_options.replicas) as pool:

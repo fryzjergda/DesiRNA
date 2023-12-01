@@ -10,14 +10,19 @@ Run the script with command-line arguments to specify input files, parameters fo
 Example:
 python DesiRNA.py [options]
 
-Note:
+Dependencies:
 This script uses several external libraries and modules, such as RNA for RNA secondary structure prediction, and pandas for data handling. Ensure these dependencies are installed and properly configured in your Python environment.
+
+Note:
+For detailed documentation on command-line arguments and options, refer to the accompanying README file or the help command (python DesiRNA.py -h).
+
+Author: Tomasz Wirecki
+Version: 11.2023
 """
 
 import argparse as argparse
 import sys
 import random
-import math
 import csv
 import time
 import re
@@ -26,30 +31,26 @@ import os
 from datetime import datetime
 from pathlib import Path
 from shutil import copy
-from shutil import move
-
-import numpy as np
-import multiprocess as mp
-import pandas as pd
 
 import RNA
 
-#from utils import functions_classes as func
-#from utils.SimScore import SimScore
 from utils import sequence_utils as seq_utils
 from utils import replica_exchange_monte_carlo as remc
 from utils import stats_inputs_outputs as sio
-#from DesiRNA.utils import sequence_utils
+
 
 def print_action_group_help(parser, action_group, include_all=False, print_usage=True):
     """
     Prints help information for a specific action group within an argparse parser.
 
     Parameters:
-    parser (ArgumentParser): The argparse parser object.
-    action_group (ArgumentGroup): The action group within the parser for which to print help.
-    include_all (bool): If True, includes all actions in the usage. Defaults to False.
-    print_usage (bool): If True, prints the usage information. Defaults to True.
+    - parser (ArgumentParser): The argparse parser object.
+    - action_group (ArgumentGroup): The action group within the parser for which to print help.
+    - include_all (bool, optional): If True, includes all actions in the usage. Defaults to False.
+    - print_usage (bool, optional): If True, prints the usage information. Defaults to True.
+
+    Returns:
+    - None: This function does not return a value but prints help information to the console.
     """
 
     formatter = parser._get_formatter()
@@ -113,7 +114,18 @@ class AdvancedHelpAction(argparse.Action):
         super(AdvancedHelpAction, self).__init__(option_strings=option_strings, dest=dest, default=default, nargs=0, help=help)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        # Display both standard and advanced options
+        """
+        Executes the action to display advanced help options.
+
+        This method is called when the action is triggered in the command-line interface. It prints the help information for both standard and advanced options, and then exits the parser.
+
+        Parameters:
+        - parser (ArgumentParser): The argparse parser instance.
+        - namespace (Namespace): An object where the parser will add attribute data.
+        - values: The associated command-line arguments; not used in this method.
+        - option_string (str, optional): The option string that was used to trigger this action.
+
+        """
         print_action_group_help(parser, parser._action_groups[-2], include_all=True)  # Standard Options with usage
         print_action_group_help(parser, parser._action_groups[-1], include_all=True, print_usage=False)  # Advanced Options without usage
         parser.exit()
@@ -237,12 +249,11 @@ def argument_parser():
     tm_min = args.tm_min
     sws = args.sws
 
-
     sim_options = DesignOptions(infile, replicas, timlim, acgu_percs, t_max, t_min, oligo, param, exchange_rate, scoring_f, pm, tshelves,\
-        in_seed, subopt, diff_start_replicas, num_results, acgu_content, steps, tm_max, tm_min, motifs, dimer, sws)
-    
+                                in_seed, subopt, diff_start_replicas, num_results, acgu_content, steps, tm_max, tm_min, motifs, dimer, sws)
+
     return sim_options
-    
+
 
 def initialize_simulation(input_file):
     """
@@ -280,10 +291,12 @@ def generate_sequences(nt_list, input_file, sim_options):
     Args:
     nt_list (list): A list of nucleotide constraints.
     input_file (InputFile): The input file object with sequence data.
+    sim_options (DesignOptions): An object holding all the simulation options provided by the user.
 
     Returns:
     list: A list of initialized sequence objects.
     """
+
     sequence_score_list = seq_utils.generate_initial_list(nt_list, input_file, sim_options)
     seq_utils.generate_initial_list_random(nt_list, input_file, sim_options)
 
@@ -298,8 +311,9 @@ def handle_non_mutable_sequence(input_file, simulation_data, sim_options):
     Args:
     input_file (InputFile): The input file object containing sequence data.
     simulation_data (list): The simulation data to be processed.
-    output_name (str): The base name for the output file.
+    sim_options (DesignOptions): The object containing simulation options, including the output file name.
     """
+
     if all(char in "ACGU&" for char in input_file.seq_restr):
         print("Cannot mutate the sequence due to sequence constraints.\nScoring sequence.")
         sorted_results = sorted(seq_utils.round_floats(simulation_data), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
@@ -312,28 +326,17 @@ def handle_non_mutable_sequence(input_file, simulation_data, sim_options):
         sys.exit()
 
 
-
-
-
-
-
 def run_functions(input_file, sim_options, now):
     """
     This function runs the design process, which includes mutation, scoring, and selection.
 
     Parameters:
-    sequence_o (str): The initial sequence.
-    nt_list (list): A list of possible nucleotides to use in mutation.
-    input_file (object): An object that encapsulates the input parameters.
-    temps (list): A list of temperature values to use in the design process.
-    steps (int): The number of steps to run in the design process.
-    scoring_f (str): The scoring function to use.
-    mutations (str): The type of mutations to use.
-    exchange_rate (int): The rate at which to attempt exchanges between replicas.
-    stats_o (object): A statistical object to keep track of the design process.
+    input_file (InputFile): An object that encapsulates the input parameters for the simulation.
+    sim_options (DesignOptions): An object containing options and configurations for the simulation process.
+    now (datetime): The current datetime, used for tracking the start of the simulation process.
 
     Returns:
-    list: A list of sequences that are the result of the design process.
+    None: This function initiates the design process but does not return any value.
     """
 
     nt_list = initialize_simulation(input_file)
@@ -421,14 +424,27 @@ def print_filtered_log(filename, exclude_text):
             if exclude_text not in line:
                 print(line, end='', file=sys.stderr)
 
+
 def update_options(sim_options, input_file_obj):
+    """
+    Updates the simulation options based on the input file and provided configurations.
+
+    This function adjusts various simulation parameters, including time limits, ACGU content,
+    secondary structure options, and temperature shelves, based on the input file and user-defined options.
+
+    Parameters:
+    sim_options (DesignOptions): An object containing simulation options and configurations.
+    input_file_obj (InputFile): An object encapsulating the input file data, such as sequence and structure.
+
+    Returns:
+    tuple: A tuple containing the updated simulation options and the basename of the input file.
+    """
 
     if sim_options.RE_steps != None:
         sim_options.update_timlim(100000000000000000)
 
     if sim_options.param == '1999':
         RNA.params_load(os.path.join(script_path, "rna_turner1999.par"))
-
 
     if sim_options.acgu_content == '':
         sim_options.add_nt_perc({"A": 15, "C": 30, "G": 30, "U": 15})
@@ -439,13 +455,10 @@ def update_options(sim_options, input_file_obj):
             sys.exit()
         sim_options.add_nt_perc({"A": acgu_l[0], "C": acgu_l[1], "G": acgu_l[2], "U": acgu_l[3]})
 
-
-
     if input_file_obj.alt_sec_struct != None:
         sim_options.add_alt_ss("on")
     else:
         sim_options.add_alt_ss("off")
-
 
     oligo_opt = "none"
 
@@ -462,16 +475,12 @@ def update_options(sim_options, input_file_obj):
 
     sim_options.add_oligo_state(oligo_opt)
 
-
     if set(input_file_obj.sec_struct).issubset('.()&'):
         sim_options.add_pks("off")
     else:
         sim_options.add_pks("on")
 
-
-
     filename = os.path.basename(sim_options.infile)
-
 
     sim_options.add_outname(sio.get_outname(filename, sim_options))
 
@@ -482,15 +491,49 @@ def update_options(sim_options, input_file_obj):
 
     sim_options.add_rep_temps_shelfs(rep_temps_shelfs_opt)
 
-    
-    
     return sim_options, filename
 
 
 class DesignOptions:
-    def __init__(self,infile, replicas, timlim, acgu_percentages, T_max, T_min, oligo, param, RE_attempt, scoring_f, point_mutations,
-            tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs, dimer, sws):
-        self.infile = infile 
+    """
+    A class to store and manage design options for RNA sequence simulations.
+
+    Attributes:
+    infile (str): Input file path.
+    replicas (int): Number of replicas in the simulation.
+    timlim (int): Time limit for the simulation run.
+    acgu_percentages (dict): Percentages of A, C, G, U nucleotides.
+    T_max (float): Maximum temperature for replicas.
+    T_min (float): Minimum temperature for replicas.
+    oligo (str): Oligomerization option.
+    param (str): Parameter set for RNA folding (e.g., '1999' for Turner 1999 parameters).
+    RE_attempt (int): Frequency of replica exchange attempts.
+    scoring_f (str): Scoring function for sequence evaluation.
+    point_mutations (str): Type of point mutations allowed.
+    tshelves (str): Temperature shelves.
+    in_seed (int): Seed for random number generator.
+    subopt (bool): Suboptimal design option.
+    diff_start_replicas (bool): Start replicas with different sequences.
+    num_results (int): Number of results to output.
+    acgu_content (str): ACGU content configuration.
+    RE_steps (int): Number of steps for replica exchange.
+    tm_max (float): Maximum threshold for targeted mutation percentage.
+    tm_min (float): Minimum threshold for targeted mutation percentage.
+    motifs (str): Specific motifs to include in the design.
+    dimer (str): Dimerization option.
+    sws (str): Stop when solved option.
+    L (float): Constant for Monte Carlo algorithm.
+
+    Methods are designed to update various aspects of these attributes.
+    """
+
+    def __init__(self, infile, replicas, timlim, acgu_percentages, T_max, T_min, oligo, param, RE_attempt, scoring_f, point_mutations,
+                 tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs, dimer, sws):
+        """
+        Initializes the DesignOptions object with provided simulation parameters.
+        Parameters are self-explanatory based on the attribute names.
+        """
+        self.infile = infile
         self.replicas = replicas
         self.timlim = timlim
         self.acgu_percentages = acgu_percentages
@@ -513,30 +556,63 @@ class DesignOptions:
         self.motifs = motifs
         self.dimer = dimer
         self.sws = sws
-        self.L = 504.12   
-        
-    def update_timlim(self, timlim):
-        self.timlim = timlim
-        
-        
-    def add_nt_perc(self, nt_percentages):
-        self.nt_percentages = nt_percentages
-    
-    def add_oligo_state(self, oligo_state):
-        self.oligo_state = oligo_state
-    
-    def add_alt_ss(self, alt_ss):
-        self.alt_ss = alt_ss
-    
-    def add_pks(self, pks):
-        self.pks = pks
-    
-    def add_rep_temps_shelfs(self, rep_temps_shelfs):
-        self.rep_temps_shelfs = rep_temps_shelfs
-    
-    def add_outname(self, outname):
-        self.outname = os.path.basename(outname)
+        self.L = 504.12
 
+    def update_timlim(self, timlim):
+        """
+        Updates the time limit for the simulation.
+        Args:
+        timlim (int): New time limit value.
+        """
+        self.timlim = timlim
+
+    def add_nt_perc(self, nt_percentages):
+        """
+        Adds nucleotide percentages to the options.
+        Args:
+        nt_percentages (dict): Dictionary of nucleotide percentages.
+        """
+        self.nt_percentages = nt_percentages
+
+    def add_oligo_state(self, oligo_state):
+        """
+        Updates the oligo state option.
+        Args:
+        oligo_state (str): New oligo state.
+        """
+        self.oligo_state = oligo_state
+
+    def add_alt_ss(self, alt_ss):
+        """
+        Adds alternative secondary structure option.
+        Args:
+        alt_ss (str): Dot bracket of alternative structure.
+        """
+        self.alt_ss = alt_ss
+
+    def add_pks(self, pks):
+        """
+        Adds pseudoknot inclusion state.
+        Args:
+        pks (str): State of pseudoknot inclusion ('on' or 'off').
+        """
+        self.pks = pks
+
+    def add_rep_temps_shelfs(self, rep_temps_shelfs):
+        """
+        Updates the replica temperature shelves.
+        Args:
+        rep_temps_shelfs (list): List of temperature values.
+        """
+        self.rep_temps_shelfs = rep_temps_shelfs
+
+    def add_outname(self, outname):
+        """
+        Sets the output filename.
+        Args:
+        outname (str): Output file name.
+        """
+        self.outname = os.path.basename(outname)
 
 
 if __name__ == "__main__":
@@ -560,10 +636,7 @@ if __name__ == "__main__":
 
         script_path = os.path.dirname(os.path.abspath(__file__))
 
-
-
         simulation_options = argument_parser()
-        
 
         input_file_g = sio.read_input(simulation_options.infile)
         print(simulation_options.infile)
@@ -576,10 +649,9 @@ if __name__ == "__main__":
             original_seed = random.random()
 
         random.seed(original_seed)
-        
+
         now = datetime.now()
         now = now.strftime("%Y%m%d.%H%M%S")
-
 
         WORK_DIR = simulation_options.outname + "_" + str(now)
         Path(WORK_DIR).mkdir(parents=True, exist_ok=True)
@@ -587,8 +659,6 @@ if __name__ == "__main__":
         Path(WORK_DIR + "/trajectory_files").mkdir(parents=True, exist_ok=True)
         os.chdir(WORK_DIR)
 
-        
-        
         with open(simulation_options.outname + ".command", 'w', encoding='utf-8') as f:
             print(command, file=f)
 
