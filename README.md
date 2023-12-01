@@ -380,7 +380,7 @@ This subdirectory contains output files and data generated as a result of RNA se
 
 ## Tests
 
-The "Tests" directory contains a variety of test cases and scripts designed to evaluate the robustness and correctness of the program. These tests are essential for detecting errors and ensuring that the program behaves as expected. The contents of this directory include:
+The "tests" directory contains a variety of test cases and scripts designed to evaluate the robustness and correctness of the program. These tests are essential for detecting errors and ensuring that the program behaves as expected. The contents of this directory include:
 
 - `test_DesiRNA.sh`: This script runs various test cases to assess the overall functionality and performance of the program.
 - `test_DesiRNA_errors.sh`: This script executes tests using the error input files to check if the program correctly identifies and handles errors.    
