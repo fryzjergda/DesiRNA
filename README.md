@@ -23,6 +23,7 @@ DesiRNA is a state-of-the-art RNA sequence design tool, that stands out for its 
 - [Output Files](#output-files)
 - [Citation](#citation)
 - [Benchmark](#benchmark)
+- [Tests]()
 - [License](#license)
 - [Contact](#contact)
 
@@ -102,6 +103,7 @@ DesiRNA.py -f NAME
 
 ### Advanced Options
 
+- `sws, --stop_when_solved {off,on}`: Stop after finding the desired number of solutions (--results_number) (default: off).
 - `-p, --param {2004,1999}`: Turner energy parameter for calculating MFE (default: 1999).
 - `-tmin, --tmin`: Minimal Replica Temperature (default: 10).
 - `-tmax, --tmax`: Maximal Replica Temperature (default: 150).
@@ -113,6 +115,7 @@ DesiRNA.py -f NAME
   - `sln_Epf`: Sequence Length Normalized Epf.
   - `1-precision`: One minus precision (TP/(TP+FP)).
   - `1-recall`: One minus recall (TP/(TP+FN)).
+  - `Edef`: Ensemble defect - deviation of the RNA secondary structure ensemble from the target structure, normalized by sequence length.
 
 - `-nd, --negative_design {off,on}`: Use negative design approach (default: off).
 - `-acgu_content, --ACGU_content`: Provide user-defined ACGU content, comma-separated values e.g., ```-acgu_content 10,40,40,10```.
@@ -348,7 +351,25 @@ This directory contains the input files used for the benchmark tests. There are 
 
 These files are organized in the same format as described in the [Input Files](#input-files) section.
 
+## Tests
 
+The "Tests" directory contains a variety of test cases and scripts designed to evaluate the robustness and correctness of the program. These tests are essential for detecting errors and ensuring that the program behaves as expected. The contents of this directory include:
+
+    Error_inputs: This subdirectory contains a set of input files that intentionally trigger specific error conditions. These files are used to test the program's error-handling capabilities and include scenarios such as invalid sequences, structural constraints, or formatting errors.
+        Error_input_cannot_mutate.txt: Input file with constraints that prevent mutation.
+        Error_input_different_length.txt: Input file with sequences of different lengths.
+        Error_input_no_closing_bracket.txt: Input file with missing closing brackets in structural constraints.
+        Error_input_no_opening_bracket.txt: Input file with missing opening brackets in structural constraints.
+        Error_input_sec_struct_character.txt: Input file with invalid characters in secondary structure constraints.
+        Error_input_sequence_character.txt: Input file with invalid characters in sequence data.
+        Error_input_too_much_structures.txt: Input file with an excessive number of structural constraints.
+        Error_input_wrong_seq_restraints.txt: Input file with incorrect sequence restraints.
+
+    test_DesiRNA_errors.sh: This script executes tests using the error input files to check if the program correctly identifies and handles errors.
+
+    test_DesiRNA.sh: This script runs various test cases to assess the overall functionality and performance of the program.
+
+These tests are an integral part of quality assurance, helping to identify and address issues within the program. Users can run these tests to verify the correctness of their program installation and ensure that it can handle different error scenarios gracefully.
 
 ## Citation
 
