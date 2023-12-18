@@ -193,6 +193,9 @@ def argument_parser():
                                 help="User defined seed number for simulation. [default = 0]")
     advanced_group.add_argument("-re_seq", "--replicas_sequences", required=False, dest="diff_start_replicas", default='one', choices=['different', 'same'],
                                 help="Choose wether replicas will start from the same random sequence or each replica will start from different random sequence. [default = same]")
+    advanced_group.add_argument('-od', '--output_directory', required=False, dest="od", type=str, help="Output directory name.")
+
+    advanced_group.add_argument('-wt', '--without_timer', required=False, dest='wt', default='off', choices=['off', 'on'])
 
     parser.add_argument('-h', action=StandardHelpAction, help='Show standard help message and exit.')
     parser.add_argument('-H', action=AdvancedHelpAction, help='Show advanced help message and exit.')
@@ -248,9 +251,11 @@ def argument_parser():
     tm_max = args.tm_max
     tm_min = args.tm_min
     sws = args.sws
+    od = args.od
+    wt = args.wt
 
     sim_options = DesignOptions(infile, replicas, timlim, acgu_percs, t_max, t_min, oligo, param, exchange_rate, scoring_f, pm, tshelves,\
-                                in_seed, subopt, diff_start_replicas, num_results, acgu_content, steps, tm_max, tm_min, motifs, dimer, sws)
+                                in_seed, subopt, diff_start_replicas, num_results, acgu_content, steps, tm_max, tm_min, motifs, dimer, sws, od, wt)
 
     return sim_options
 
@@ -353,8 +358,8 @@ def run_functions(input_file, sim_options, now):
     stats = sio.Stats()
 
     while time.time() - start_time < sim_options.timlim:
-
-        print('ETA', round((sim_options.timlim - (time.time() - start_time)), 0), 'seconds', end='\r')
+        if sim_options.wt == "off":
+            print('ETA', round((sim_options.timlim - (time.time() - start_time)), 0), 'seconds', end='\r')
 
         stats.update_global_step()
         seqence_score_list, stats = remc.mutate_sequence_re(seqence_score_list, nt_list, stats, sim_options, input_file)
@@ -528,7 +533,7 @@ class DesignOptions:
     """
 
     def __init__(self, infile, replicas, timlim, acgu_percentages, T_max, T_min, oligo, param, RE_attempt, scoring_f, point_mutations,
-                 tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs, dimer, sws):
+                 tshelves, in_seed, subopt, diff_start_replicas, num_results, acgu_content, RE_steps, tm_max, tm_min, motifs, dimer, sws, od, wt):
         """
         Initializes the DesignOptions object with provided simulation parameters.
         Parameters are self-explanatory based on the attribute names.
@@ -557,6 +562,8 @@ class DesignOptions:
         self.dimer = dimer
         self.sws = sws
         self.L = 504.12
+        self.od = od
+        self.wt = wt
 
     def update_timlim(self, timlim):
         """
@@ -639,7 +646,8 @@ if __name__ == "__main__":
         simulation_options = argument_parser()
 
         input_file_g = sio.read_input(simulation_options.infile)
-        print(simulation_options.infile)
+        if simulation_options.wt == "off":
+            print(simulation_options.infile)
 
         simulation_options, filename = update_options(simulation_options, input_file_g)
 
@@ -653,7 +661,11 @@ if __name__ == "__main__":
         now = datetime.now()
         now = now.strftime("%Y%m%d.%H%M%S")
 
-        WORK_DIR = simulation_options.outname + "_" + str(now)
+        if simulation_options.od is not None:
+            WORK_DIR = simulation_options.od
+        else:
+            WORK_DIR = simulation_options.outname + "_" + str(now)
+
         Path(WORK_DIR).mkdir(parents=True, exist_ok=True)
         copy(simulation_options.infile, WORK_DIR + "/" + filename)
         Path(WORK_DIR + "/trajectory_files").mkdir(parents=True, exist_ok=True)
