@@ -162,6 +162,9 @@ def get_nt_list(input_file):
         if list_of_nt[i].letters_allowed == None:
             list_of_nt[i].letters_allowed = list_of_nt[i].letters
 
+    for i in range(len(list_of_nt)):
+        print(vars(list_of_nt[i]))
+    quit()
     return list_of_nt
 
 
