@@ -164,7 +164,7 @@ def get_nt_list(input_file):
 
     for i in range(len(list_of_nt)):
         print(vars(list_of_nt[i]))
-    quit()
+    #quit()
     return list_of_nt
 
 
