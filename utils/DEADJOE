@@ -1,0 +1,49 @@
+
+*** These modified files were found in JOE when it aborted on Wed Feb 14 18:58:58 2024
+*** JOE was aborted because the terminal closed
+
+*** File '(Unnamed)'
+sim_options.sws
+sim_options.L
+sim_options.nt_percentages
+sim_options.alt_ss
+sim_options.oligo_state
+sim_options.pks
+sim_options.rep_temps_shelfs
+seq_score_list
+input_file_obj
+sim_options
+
+*** File '(Unnamed)'
+func.
+score_motifs
+RNA
+conf
+get_pk_struct
+WPS
+Cyan
+-
+-
+-
+subopt
+get_edesired2
+get_first_suboptimal_structure_and_energy
+
+*** File '(Unnamed)'
+ll
+ll
+sam1
+sam1
+sam1
+sam1.fa
+sam1.fa
+sam1.fa
+sam1.fa
+sam1_nolp.fa
+energy_scores.py
+
+*** File '* Startup Log *'
+Processing '/home/fryzjer/.joerc'...
+Processing '/home/fryzjer/.joe/ftyperc'...
+Finished processing /home/fryzjer/.joe/ftyperc
+Finished processing /home/fryzjer/.joerc

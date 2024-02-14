@@ -268,19 +268,21 @@ def initialize_simulation(input_file):
 
     input_file.pairs = seq_utils.check_dot_bracket(input_file.sec_struct)  # check dotbracket correctness, assign as list of pairs
     input_file.set_target_pairs_tupl()
+    print(input_file.pairs)
 
     if input_file.alt_sec_structs != None:
         print(input_file.alt_sec_structs)
-        for i in range(0, len(input_file.alt_sec_structs)):
-            print("Checking brackets for alternative structure ", i + 1)
-            seq_utils.check_dot_bracket(input_file.alt_sec_structs[i])
         print("Alternative structures are ok.")
+        alt_pairs = seq_utils.get_pairs_for_graphs(input_file)
+        input_file.graphs = seq_utils.generate_graphs(alt_pairs)
+        seq_utils.update_graphs(input_file)
+
 
     seq_utils.check_seq_restr(input_file.seq_restr)
     seq_utils.check_length(input_file.sec_struct, input_file.seq_restr)
     nt_list = seq_utils.get_nt_list(input_file)
     seq_utils.check_input_logic(nt_list)
-
+    
     return nt_list
 
 
@@ -617,53 +619,53 @@ class DesignOptions:
 
 if __name__ == "__main__":
 
-    log_filename = "tmp_log.txt"
-    original_stderr, stderr_log = redirect_stderr_to_file(log_filename)
+    #log_filename = "tmp_log.txt"
+    #original_stderr, stderr_log = redirect_stderr_to_file(log_filename)
 
-    try:
+    #try:
 
-        if len(sys.argv) == 1:
-            print("DesiRNA")
-            print("usage: DesiRNA.py [-h] [-H]")
-            print("\nOptions:")
-            print("  -h  Display basic usage and options.")
-            print("  -H  Display detailed help, including advanced options.")
-            sys.exit(1)
-
+    if len(sys.argv) == 1:
         print("DesiRNA")
+        print("usage: DesiRNA.py [-h] [-H]")
+        print("\nOptions:")
+        print("  -h  Display basic usage and options.")
+        print("  -H  Display detailed help, including advanced options.")
+        sys.exit(1)
 
-        command = os.path.basename(sys.argv[0]) + ' ' + ' '.join(sys.argv[1:])
+    print("DesiRNA")
 
-        script_path = os.path.dirname(os.path.abspath(__file__))
+    command = os.path.basename(sys.argv[0]) + ' ' + ' '.join(sys.argv[1:])
 
-        simulation_options = argument_parser()
+    script_path = os.path.dirname(os.path.abspath(__file__))
 
-        input_file_g = sio.read_input(simulation_options.infile)
-        print(simulation_options.infile)
+    simulation_options = argument_parser()
 
-        simulation_options, filename = update_options(simulation_options, input_file_g)
+    input_file_g = sio.read_input(simulation_options.infile)
+    print(simulation_options.infile)
 
-        if simulation_options.in_seed != 0:
-            original_seed = 2137 + simulation_options.in_seed
-        else:
-            original_seed = random.random()
+    simulation_options, filename = update_options(simulation_options, input_file_g)
 
-        random.seed(original_seed)
+    if simulation_options.in_seed != 0:
+        original_seed = 2137 + simulation_options.in_seed
+    else:
+        original_seed = random.random()
 
-        now = datetime.now()
-        now = now.strftime("%Y%m%d.%H%M%S")
+    random.seed(original_seed)
 
-        WORK_DIR = simulation_options.outname + "_" + str(now)
-        Path(WORK_DIR).mkdir(parents=True, exist_ok=True)
-        copy(simulation_options.infile, WORK_DIR + "/" + filename)
-        Path(WORK_DIR + "/trajectory_files").mkdir(parents=True, exist_ok=True)
-        os.chdir(WORK_DIR)
+    now = datetime.now()
+    now = now.strftime("%Y%m%d.%H%M%S")
 
-        with open(simulation_options.outname + ".command", 'w', encoding='utf-8') as f:
-            print(command, file=f)
+    WORK_DIR = simulation_options.outname + "_" + str(now)
+    Path(WORK_DIR).mkdir(parents=True, exist_ok=True)
+    copy(simulation_options.infile, WORK_DIR + "/" + filename)
+    Path(WORK_DIR + "/trajectory_files").mkdir(parents=True, exist_ok=True)
+    os.chdir(WORK_DIR)
 
-        run_functions(input_file_g, simulation_options, now)
+    with open(simulation_options.outname + ".command", 'w', encoding='utf-8') as f:
+        print(command, file=f)
 
+    run_functions(input_file_g, simulation_options, now)
+    '''    
     except Exception as e:
         # Close the log, restore stderr, and raise the exception
         stderr_log.close()
@@ -682,3 +684,4 @@ if __name__ == "__main__":
         os.remove("../" + log_filename)
     except FileNotFoundError:
         pass
+    '''

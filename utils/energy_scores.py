@@ -97,6 +97,12 @@ def score_sequence(seq, input_file, sim_options):
 
     if input_file.alt_sec_struct != None:
         energies = [fold_comp.eval_structure(alt_dbn) for alt_dbn in input_file.alt_sec_structs]
+        scored_sequence.get_edesired2(sum(energies) / len(energies))
+        scored_sequence.get_edesired2_minus_Epf(scored_sequence.Epf, scored_sequence.edesired2)
+        scored_sequence.get_scoring_function_w_alt_ss()
+    '''
+    if input_file.alt_sec_struct != None:
+        energies = [fold_comp.eval_structure(alt_dbn) for alt_dbn in input_file.alt_sec_structs]
         #subopt_e_ss = get_first_suboptimal_structure_and_energy(scored_sequence.sequence, fold_comp)
         scored_sequence.get_edesired2(sum(energies) / len(energies))
         #scored_sequence.get_edesired2(subopt_e_ss[1])
@@ -108,7 +114,7 @@ def score_sequence(seq, input_file, sim_options):
         #ssc_alt.find_basepairs()
         #ssc_alt.cofusion_matrix()
         #scored_sequence.get_mcc_alt(ssc_alt.mcc())
-
+    '''
     if (sim_options.subopt == "on") and (scored_sequence.mcc == 0):
         scored_sequence.get_subopt_e(get_first_suboptimal_structure_and_energy(seq, fold_comp)[1])
         scored_sequence.get_esubopt_minus_Epf(scored_sequence.Epf, scored_sequence.subopt_e)

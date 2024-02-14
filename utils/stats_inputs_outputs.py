@@ -769,10 +769,14 @@ class InputFile:
         self.sec_struct = sec_struct
         self.seq_restr = seq_restr
         self.pairs = []
+        self.alt_pairs = None
         self.seed_seq = None
         self.alt_sec_struct = None
         self.alt_sec_structs = None
         self.target_pairs_tupl = {}
+        self.graphs = None
+        self.excluded_alt_pairs = None
+        self.allsnakes = None
 
     def add_seed_seq(self, seed_seq):
         """

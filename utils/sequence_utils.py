@@ -33,9 +33,31 @@ import sys
 
 import numpy as np
 
+from collections import deque
+
+
 from utils import energy_scores as es
 # from utils.SimScore import SimScore
 
+
+constraints_dict = {
+    'N': ['A', 'C', 'G', 'U'],
+    'W': ['A', 'U'],
+    'S': ['C', 'G'],
+    'M': ['A', 'C'],
+    'K': ['G', 'U'],
+    'R': ['A', 'G'],
+    'Y': ['C', 'U'],
+    'B': ['C', 'G', 'U'],
+    'D': ['A', 'G', 'U'],
+    'H': ['A', 'C', 'U'],
+    'V': ['A', 'C', 'G'],
+    'C': ['C'],
+    'A': ['A'],
+    'G': ['G'],
+    'U': ['U'],
+    '&': ['&']
+}
 
 def check_dot_bracket(ss):
     """
@@ -81,6 +103,209 @@ def check_dot_bracket(ss):
 
     return pairs_list
 
+def get_alt_pairs(input_file):
+    
+    alt_pairs = []
+    for i in range(0,len(input_file.alt_sec_structs)):
+        alt_pairs.append(check_dot_bracket(input_file.alt_sec_structs[i]))
+    
+    input_file.alt_pairs = alt_pairs
+    flattened_list = [pair for sublist in alt_pairs for pair in sublist]
+    input_file.alt_pairs = flattened_list
+    #return alt_pairs
+
+
+def get_pairs_for_graphs(input_file):
+    list1 = input_file.pairs
+    get_alt_pairs(input_file)
+
+    list2 = input_file.alt_pairs 
+    pairs = []
+    for pair1 in list1:
+        for pair2 in list2:
+            # Check if any element in pair1 is in pair2 and the pairs are not identical
+            if (pair1[0] in pair2 or pair1[1] in pair2) and pair1 != pair2:
+                # Add pair1 to result if not already added
+                if pair1 not in pairs:
+                    pairs.append(pair1)
+                # Add pair2 to result if not already added and it's not identical to pair1
+                if pair2 not in pairs and pair2 != pair1:
+                    pairs.append(pair2)
+
+    merged_list = list(set([tuple(pair) for pair in list1] + [tuple(pair) for pair in list2]))
+
+    # Flatten the merged list to count occurrences of each element
+    flattened_elements = [element for pair in merged_list for element in pair]
+
+    # Filtering logic: keep a pair if at least one of its elements appears in another pair
+
+    
+    excluded_pairs = []
+    filtered_pairs_corrected = []
+    for pair in merged_list:
+        if flattened_elements.count(pair[0]) > 1 or flattened_elements.count(pair[1]) > 1:
+            filtered_pairs_corrected.append(list(pair))
+        else:
+            excluded_pairs.append(list(pair))  
+
+    input_file.excluded_alt_pairs = excluded_pairs
+
+    return(filtered_pairs_corrected)
+
+
+
+# Function to parse pairs and find distinct graphs
+def find_distinct_graphs(pairs):
+    graph = {}
+    for pair in pairs:
+        a, b = pair
+        if a not in graph:
+            graph[a] = []
+        if b not in graph:
+            graph[b] = []
+        graph[a].append(b)
+        graph[b].append(a)
+    
+    visited = set()
+    distinct_graphs = []
+    
+    for start_node in graph.keys():
+        if start_node not in visited:
+            current_graph = set()
+            stack = [start_node]
+            
+            while stack:
+                node = stack.pop()
+                if node not in visited:
+                    visited.add(node)
+                    current_graph.add(node)
+                    for neighbour in graph[node]:
+                        if neighbour not in visited:
+                            stack.append(neighbour)
+                            
+            distinct_graphs.append(current_graph)
+    return distinct_graphs
+
+# Function to check if a graph is bipartite and color it
+def is_bipartite_and_color(graph):
+    color = {}
+    for vertex in graph:
+        if vertex not in color:
+            queue = deque([vertex])
+            color[vertex] = 0  # Starting color
+            while queue:
+                v = queue.popleft()
+                for u in graph[v]:
+                    if u not in color:
+                        color[u] = 1 - color[v]
+                        queue.append(u)
+                    elif color[u] == color[v]:
+                        return False, {}
+    return True, color
+
+# Main function to process pairs, find graphs, check bipartiteness, and provide coloring
+
+
+def generate_acgu_states(coloring):
+    possible_mappings = [
+        {0: 'A', 1: 'U'},
+        {0: 'U', 1: 'A'},
+        {0: 'C', 1: 'G'},
+        {0: 'G', 1: 'C'}
+    ]
+    states_per_graph = {}
+    for state, info in coloring.items():
+        if info != "Not bipartite":
+            sorted_nodes = sorted(info.keys())
+            sorted_colors = [info[node] for node in sorted_nodes]
+            states = []
+            for mapping in possible_mappings:
+                states.append([mapping[color] for color in sorted_colors])
+            states_per_graph[state] = {
+                "numbers": sorted_nodes,
+                "colors": sorted_colors,
+                "states": states
+            }
+        else:
+            states_per_graph[state] = info
+    return states_per_graph
+
+def generate_graphs(pairs):
+    # Find distinct graphs
+    distinct_graphs = find_distinct_graphs(pairs)
+    
+    results = {}
+    for index, graph_set in enumerate(distinct_graphs, start=1):
+        graph_dict = {node: [] for node in graph_set}
+        for a, b in pairs:
+            if a in graph_set and b in graph_set:
+                graph_dict[a].append(b)
+                graph_dict[b].append(a)
+        is_bipartite, coloring = is_bipartite_and_color(graph_dict)
+        if is_bipartite == False:
+            print("The structural restraints in the alternative structures cannot be solved. Check your input.")
+            sys.exit()
+        simple_coloring = {node: coloring[node] for node in sorted(coloring)}
+        results[f"Graph{index}"] = {
+            "is_bipartite": is_bipartite,
+            "coloring": simple_coloring if is_bipartite else "Not bipartite"
+        }
+
+    # Generating ACGU states for each bipartite graph
+    acgu_states = generate_acgu_states({k: v['coloring'] for k, v in results.items() if v['is_bipartite']})
+    
+    # Incorporating ACGU states into results
+    for graph_name, states in acgu_states.items():
+        results[graph_name].update({"ACGU_states": states})
+    
+    
+    
+    formatted_results = []
+
+    for graph_name, graph_info in results.items():
+        # Directly use the provided ACGU states
+        acgu_states = graph_info['ACGU_states']
+
+        formatted_result = {
+            "numbers": acgu_states['numbers'],
+            "states": acgu_states['states']
+        }
+        
+        formatted_results.append(formatted_result)
+
+        formatted_graphs = sorted(formatted_results, key=lambda x: x["numbers"][0])
+    
+    
+
+    return formatted_graphs
+
+def filter_states_by_constraints(graph_numbers, possible_states, sequence_restraint):
+    # Convert sequence restraint to list of allowed nucleotides for each position
+    restraint_allowed = [constraints_dict[nt] for nt in sequence_restraint]
+    
+    # Filter possible states based on the sequence restraint
+    valid_states = []
+    for state in possible_states:
+        is_valid = True
+        for i, nt in enumerate(graph_numbers):
+            # Check if the nucleotide at this position in the state is allowed
+            if state[i] not in restraint_allowed[nt]:
+                is_valid = False
+                break
+        if is_valid:
+            valid_states.append(state)
+    return valid_states
+
+def update_graphs(input_file):
+
+    for i in range(len(input_file.graphs)):
+        valid_states = filter_states_by_constraints(input_file.graphs[i]["numbers"], input_file.graphs[i]["states"], input_file.seq_restr)
+        if valid_states == []:
+            print("The structural restraints are contradictive to sequence restraints. Check your input.")
+            sys.exit()
+        input_file.graphs[i]["states"]=valid_states
+    
+
 
 def check_seq_restr(restr):
     """
@@ -118,6 +343,16 @@ def check_length(ss, restr):
         sys.exit()
 
 
+def get_allsnakes(input_file):
+    allsnakes = []
+
+    for i in range(len(input_file.graphs)):
+        allsnakes.append(input_file.graphs[i]["numbers"])
+    
+    allsnakes_flat = [item for sublist in allsnakes for item in sublist]
+    input_file.allsnakes = allsnakes_flat
+
+
 def get_nt_list(input_file):
     """
     Constructs a list of Nucleotide objects from the given InputFile object.
@@ -131,6 +366,20 @@ def get_nt_list(input_file):
 
     pair_list = input_file.pairs
     restr_seq = input_file.seq_restr
+    get_allsnakes(input_file)
+
+    if input_file.excluded_alt_pairs != None:
+        pair_list = pair_list + input_file.excluded_alt_pairs
+        seen = set()
+        index = 0
+        while index < len(pair_list):
+            element = tuple(pair_list[index])  # Convert to tuple for hashability if it's a list
+            if element in seen:
+                pair_list.pop(index)  # Remove the element if seen
+            else:
+                seen.add(element)
+                index += 1  
+    
 
     list_of_nt = []
 
@@ -162,9 +411,19 @@ def get_nt_list(input_file):
         if list_of_nt[i].letters_allowed == None:
             list_of_nt[i].letters_allowed = list_of_nt[i].letters
 
-    for i in range(len(list_of_nt)):
-        print(vars(list_of_nt[i]))
-    #quit()
+
+    if input_file.graphs != None:
+        snakes = []
+        for i in range(len(input_file.graphs)):
+            graph = input_file.graphs[i]
+            nts= graph["numbers"]
+            states = graph["states"]
+            for k in range(len(nts)):
+                list_of_nt[nts[k]].snake = True
+                list_of_nt[nts[k]].snake_number = i
+                list_of_nt[nts[k]].snake_nts = nts
+                list_of_nt[nts[k]].snake_states = states
+
     return list_of_nt
 
 
@@ -179,24 +438,7 @@ def nt_dictionary(nt):
     list: A list of nucleotide characters.
     """
 
-    constraints_dict = {
-        'N': ['A', 'C', 'G', 'U'],
-        'W': ['A', 'U'],
-        'S': ['C', 'G'],
-        'M': ['A', 'C'],
-        'K': ['G', 'U'],
-        'R': ['A', 'G'],
-        'Y': ['C', 'U'],
-        'B': ['C', 'G', 'U'],
-        'D': ['A', 'G', 'U'],
-        'H': ['A', 'C', 'U'],
-        'V': ['A', 'C', 'G'],
-        'C': ['C'],
-        'A': ['A'],
-        'G': ['G'],
-        'U': ['U'],
-        '&': ['&']
-    }
+    
 
     nt_all = constraints_dict[nt]
 
@@ -405,11 +647,30 @@ def initial_sequence_generator(nt_list, input_file, sim_options):
         if seq_l[i] not in ["A", "C", "G", "U"]:
             seq_l[i] = random.choice(nt_dictionary(seq_l[i]))
 
-    result_sequence = ''.join(seq_l)
 
     if input_file.seed_seq:
         result_sequence = input_file.seed_seq
 
+    for i in range(len(nt_list)):
+        print(vars(nt_list[i]))
+
+    if input_file.graphs != None:
+        first_nt_of_snakes = []
+        for i in range(len(input_file.graphs)):
+            first_nt_of_snakes.append(input_file.graphs[i]["numbers"][0])
+    
+        print(first_nt_of_snakes, "first_nt_snake")
+
+        for i in range(len(first_nt_of_snakes)):
+            nt_in_snake = nt_list[first_nt_of_snakes[i]].snake_nts
+            print(nt_in_snake, "nt in snake")
+            print(nt_list[first_nt_of_snakes[i]].snake_states)
+            state_in_snake = nt_list[first_nt_of_snakes[i]].snake_states[0]
+            print(state_in_snake, "state")
+
+            for k in range(len(nt_in_snake)):
+                seq_l[nt_in_snake[k]] = state_in_snake[k]
+    result_sequence = ''.join(seq_l)
     return result_sequence
 
 
@@ -653,50 +914,77 @@ def mutate_sequence(sequence_obj, nt_list, sim_options, input_file):
     nt_pos = get_mutation_position(sequence_obj, range_pos, sim_options, input_file)
     nt2_pos = None
 
-    if (nt_list[nt_pos].pairs_with == None) and (len(nt_list[nt_pos].letters_allowed) != 1):
-        available_mutations = nt_list[nt_pos].letters_allowed.copy()
-        if len(available_mutations) > 1:
-            if sequence_list[nt_pos] in available_mutations:
-                available_mutations.remove(sequence_list[nt_pos])
-            mutated_nt = random.choice(available_mutations)
-            sequence_list[nt_pos] = mutated_nt
-        else:
-            print("cannot mutate")
-    elif (nt_list[nt_pos].pairs_with == None) and (len(nt_list[nt_pos].letters_allowed) == 1):
-        # No mutation needed if there's only one letter allowed and it's not paired
-        pass
-    elif nt_list[nt_pos].pairs_with != None:
-        nt1 = nt_list[nt_pos]
+    print(nt_pos)
+    
+   
+    if nt_list[nt_pos].snake == False:
+        if (nt_list[nt_pos].pairs_with == None) and (len(nt_list[nt_pos].letters_allowed) != 1):
+            available_mutations = nt_list[nt_pos].letters_allowed.copy()
+            if len(available_mutations) > 1:
+                if sequence_list[nt_pos] in available_mutations:
+                    available_mutations.remove(sequence_list[nt_pos])
+                mutated_nt = random.choice(available_mutations)
+                sequence_list[nt_pos] = mutated_nt
+            else:
+                print("cannot mutate")
+        elif (nt_list[nt_pos].pairs_with == None) and (len(nt_list[nt_pos].letters_allowed) == 1):
+            # No mutation needed if there's only one letter allowed and it's not paired
+            pass
+        elif nt_list[nt_pos].pairs_with != None:
+            nt1 = nt_list[nt_pos]
 
-        available_mutations_nt1 = nt1.letters_allowed.copy()
+            available_mutations_nt1 = nt1.letters_allowed.copy()
 
-        if (sequence_list[nt_pos] in available_mutations_nt1) and len(available_mutations_nt1) != 1:
+            if (sequence_list[nt_pos] in available_mutations_nt1) and len(available_mutations_nt1) != 1:
 
-            available_mutations_nt1.remove(sequence_list[nt_pos])
-        available_mutations_nt1.sort()
+                available_mutations_nt1.remove(sequence_list[nt_pos])
+            available_mutations_nt1.sort()
 
-        nt2 = nt_list[nt1.pairs_with]
-        allowed_mutations_nt2 = nt2.letters_allowed.copy()
-        nt2_pos = nt2.number
-        if sim_options.acgu_percentages == "on":
-            allowed_choices_nt1 = allowed_choice(available_mutations_nt1, sim_options.nt_percentages)
-            mutated_nt1 = random.choices(available_mutations_nt1, weights=allowed_choices_nt1)[0]
-        elif sim_options.acgu_percentages == "off":
-            mutated_nt1 = random.choice(available_mutations_nt1)
+            nt2 = nt_list[nt1.pairs_with]
+            allowed_mutations_nt2 = nt2.letters_allowed.copy()
+            nt2_pos = nt2.number
+            if sim_options.acgu_percentages == "on":
+                allowed_choices_nt1 = allowed_choice(available_mutations_nt1, sim_options.nt_percentages)
+                mutated_nt1 = random.choices(available_mutations_nt1, weights=allowed_choices_nt1)[0]
+            elif sim_options.acgu_percentages == "off":
+                mutated_nt1 = random.choice(available_mutations_nt1)
 
-        allowed_pairings_nt2 = can_pair(mutated_nt1)
-        available_mutations_nt2 = list(set(allowed_mutations_nt2).intersection(allowed_pairings_nt2))
+            allowed_pairings_nt2 = can_pair(mutated_nt1)
+            available_mutations_nt2 = list(set(allowed_mutations_nt2).intersection(allowed_pairings_nt2))
 
-        allowed_mutations_nt2.sort()
+            allowed_mutations_nt2.sort()
 
-        if sim_options.acgu_percentages == "on":
-            allowed_choices_nt2 = allowed_choice(available_mutations_nt2, sim_options.nt_percentages)
-            mutated_nt2 = random.choices(available_mutations_nt2, weights=allowed_choices_nt2)[0]
-        elif sim_options.acgu_percentages == "off":
-            mutated_nt2 = random.choice(available_mutations_nt2)
+            if sim_options.acgu_percentages == "on":
+                allowed_choices_nt2 = allowed_choice(available_mutations_nt2, sim_options.nt_percentages)
+                mutated_nt2 = random.choices(available_mutations_nt2, weights=allowed_choices_nt2)[0]
+            elif sim_options.acgu_percentages == "off":
+                mutated_nt2 = random.choice(available_mutations_nt2)
 
-        sequence_list[nt_pos] = mutated_nt1
-        sequence_list[nt2_pos] = mutated_nt2
+            sequence_list[nt_pos] = mutated_nt1
+            sequence_list[nt2_pos] = mutated_nt2
+    elif nt_list[nt_pos].snake == True:
+        print(nt_list[nt_pos].snake_nts, "snake_nts")
+        print(nt_list[nt_pos].snake_states, "snake_states")
+        graph_nts = nt_list[nt_pos].snake_nts
+        possible_states = nt_list[nt_pos].snake_states
+        current_nt_state = sequence_list[nt_pos]
+
+        nt_index = graph_nts.index(nt_pos)
+        print(nt_index, "index")
+
+        current_state = next((state for state in possible_states if state[nt_index] == current_nt_state), None)
+        print(current_state, sequence_list[nt_pos], "current")
+        new_states = [state for state in possible_states if state != current_state]
+        print(new_states, "new_states")
+        print(''.join(sequence_list))
+        
+        if new_states != []:
+            new_state = random.choice(new_states)
+            for i in range(len(graph_nts)):
+                sequence_list[graph_nts[i]] = new_state[i]
+        print(''.join(sequence_list))
+        
+
 
     sequence_mutated = ''.join(sequence_list)
     mut_position = list(' ' * len(sequence))
@@ -849,6 +1137,10 @@ class Nucleotide:
         self.pairs_with = None
         self.pair_letters = []
         self.letters_allowed = None
+        self.snake = False
+        self.snake_number = None
+        self.snake_nts = None
+        self.snake_states = None
 
     def add_letter(self, letter):
         """
