@@ -30,6 +30,7 @@ Classes:
 
 import random
 import sys
+import RNA
 
 import numpy as np
 
@@ -37,6 +38,7 @@ from collections import deque
 
 
 from utils import energy_scores as es
+from utils.sim_score import SimScore
 # from utils.SimScore import SimScore
 
 
@@ -366,7 +368,9 @@ def get_nt_list(input_file):
 
     pair_list = input_file.pairs
     restr_seq = input_file.seq_restr
-    get_allsnakes(input_file)
+    print(vars(input_file))
+    if input_file.alt_sec_structs != None:
+        get_allsnakes(input_file)
 
     if input_file.excluded_alt_pairs != None:
         pair_list = pair_list + input_file.excluded_alt_pairs
@@ -379,7 +383,7 @@ def get_nt_list(input_file):
             else:
                 seen.add(element)
                 index += 1  
-    
+        input_file.pairs = pair_list
 
     list_of_nt = []
 
@@ -586,7 +590,7 @@ def initial_sequence_generator(nt_list, input_file, sim_options):
 
     seq_l = list(input_file.seq_restr).copy()
     pair_list = sorted(input_file.pairs.copy())
-
+    
     # assign A to all nonbonded nucleotides
     for i in range(0, len(nt_list)):
         if nt_list[i].pairs_with == None and "A" in nt_list[i].letters:
@@ -643,6 +647,7 @@ def initial_sequence_generator(nt_list, input_file, sim_options):
             seq_l[nt2num] = wc_pair(seq_l[nt1num])
 
     # random choice (from allowed letters) of whatever left
+
     for i in range(0, len(seq_l)):
         if seq_l[i] not in ["A", "C", "G", "U"]:
             seq_l[i] = random.choice(nt_dictionary(seq_l[i]))
@@ -651,28 +656,50 @@ def initial_sequence_generator(nt_list, input_file, sim_options):
     if input_file.seed_seq:
         result_sequence = input_file.seed_seq
 
-    for i in range(len(nt_list)):
-        print(vars(nt_list[i]))
+    #for i in range(len(nt_list)):
+    #    print(vars(nt_list[i]))
+    
 
     if input_file.graphs != None:
         first_nt_of_snakes = []
         for i in range(len(input_file.graphs)):
             first_nt_of_snakes.append(input_file.graphs[i]["numbers"][0])
     
-        print(first_nt_of_snakes, "first_nt_snake")
 
         for i in range(len(first_nt_of_snakes)):
             nt_in_snake = nt_list[first_nt_of_snakes[i]].snake_nts
-            print(nt_in_snake, "nt in snake")
-            print(nt_list[first_nt_of_snakes[i]].snake_states)
             state_in_snake = nt_list[first_nt_of_snakes[i]].snake_states[0]
-            print(state_in_snake, "state")
 
             for k in range(len(nt_in_snake)):
                 seq_l[nt_in_snake[k]] = state_in_snake[k]
     result_sequence = ''.join(seq_l)
+    
     return result_sequence
 
+
+def get_alt_mcc(simulation_data, input_file):
+
+    print(input_file.alt_sec_structs)
+    #simulation_data = simulation_data[:100]
+
+    for i in(range(len(simulation_data))):
+        sequence = simulation_data[i]["sequence"]
+        fc = RNA.fold_compound(sequence)
+        for k in range(len(input_file.alt_sec_structs)):
+            
+            subopt_struct = es.get_first_suboptimal_structure_and_energy(sequence, fc,k+1)[0]
+            print(subopt_struct)
+            target_struct = input_file.alt_sec_structs[k]
+            print(target_struct)
+            ssc = SimScore(target_struct.replace("&", "Ee"), subopt_struct.replace("&", "Ee"))
+            ssc.find_basepairs()
+            ssc.cofusion_matrix()
+
+            mcc = ssc.mcc()
+            print(1-mcc)
+            simulation_data[i]["mcc_"+str(k+1)] = 1 - mcc
+            simulation_data[i]["alt_struct_"+str(k+1)] = subopt_struct
+    return simulation_data
 
 def allowed_choice(allowed, percs):
     """
@@ -914,7 +941,6 @@ def mutate_sequence(sequence_obj, nt_list, sim_options, input_file):
     nt_pos = get_mutation_position(sequence_obj, range_pos, sim_options, input_file)
     nt2_pos = None
 
-    print(nt_pos)
     
    
     if nt_list[nt_pos].snake == False:
@@ -963,26 +989,19 @@ def mutate_sequence(sequence_obj, nt_list, sim_options, input_file):
             sequence_list[nt_pos] = mutated_nt1
             sequence_list[nt2_pos] = mutated_nt2
     elif nt_list[nt_pos].snake == True:
-        print(nt_list[nt_pos].snake_nts, "snake_nts")
-        print(nt_list[nt_pos].snake_states, "snake_states")
         graph_nts = nt_list[nt_pos].snake_nts
         possible_states = nt_list[nt_pos].snake_states
         current_nt_state = sequence_list[nt_pos]
 
         nt_index = graph_nts.index(nt_pos)
-        print(nt_index, "index")
 
         current_state = next((state for state in possible_states if state[nt_index] == current_nt_state), None)
-        print(current_state, sequence_list[nt_pos], "current")
         new_states = [state for state in possible_states if state != current_state]
-        print(new_states, "new_states")
-        print(''.join(sequence_list))
         
         if new_states != []:
             new_state = random.choice(new_states)
             for i in range(len(graph_nts)):
                 sequence_list[graph_nts[i]] = new_state[i]
-        print(''.join(sequence_list))
         
 
 

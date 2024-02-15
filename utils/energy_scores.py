@@ -68,6 +68,8 @@ def score_sequence(seq, input_file, sim_options):
         seq = seq + "&" + seq
         scored_sequence = ScoreSeq(sequence=seq)
     pf_energy, mfe_structure, fold_comp = get_mfe_e_ss(seq, sim_options)
+    print(seq)
+    print(mfe_structure)
 
     scored_sequence.get_Epf(pf_energy)
     scored_sequence.get_mfe_ss(mfe_structure)
@@ -116,7 +118,7 @@ def score_sequence(seq, input_file, sim_options):
         #scored_sequence.get_mcc_alt(ssc_alt.mcc())
     '''
     if (sim_options.subopt == "on") and (scored_sequence.mcc == 0):
-        scored_sequence.get_subopt_e(get_first_suboptimal_structure_and_energy(seq, fold_comp)[1])
+        scored_sequence.get_subopt_e(get_first_suboptimal_structure_and_energy(seq, fold_comp, 1)[1])
         scored_sequence.get_esubopt_minus_Epf(scored_sequence.Epf, scored_sequence.subopt_e)
         scored_sequence.get_scoring_function_w_subopt()
 
@@ -446,7 +448,7 @@ class ScoreSeq:
         self.scoring_function += motif_bonus
 
 
-def get_first_suboptimal_structure_and_energy(sequence, a):
+def get_first_suboptimal_structure_and_energy(sequence, a, number_of_suboptimals):
     """
     Find the first suboptimal secondary structure and its energy for a given RNA sequence.
 
@@ -468,7 +470,7 @@ def get_first_suboptimal_structure_and_energy(sequence, a):
 
     for i in range(100, 5000, 100):
         a.subopt_cb(i, print_subopt_result, subopt_data)
-        if len(subopt_list) >= 2:
+        if len(subopt_list) >= number_of_suboptimals+1:
             break
         subopt_list = []
 
@@ -478,7 +480,7 @@ def get_first_suboptimal_structure_and_energy(sequence, a):
         structure1 = "." * len(sequence)
         energy1 = 0
     else:
-        structure1 = subopt_list[1][0]
-        energy1 = subopt_list[1][1]
+        structure1 = subopt_list[number_of_suboptimals][0]
+        energy1 = subopt_list[number_of_suboptimals][1]
 
     return structure1, energy1

@@ -268,10 +268,8 @@ def initialize_simulation(input_file):
 
     input_file.pairs = seq_utils.check_dot_bracket(input_file.sec_struct)  # check dotbracket correctness, assign as list of pairs
     input_file.set_target_pairs_tupl()
-    print(input_file.pairs)
 
     if input_file.alt_sec_structs != None:
-        print(input_file.alt_sec_structs)
         print("Alternative structures are ok.")
         alt_pairs = seq_utils.get_pairs_for_graphs(input_file)
         input_file.graphs = seq_utils.generate_graphs(alt_pairs)
@@ -283,6 +281,11 @@ def initialize_simulation(input_file):
     nt_list = seq_utils.get_nt_list(input_file)
     seq_utils.check_input_logic(nt_list)
     
+   # for i in range(len(nt_list)):
+   #     print(vars(nt_list[i]))
+
+
+
     return nt_list
 
 
@@ -356,7 +359,7 @@ def run_functions(input_file, sim_options, now):
 
     while time.time() - start_time < sim_options.timlim:
 
-        print('ETA', round((sim_options.timlim - (time.time() - start_time)), 0), 'seconds', end='\r')
+        print('Designing sequences...\nETA', round((sim_options.timlim - (time.time() - start_time)), 0), 'seconds', end='\r')
 
         stats.update_global_step()
         seqence_score_list, stats = remc.mutate_sequence_re(seqence_score_list, nt_list, stats, sim_options, input_file)

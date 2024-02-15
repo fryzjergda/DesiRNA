@@ -402,7 +402,27 @@ def sort_and_filter_simulation_data(simulation_data, sim_options):
     if sim_options.oligo != "off":
         sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['oligo_fraction'], -d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
     else:
-        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'],  -d['edesired_minus_Epf'], -d['Epf'], -d['scoring_function']), reverse=True)
+
+    return sorted_results[:sim_options.num_results]
+
+
+def sort_and_filter_simulation_data_slternative(simulation_data, sim_options, input_file):
+
+    remove_duplicates = {item['sequence']: item for item in simulation_data}
+    data_no_duplicates = list(remove_duplicates.values())
+    sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'],  -d['edesired_minus_Epf'], -d['Epf'], -d['scoring_function']), reverse=True)
+    print(sorted_results[:1])
+    dat_alt_mcc = seq_utils.get_alt_mcc(sorted_results, input_file)
+
+    mcc_list = []
+    for i in range(len(input_file.alt_sec_structs)):
+        mcc_list.append("mcc_"+str(i+1))
+
+    sorted_results = sorted(seq_utils.round_floats(dat_alt_mcc), 
+                        key=lambda d: tuple([-d[mcc] for mcc in (['mcc'] + mcc_list)]+ [-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']]),
+                        reverse=True)
+    print(sorted_results[:1])
 
     return sorted_results[:sim_options.num_results]
 
@@ -561,7 +581,10 @@ def parse_and_output_results(simulation_data, input_file, stats, finish_time, si
     generate_replica_csv(simulation_data, sim_options.outname)
     generate_best_fasta(simulation_data, sim_options, now)
 
-    sorted_results = sort_and_filter_simulation_data(simulation_data, sim_options)
+    if input_file.graphs == None:
+        sorted_results = sort_and_filter_simulation_data(simulation_data, sim_options)
+    else:
+        sorted_results = sort_and_filter_simulation_data_slternative(simulation_data, sim_options, input_file)
     generate_csv_from_data(sorted_results, sim_options.outname)
 
     correct_result_txt, correct_bool, correct = check_if_design_solved(sorted_results[:10], input_file, sim_options)
