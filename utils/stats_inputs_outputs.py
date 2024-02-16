@@ -412,17 +412,19 @@ def sort_and_filter_simulation_data_slternative(simulation_data, sim_options, in
     remove_duplicates = {item['sequence']: item for item in simulation_data}
     data_no_duplicates = list(remove_duplicates.values())
     sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'],  -d['edesired_minus_Epf'], -d['Epf'], -d['scoring_function']), reverse=True)
-    print(sorted_results[:1])
     dat_alt_mcc = seq_utils.get_alt_mcc(sorted_results, input_file)
 
     mcc_list = []
     for i in range(len(input_file.alt_sec_structs)):
         mcc_list.append("mcc_"+str(i+1))
 
+    generate_trajectory_csv(dat_alt_mcc, sim_options.outname)
+
     sorted_results = sorted(seq_utils.round_floats(dat_alt_mcc), 
                         key=lambda d: tuple([-d[mcc] for mcc in (['mcc'] + mcc_list)]+ [-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']]),
                         reverse=True)
-    print(sorted_results[:1])
+
+
 
     return sorted_results[:sim_options.num_results]
 
