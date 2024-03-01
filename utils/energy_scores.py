@@ -64,8 +64,8 @@ def score_sequence(seq, input_file, sim_options):
     if sim_options.oligo_state != "homodimer":
         scored_sequence = ScoreSeq(sequence=seq)
     else:
-        seq = seq.split("&")[0]
-        seq = seq + "&" + seq
+        #seq = seq.split("&")[0]
+        #seq = seq + "&" + seq
         scored_sequence = ScoreSeq(sequence=seq)
     pf_energy, mfe_structure, fold_comp = get_mfe_e_ss(seq, sim_options)
     print(seq)
@@ -163,7 +163,8 @@ def get_mfe_e_ss(seq, sim_options):
             structure = seq_utils.get_pk_struct(seq, structure, fc)
     elif sim_options.oligo_state in {"homodimer", "heterodimer"}:
         seqa_len = len(seq.split("&")[0])
-        structure_dim, energy = fc.mfe_dimer()
+        structure_dim = fc.mfe_dimer()[0]
+        energy = fc.pf_dimer()[-1]
         structure = structure_dim[:seqa_len] + "&" + structure_dim[seqa_len:]
     return energy, structure, fc
 

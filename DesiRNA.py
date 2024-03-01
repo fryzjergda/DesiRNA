@@ -346,6 +346,10 @@ def run_functions(input_file, sim_options, now):
 
     nt_list = initialize_simulation(input_file)
     seqence_score_list = generate_sequences(nt_list, input_file, sim_options)
+    for i in(range(len(nt_list))):
+        print(vars(nt_list[i]))
+    #quit()
+
 
     start_time = time.time()
     simulation_data = []

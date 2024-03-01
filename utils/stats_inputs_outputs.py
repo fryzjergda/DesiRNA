@@ -253,7 +253,9 @@ def process_intermediate_results(simulation_data, sim_options):
     data_no_duplicates = list(remove_duplicates.values())
 
     if sim_options.oligo != "off":
-        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['oligo_fraction'], -d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['oligo_fraction'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+    elif sim_options.dimer != "off":
+        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], d['oligo_fraction'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
     else:
         sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
 
@@ -400,7 +402,9 @@ def sort_and_filter_simulation_data(simulation_data, sim_options):
     data_no_duplicates = list(remove_duplicates.values())
 
     if sim_options.oligo != "off":
-        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['oligo_fraction'], -d['mcc'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['oligo_fraction'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+    elif sim_options.dimer != "off":
+        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], d['oligo_fraction'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
     else:
         sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'],  -d['edesired_minus_Epf'], -d['Epf'], -d['scoring_function']), reverse=True)
 

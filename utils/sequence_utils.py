@@ -933,6 +933,7 @@ def mutate_sequence(sequence_obj, nt_list, sim_options, input_file):
 
     sequence = sequence_obj.sequence
     sequence_list = list(sequence)
+    print(sequence, "seq")
     range_pos = []
     for i in range(0, len(sequence)):
         if len(nt_list[i].letters_allowed) != 1:
@@ -1011,13 +1012,69 @@ def mutate_sequence(sequence_obj, nt_list, sim_options, input_file):
 
     if nt2_pos != None:
         mut_position[nt2_pos] = "#"
+    print(nt_pos, nt2_pos)
+    print(sequence_mutated,"mut")
 
+
+    if (sim_options.oligo_state == "homodimer") and (nt2_pos != None):
+        seq1o, seq2o = sequence.split("&")
+        seq1m, seq2m = sequence_mutated.split("&")
+        print(nt_pos, nt2_pos)
+        print("".join(mut_position))
+        print(seq1o, seq2o)
+        print(seq1m, seq2m)
+        diff_positions = sorted([nt_pos, nt2_pos])
+        print(diff_positions, "diffs")
+        seq1_diff = diff_positions[0]
+        seq2_diff = diff_positions[1] - len(seq1o)-1
+        '''
+        if seq1_diff == -1:
+            print("seq1 -1")
+            if nt_pos < len(seq1o):
+                seq1_diff = nt_pos
+            else:
+                seq1_diff = nt2_pos
+            
+        if seq2_diff ==-1:
+            print("seq2 -1")
+            if nt_pos > len(seq1o):
+                seq2_diff = nt_pos
+            else:
+                seq2_diff = nt2_pos
+            seq2_diff = seq1_diff
+        '''
+        print(seq1_diff, seq1m[seq1_diff], seq2_diff, seq2m[seq2_diff])
+        seq1corr = seq1m[:seq2_diff] + seq2m[seq2_diff] + seq1m[seq2_diff+1:]
+        seq2corr = seq2m[:seq1_diff] + seq1m[seq1_diff] + seq2m[seq1_diff+1:]
+        print(seq1corr, seq2corr)
+        
+        
+        sequence_mutated = seq1corr+"&"+seq2corr
+        print(sequence_mutated)
+        #quit()
+        
     sequence_mutated = es.score_sequence(sequence_mutated, input_file, sim_options)
     sequence_mutated.get_replica_num(sequence_obj.replica_num)
     sequence_mutated.get_temp_shelf(sequence_obj.temp_shelf)
 
+
+    #quit()
+
     return sequence_mutated
 
+
+def find_diff_position(str1, str2):
+    # Ensure the strings are of the same length
+    if len(str1) != len(str2):
+        return "The strings are of different lengths."
+    
+    # Iterate over the length of the strings
+    for i in range(len(str1)):
+        # Compare characters at the same position
+        if str1[i] != str2[i]:
+            return i
+    # Return -1 if no difference is found (implies the strings are identical)
+    return -1
 
 def get_pk_struct(seq, ss_nopk, fc):
     """
