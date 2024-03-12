@@ -20,26 +20,35 @@ Functions:
 - get_mutation_position(seq_obj, available_positions, sim_options, input_file): Determines a position to mutate.
 - expand_cases(cases, max_value, range_expansion=3): Expands a set of cases within a specified range.
 - mutate_sequence(sequence_obj, nt_list, sim_options, input_file): Mutates a sequence and returns the mutated sequence.
+- get_alt_pairs(input_file): Processes alternative secondary structures and updates the input_file object with a flattened list of base pairs.
+- get_pairs_for_graphs(input_file): Merges base pairs from the primary and alternative secondary structures for graph representation.
+- find_distinct_graphs(pairs): Identifies distinct graphs (connected components) from a list of base pairs.
+- is_bipartite_and_color(graph): Determines if a graph is bipartite and assigns colors to its vertices accordingly.
+- generate_acgu_states(coloring): Generates possible ACGU mappings for a graph based on its coloring.
+- generate_graphs(pairs): Generates graphs from RNA base pairs and determines their bipartiteness and ACGU states.
+- filter_states_by_constraints(graph_numbers, possible_states, sequence_restraint): Filters potential nucleotide states by sequence constraints.
+- update_graphs(input_file): Updates the graphs in an InputFile object based on sequence constraints.
+- get_allsnakes(input_file): Extracts all 'snake' sequences from the graphs of an InputFile object.
+- get_alt_mcc(simulation_data, input_file): Calculates MCC scores for alternative secondary structures against a sequence.
+- find_diff_position(str1, str2): Finds the first position where two strings differ.
 
 Classes:
 - Nucleotide: Represents a nucleotide with properties like letters, pairs_with, etc.
 - InputFile: Represents an input file with secondary structure, sequence restraints, etc.
 - ScoreSeq: Represents an RNA sequence with scoring information.
-
 """
 
 import random
 import sys
+
+from collections import deque
+
 import RNA
 
 import numpy as np
 
-from collections import deque
-
-
 from utils import energy_scores as es
 from utils.sim_score import SimScore
-# from utils.SimScore import SimScore
 
 
 constraints_dict = {
@@ -60,6 +69,7 @@ constraints_dict = {
     'U': ['U'],
     '&': ['&']
 }
+
 
 def check_dot_bracket(ss):
     """
@@ -105,59 +115,94 @@ def check_dot_bracket(ss):
 
     return pairs_list
 
+
 def get_alt_pairs(input_file):
-    
+    """
+    Processes alternative secondary structures and updates the input_file object with a flattened list of base pairs.
+
+    This function iterates over all alternative secondary structures defined in the input_file object,
+    checks their dot-bracket notation for correctness, and compiles a comprehensive list of all base pairs
+    encountered across these structures. It flattens this list and assigns it back to the input_file object.
+
+    Args:
+        input_file (InputFile): The input file object containing alternative secondary structures.
+
+    Returns:
+        None: The function directly modifies the input_file object, adding a flattened list of alternative base pairs.
+    """
+
     alt_pairs = []
-    for i in range(0,len(input_file.alt_sec_structs)):
+    for i in range(0, len(input_file.alt_sec_structs)):
         alt_pairs.append(check_dot_bracket(input_file.alt_sec_structs[i]))
-    
+
     input_file.alt_pairs = alt_pairs
     flattened_list = [pair for sublist in alt_pairs for pair in sublist]
     input_file.alt_pairs = flattened_list
-    #return alt_pairs
 
 
 def get_pairs_for_graphs(input_file):
+    """
+    Merges base pairs from the primary and alternative secondary structures for graph representation.
+
+    This function calls get_alt_pairs to process alternative structures and then combines these pairs with the
+    primary structure's pairs. It ensures that all pairs are unique and filters out any redundant pairs,
+    particularly focusing on pairs that are exclusive to the alternative structures. These exclusive pairs
+    are used to update the input_file object for further processing.
+
+    Args:
+        input_file (InputFile): The input file object with primary and alternative secondary structures.
+
+    Returns:
+        list: A list of filtered and corrected base pairs for use in graph representations.
+    """
+
     list1 = input_file.pairs
     get_alt_pairs(input_file)
 
-    list2 = input_file.alt_pairs 
+    list2 = input_file.alt_pairs
     pairs = []
     for pair1 in list1:
         for pair2 in list2:
-            # Check if any element in pair1 is in pair2 and the pairs are not identical
             if (pair1[0] in pair2 or pair1[1] in pair2) and pair1 != pair2:
-                # Add pair1 to result if not already added
                 if pair1 not in pairs:
                     pairs.append(pair1)
-                # Add pair2 to result if not already added and it's not identical to pair1
                 if pair2 not in pairs and pair2 != pair1:
                     pairs.append(pair2)
 
     merged_list = list(set([tuple(pair) for pair in list1] + [tuple(pair) for pair in list2]))
 
-    # Flatten the merged list to count occurrences of each element
     flattened_elements = [element for pair in merged_list for element in pair]
 
-    # Filtering logic: keep a pair if at least one of its elements appears in another pair
-
-    
     excluded_pairs = []
     filtered_pairs_corrected = []
+
     for pair in merged_list:
         if flattened_elements.count(pair[0]) > 1 or flattened_elements.count(pair[1]) > 1:
             filtered_pairs_corrected.append(list(pair))
         else:
-            excluded_pairs.append(list(pair))  
+            excluded_pairs.append(list(pair))
 
     input_file.excluded_alt_pairs = excluded_pairs
 
-    return(filtered_pairs_corrected)
+    return filtered_pairs_corrected
 
 
-
-# Function to parse pairs and find distinct graphs
 def find_distinct_graphs(pairs):
+    """
+    Identifies distinct graphs (connected components) from a list of base pairs.
+
+    Utilizing a depth-first search algorithm, this function explores the connectivity among bases defined by
+    the provided pairs, thereby identifying distinct connected components within the RNA structure. Each distinct
+    graph represents a set of bases that are interconnected through base pairing, enabling further analysis of
+    structural components.
+
+    Args:
+        pairs (list of tuple): A list of base pairs, where each pair is a tuple of two integers representing connected bases.
+
+    Returns:
+        list of set: A list of sets, with each set containing the bases belonging to a distinct connected component (graph).
+    """
+
     graph = {}
     for pair in pairs:
         a, b = pair
@@ -167,15 +212,15 @@ def find_distinct_graphs(pairs):
             graph[b] = []
         graph[a].append(b)
         graph[b].append(a)
-    
+
     visited = set()
     distinct_graphs = []
-    
+
     for start_node in graph.keys():
         if start_node not in visited:
             current_graph = set()
             stack = [start_node]
-            
+
             while stack:
                 node = stack.pop()
                 if node not in visited:
@@ -184,17 +229,28 @@ def find_distinct_graphs(pairs):
                     for neighbour in graph[node]:
                         if neighbour not in visited:
                             stack.append(neighbour)
-                            
+
             distinct_graphs.append(current_graph)
+
     return distinct_graphs
 
-# Function to check if a graph is bipartite and color it
+
 def is_bipartite_and_color(graph):
+    """
+    Determines if a graph is bipartite and assigns colors to vertices accordingly.
+
+    Args:
+        graph (dict): A dictionary representing the graph where keys are vertex identifiers and values are lists of adjacent vertices.
+
+    Returns:
+        tuple: A pair where the first element is a boolean indicating whether the graph is bipartite, and the second element is a dictionary of vertex color assignments if the graph is bipartite, or an empty dictionary otherwise.
+    """
+
     color = {}
     for vertex in graph:
         if vertex not in color:
             queue = deque([vertex])
-            color[vertex] = 0  # Starting color
+            color[vertex] = 0
             while queue:
                 v = queue.popleft()
                 for u in graph[v]:
@@ -203,12 +259,21 @@ def is_bipartite_and_color(graph):
                         queue.append(u)
                     elif color[u] == color[v]:
                         return False, {}
-    return True, color
 
-# Main function to process pairs, find graphs, check bipartiteness, and provide coloring
+    return True, color
 
 
 def generate_acgu_states(coloring):
+    """
+    Generates possible ACGU states for each bipartite graph based on its coloring.
+
+    Args:
+        coloring (dict): A dictionary where keys are graph identifiers and values are dictionaries representing the coloring of vertices in the graph.
+
+    Returns:
+        dict: A dictionary with keys as graph identifiers and values as information about possible ACGU mappings, including the sequence of nucleotides, their colors, and the corresponding ACGU states.
+    """
+
     possible_mappings = [
         {0: 'A', 1: 'U'},
         {0: 'U', 1: 'A'},
@@ -230,12 +295,23 @@ def generate_acgu_states(coloring):
             }
         else:
             states_per_graph[state] = info
+
     return states_per_graph
 
+
 def generate_graphs(pairs):
-    # Find distinct graphs
+    """
+    Processes base pairs to generate graphs, checks for bipartiteness, assigns colors, and maps possible ACGU states.
+
+    Args:
+        pairs (list): A list of tuples representing base pairs.
+
+    Returns:
+        list: A sorted list of dictionaries, each containing the numbers and possible states for each graph, with the graphs sorted by the first number in each graph.
+    """
+
     distinct_graphs = find_distinct_graphs(pairs)
-    
+
     results = {}
     for index, graph_set in enumerate(distinct_graphs, start=1):
         graph_dict = {node: [] for node in graph_set}
@@ -253,60 +329,70 @@ def generate_graphs(pairs):
             "coloring": simple_coloring if is_bipartite else "Not bipartite"
         }
 
-    # Generating ACGU states for each bipartite graph
     acgu_states = generate_acgu_states({k: v['coloring'] for k, v in results.items() if v['is_bipartite']})
-    
-    # Incorporating ACGU states into results
+
     for graph_name, states in acgu_states.items():
         results[graph_name].update({"ACGU_states": states})
-    
-    
-    
+
     formatted_results = []
 
     for graph_name, graph_info in results.items():
-        # Directly use the provided ACGU states
         acgu_states = graph_info['ACGU_states']
 
-        formatted_result = {
-            "numbers": acgu_states['numbers'],
-            "states": acgu_states['states']
-        }
-        
+        formatted_result = {"numbers": acgu_states['numbers'], "states": acgu_states['states']}
+
         formatted_results.append(formatted_result)
 
         formatted_graphs = sorted(formatted_results, key=lambda x: x["numbers"][0])
-    
-    
 
     return formatted_graphs
 
+
 def filter_states_by_constraints(graph_numbers, possible_states, sequence_restraint):
-    # Convert sequence restraint to list of allowed nucleotides for each position
+    """
+    Filters possible ACGU states for a graph based on sequence constraints.
+
+    Args:
+        graph_numbers (list): A list of integers representing vertices in the graph.
+        possible_states (list): A list of lists, each representing a possible state mapping for the graph vertices.
+        sequence_restraint (str): A string representing sequence restraints.
+
+    Returns:
+        list: A list of valid states that conform to the sequence restraints.
+    """
+
     restraint_allowed = [constraints_dict[nt] for nt in sequence_restraint]
-    
-    # Filter possible states based on the sequence restraint
+
     valid_states = []
     for state in possible_states:
         is_valid = True
         for i, nt in enumerate(graph_numbers):
-            # Check if the nucleotide at this position in the state is allowed
             if state[i] not in restraint_allowed[nt]:
                 is_valid = False
                 break
         if is_valid:
             valid_states.append(state)
+
     return valid_states
 
+
 def update_graphs(input_file):
+    """
+    Updates the possible ACGU states for each graph in the input_file based on sequence constraints.
+
+    Args:
+        input_file (InputFile): The input file object containing graph and sequence information.
+
+    Returns:
+        None: The function directly modifies the input_file object, updating the states for each graph.
+    """
 
     for i in range(len(input_file.graphs)):
         valid_states = filter_states_by_constraints(input_file.graphs[i]["numbers"], input_file.graphs[i]["states"], input_file.seq_restr)
         if valid_states == []:
             print("The structural restraints are contradictive to sequence restraints. Check your input.")
             sys.exit()
-        input_file.graphs[i]["states"]=valid_states
-    
+        input_file.graphs[i]["states"] = valid_states
 
 
 def check_seq_restr(restr):
@@ -346,11 +432,21 @@ def check_length(ss, restr):
 
 
 def get_allsnakes(input_file):
+    """
+    Extracts all graph vertices from the input_file and stores them as a flat list in the 'allsnakes' attribute.
+
+    Args:
+        input_file (InputFile): The input file object containing graphs.
+
+    Returns:
+        None: The function directly modifies the input_file object, adding an 'allsnakes' attribute containing all vertices.
+    """
+
     allsnakes = []
 
     for i in range(len(input_file.graphs)):
         allsnakes.append(input_file.graphs[i]["numbers"])
-    
+
     allsnakes_flat = [item for sublist in allsnakes for item in sublist]
     input_file.allsnakes = allsnakes_flat
 
@@ -368,7 +464,7 @@ def get_nt_list(input_file):
 
     pair_list = input_file.pairs
     restr_seq = input_file.seq_restr
-    print(vars(input_file))
+
     if input_file.alt_sec_structs != None:
         get_allsnakes(input_file)
 
@@ -377,12 +473,12 @@ def get_nt_list(input_file):
         seen = set()
         index = 0
         while index < len(pair_list):
-            element = tuple(pair_list[index])  # Convert to tuple for hashability if it's a list
+            element = tuple(pair_list[index])
             if element in seen:
-                pair_list.pop(index)  # Remove the element if seen
+                pair_list.pop(index)
             else:
                 seen.add(element)
-                index += 1  
+                index += 1
         input_file.pairs = pair_list
 
     list_of_nt = []
@@ -415,12 +511,10 @@ def get_nt_list(input_file):
         if list_of_nt[i].letters_allowed == None:
             list_of_nt[i].letters_allowed = list_of_nt[i].letters
 
-
     if input_file.graphs != None:
-        snakes = []
         for i in range(len(input_file.graphs)):
             graph = input_file.graphs[i]
-            nts= graph["numbers"]
+            nts = graph["numbers"]
             states = graph["states"]
             for k in range(len(nts)):
                 list_of_nt[nts[k]].snake = True
@@ -441,8 +535,6 @@ def nt_dictionary(nt):
     Returns:
     list: A list of nucleotide characters.
     """
-
-    
 
     nt_all = constraints_dict[nt]
 
@@ -590,7 +682,7 @@ def initial_sequence_generator(nt_list, input_file, sim_options):
 
     seq_l = list(input_file.seq_restr).copy()
     pair_list = sorted(input_file.pairs.copy())
-    
+
     # assign A to all nonbonded nucleotides
     for i in range(0, len(nt_list)):
         if nt_list[i].pairs_with == None and "A" in nt_list[i].letters:
@@ -652,19 +744,13 @@ def initial_sequence_generator(nt_list, input_file, sim_options):
         if seq_l[i] not in ["A", "C", "G", "U"]:
             seq_l[i] = random.choice(nt_dictionary(seq_l[i]))
 
-
     if input_file.seed_seq:
         result_sequence = input_file.seed_seq
-
-    #for i in range(len(nt_list)):
-    #    print(vars(nt_list[i]))
-    
 
     if input_file.graphs != None:
         first_nt_of_snakes = []
         for i in range(len(input_file.graphs)):
             first_nt_of_snakes.append(input_file.graphs[i]["numbers"][0])
-    
 
         for i in range(len(first_nt_of_snakes)):
             nt_in_snake = nt_list[first_nt_of_snakes[i]].snake_nts
@@ -673,33 +759,39 @@ def initial_sequence_generator(nt_list, input_file, sim_options):
             for k in range(len(nt_in_snake)):
                 seq_l[nt_in_snake[k]] = state_in_snake[k]
     result_sequence = ''.join(seq_l)
-    
+
     return result_sequence
 
 
 def get_alt_mcc(simulation_data, input_file):
+    """
+    Calculates the MCC for alternative structures against suboptimal structures generated from sequences.
 
-    print(input_file.alt_sec_structs)
-    #simulation_data = simulation_data[:100]
+    Args:
+        simulation_data (list): A list of dictionaries, each representing a sequence and its simulation data.
+        input_file (InputFile): The input file object containing alternative secondary structures.
 
-    for i in(range(len(simulation_data))):
+    Returns:
+        list: The updated simulation_data list with added MCC values for each alternative structure.
+    """
+
+    for i in (range(len(simulation_data))):
         sequence = simulation_data[i]["sequence"]
         fc = RNA.fold_compound(sequence)
         for k in range(len(input_file.alt_sec_structs)):
-            
-            subopt_struct = es.get_first_suboptimal_structure_and_energy(sequence, fc,k+1)[0]
-            print(subopt_struct)
+
+            subopt_struct = es.get_first_suboptimal_structure_and_energy(sequence, fc, k + 1)[0]
             target_struct = input_file.alt_sec_structs[k]
-            print(target_struct)
             ssc = SimScore(target_struct.replace("&", "Ee"), subopt_struct.replace("&", "Ee"))
             ssc.find_basepairs()
             ssc.cofusion_matrix()
 
             mcc = ssc.mcc()
-            print(1-mcc)
-            simulation_data[i]["mcc_"+str(k+1)] = 1 - mcc
-            simulation_data[i]["alt_struct_"+str(k+1)] = subopt_struct
+            simulation_data[i]["mcc_" + str(k + 1)] = 1 - mcc
+            simulation_data[i]["alt_struct_" + str(k + 1)] = subopt_struct
+
     return simulation_data
+
 
 def allowed_choice(allowed, percs):
     """
@@ -933,7 +1025,6 @@ def mutate_sequence(sequence_obj, nt_list, sim_options, input_file):
 
     sequence = sequence_obj.sequence
     sequence_list = list(sequence)
-    print(sequence, "seq")
     range_pos = []
     for i in range(0, len(sequence)):
         if len(nt_list[i].letters_allowed) != 1:
@@ -942,8 +1033,6 @@ def mutate_sequence(sequence_obj, nt_list, sim_options, input_file):
     nt_pos = get_mutation_position(sequence_obj, range_pos, sim_options, input_file)
     nt2_pos = None
 
-    
-   
     if nt_list[nt_pos].snake == False:
         if (nt_list[nt_pos].pairs_with == None) and (len(nt_list[nt_pos].letters_allowed) != 1):
             available_mutations = nt_list[nt_pos].letters_allowed.copy()
@@ -998,13 +1087,11 @@ def mutate_sequence(sequence_obj, nt_list, sim_options, input_file):
 
         current_state = next((state for state in possible_states if state[nt_index] == current_nt_state), None)
         new_states = [state for state in possible_states if state != current_state]
-        
+
         if new_states != []:
             new_state = random.choice(new_states)
             for i in range(len(graph_nts)):
                 sequence_list[graph_nts[i]] = new_state[i]
-        
-
 
     sequence_mutated = ''.join(sequence_list)
     mut_position = list(' ' * len(sequence))
@@ -1012,69 +1099,53 @@ def mutate_sequence(sequence_obj, nt_list, sim_options, input_file):
 
     if nt2_pos != None:
         mut_position[nt2_pos] = "#"
-    print(nt_pos, nt2_pos)
-    print(sequence_mutated,"mut")
-
 
     if (sim_options.oligo_state == "homodimer") and (nt2_pos != None):
         seq1o, seq2o = sequence.split("&")
         seq1m, seq2m = sequence_mutated.split("&")
-        print(nt_pos, nt2_pos)
-        print("".join(mut_position))
-        print(seq1o, seq2o)
-        print(seq1m, seq2m)
+
         diff_positions = sorted([nt_pos, nt2_pos])
-        print(diff_positions, "diffs")
         seq1_diff = diff_positions[0]
-        seq2_diff = diff_positions[1] - len(seq1o)-1
-        '''
-        if seq1_diff == -1:
-            print("seq1 -1")
-            if nt_pos < len(seq1o):
-                seq1_diff = nt_pos
-            else:
-                seq1_diff = nt2_pos
-            
-        if seq2_diff ==-1:
-            print("seq2 -1")
-            if nt_pos > len(seq1o):
-                seq2_diff = nt_pos
-            else:
-                seq2_diff = nt2_pos
-            seq2_diff = seq1_diff
-        '''
-        print(seq1_diff, seq1m[seq1_diff], seq2_diff, seq2m[seq2_diff])
-        seq1corr = seq1m[:seq2_diff] + seq2m[seq2_diff] + seq1m[seq2_diff+1:]
-        seq2corr = seq2m[:seq1_diff] + seq1m[seq1_diff] + seq2m[seq1_diff+1:]
-        print(seq1corr, seq2corr)
-        
-        
-        sequence_mutated = seq1corr+"&"+seq2corr
-        print(sequence_mutated)
-        #quit()
-        
+        seq2_diff = diff_positions[1] - len(seq1o) - 1
+
+        seq1corr = seq1m[:seq2_diff] + seq2m[seq2_diff] + seq1m[seq2_diff + 1:]
+        seq2corr = seq2m[:seq1_diff] + seq1m[seq1_diff] + seq2m[seq1_diff + 1:]
+
+        sequence_mutated = seq1corr + "&" + seq2corr
+
     sequence_mutated = es.score_sequence(sequence_mutated, input_file, sim_options)
     sequence_mutated.get_replica_num(sequence_obj.replica_num)
     sequence_mutated.get_temp_shelf(sequence_obj.temp_shelf)
-
-
-    #quit()
 
     return sequence_mutated
 
 
 def find_diff_position(str1, str2):
-    # Ensure the strings are of the same length
+    """
+    Finds the first position where two strings differ.
+
+    This function iterates through the characters of two strings of equal length and identifies the
+    first index at which the characters differ. If the strings have different lengths or are identical,
+    the function returns a specific message or -1, respectively.
+
+    Args:
+        str1 (str): The first string for comparison.
+        str2 (str): The second string for comparison.
+
+    Returns:
+        int: The index of the first differing character.
+        str: A message indicating if the strings are of different lengths or are identical.
+    """
+
     if len(str1) != len(str2):
         return "The strings are of different lengths."
-    
-    # Iterate over the length of the strings
+
     for i in range(len(str1)):
-        # Compare characters at the same position
         if str1[i] != str2[i]:
             return i
-    # Return -1 if no difference is found (implies the strings are identical)
+
     return -1
+
 
 def get_pk_struct(seq, ss_nopk, fc):
     """
@@ -1182,7 +1253,7 @@ def round_floats(obj):
 
     if isinstance(obj, float):
         return round(obj, 3)
-    elif isinstance(obj, dict):
+    if isinstance(obj, dict):
         return {k: round_floats(v) for k, v in obj.items()}
     return obj
 
@@ -1246,11 +1317,11 @@ class Nucleotide:
         self.pair_letters += pairing_l
         self.pair_letters = list(set(self.pair_letters))
 
-    def add_allowed_l(self, list):
+    def add_allowed_l(self, list_allowed):
         """
         Sets the list of allowed letters for this nucleotide, considering any constraints.
 
         Parameters:
         list (list): The list of letters that are allowed for this nucleotide.
         """
-        self.letters_allowed = list
+        self.letters_allowed = list_allowed

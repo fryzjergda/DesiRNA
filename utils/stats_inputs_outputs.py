@@ -17,6 +17,7 @@ Functions:
 - generate_multifasta(sorted_data, sim_options, now): Generates a multi-FASTA file from the sorted simulation data.
 - generate_best_fasta(simulation_data, sim_options, now): Generates a FASTA file from the best sorted simulation data.
 - sort_and_filter_simulation_data(simulation_data, sim_options): Sorts and filters the simulation data based on specified criteria.
+- sort_and_filter_simulation_data_alternative(simulation_data, sim_options, input_file): Sorts and filters simulation data considering the design for alternative RNA structures.
 - generate_csv_from_data(sorted_data, output_name): Generates a CSV file from sorted simulation data.
 - check_if_design_solved(sorted_results, input_file, sim_options): Checks the correctness of the results.
 - write_best_str_file(correct_result_txt, output_name): Writes the correctness text to a file.
@@ -402,33 +403,52 @@ def sort_and_filter_simulation_data(simulation_data, sim_options):
     data_no_duplicates = list(remove_duplicates.values())
 
     if sim_options.oligo != "off":
-        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['oligo_fraction'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['scoring_function'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
     elif sim_options.dimer != "off":
         sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], d['oligo_fraction'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+    elif sim_options.subopt != "off":
+        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], d['esubopt_minus_Epf']), reverse=True)
     else:
-        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'],  -d['edesired_minus_Epf'], -d['Epf'], -d['scoring_function']), reverse=True)
+        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf'], -d['scoring_function']), reverse=True)
 
     return sorted_results[:sim_options.num_results]
 
 
-def sort_and_filter_simulation_data_slternative(simulation_data, sim_options, input_file):
+def sort_and_filter_simulation_data_alternative(simulation_data, sim_options, input_file):
+    """
+    Sorts and filters the simulation data with a focus on alternative RNA structures.
+
+    This function removes duplicates, sorts the data based on MCC (Matthews Correlation Coefficient) values for
+    both the primary and alternative structures, and filters out results to retain only the top-performing sequences
+    as specified in 'sim_options'. The sorting criteria include the MCC for primary and all alternative structures,
+    the 'edesired_minus_Epf', 'Epf', and 'scoring_function' metrics. Additionally, it updates the simulation data
+    with MCC values for alternative structures before the final sorting.
+
+    Args:
+        simulation_data (list): The simulation data to be processed.
+        sim_options (DesignOptions): A DesignOptions object with simulation settings, including sorting and filtering criteria.
+        input_file (InputFile): An InputFile object containing information about alternative structures.
+
+    Returns:
+        list: Sorted and filtered list of simulation data, prioritizing sequences with high performance across both primary and alternative structures.
+    """
 
     remove_duplicates = {item['sequence']: item for item in simulation_data}
     data_no_duplicates = list(remove_duplicates.values())
-    sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'],  -d['edesired_minus_Epf'], -d['Epf'], -d['scoring_function']), reverse=True)
+    sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf'], -d['scoring_function']), reverse=True)
+
     dat_alt_mcc = seq_utils.get_alt_mcc(sorted_results, input_file)
 
     mcc_list = []
     for i in range(len(input_file.alt_sec_structs)):
-        mcc_list.append("mcc_"+str(i+1))
+        mcc_list.append("mcc_" + str(i + 1))
 
     generate_trajectory_csv(dat_alt_mcc, sim_options.outname)
 
-    sorted_results = sorted(seq_utils.round_floats(dat_alt_mcc), 
-                        key=lambda d: tuple([-d[mcc] for mcc in (['mcc'] + mcc_list)]+ [-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']]),
-                        reverse=True)
-
-
+    sorted_results = sorted(seq_utils.round_floats(dat_alt_mcc),
+                            # key=lambda d: tuple([-d[mcc] for mcc in (['mcc'] + mcc_list)]+ [-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']]),
+                            key=lambda d: tuple([-d[mcc] for mcc in (['mcc'] + mcc_list)] + [-d['mcc'], -d['scoring_function']]),
+                            reverse=True)
 
     return sorted_results[:sim_options.num_results]
 
@@ -524,10 +544,10 @@ def generate_simulation_stats_text(stats, sorted_results, input_file, correct_bo
     formatted_time = time.strftime("%H:%M:%S", time.gmtime(finish_time))
 
     best_solution_txt = "\nDesign solved succesfully!\n\nBest solution:\n" if correct_bool else "\nDesign not solved!\n\nTarget structure:\n"
-    best_solution_txt += f"{sorted_results[0]['sequence']}\nMFE Secondary Structure: {sorted_results[0]['mfe_ss']}\nPartition Function Energy: \
-                        {round(sorted_results[0]['Epf'], 3)}\n1-MCC: {round(sorted_results[0]['mcc'], 3)}\n"
+    best_solution_txt += f"{sorted_results[0]['sequence']}\nMFE Secondary Structure: \n{sorted_results[0]['mfe_ss']}\nPartition Function Energy: {round(sorted_results[0]['Epf'], 3)}\
+                        \n1-MCC: {round(sorted_results[0]['mcc'], 3)}\n"
 
-    stats_txt = f">{sim_options.outname} time={sim_options.timlim}s\nAcc_ratio={acc_perc}, Iterations={stats.step}, Accepted={stats.acc_mc_step}/{sum_mc}, Rejected={stats.rej_mc_step}/{sum_mc}\n" \
+    stats_txt = f"\n>{sim_options.outname} \ntime={sim_options.timlim}s\n\nAcc_ratio={acc_perc}, Iterations={stats.step}, Accepted={stats.acc_mc_step}/{sum_mc}, Rejected={stats.rej_mc_step}/{sum_mc}\n" \
                 f"Accepted Metropolis={acc_metro}/{sum_mc_metro}, Rejected Metropolis={sum_mc_metro - acc_metro}/{sum_mc_metro}\n" \
                 f"Replica exchange attempts: {stats.global_step}\nReplica swaps attempts: {sum_replica_att}\nReplica swaps accepted: {stats.acc_re_step}\n" \
                 f"Replica swaps rejected: {stats.rej_re_step}\nReplica exchange acc_ratio: {round(stats.acc_re_step / sum_replica_att, 3)}\n{best_solution_txt}\n\n" \
@@ -590,7 +610,7 @@ def parse_and_output_results(simulation_data, input_file, stats, finish_time, si
     if input_file.graphs == None:
         sorted_results = sort_and_filter_simulation_data(simulation_data, sim_options)
     else:
-        sorted_results = sort_and_filter_simulation_data_slternative(simulation_data, sim_options, input_file)
+        sorted_results = sort_and_filter_simulation_data_alternative(simulation_data, sim_options, input_file)
     generate_csv_from_data(sorted_results, sim_options.outname)
 
     correct_result_txt, correct_bool, correct = check_if_design_solved(sorted_results[:10], input_file, sim_options)

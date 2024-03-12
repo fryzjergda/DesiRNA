@@ -20,7 +20,7 @@ Author: Tomasz Wirecki
 Version: 11.2023
 """
 
-import argparse as argparse
+import argparse
 import sys
 import random
 import csv
@@ -275,16 +275,10 @@ def initialize_simulation(input_file):
         input_file.graphs = seq_utils.generate_graphs(alt_pairs)
         seq_utils.update_graphs(input_file)
 
-
     seq_utils.check_seq_restr(input_file.seq_restr)
     seq_utils.check_length(input_file.sec_struct, input_file.seq_restr)
     nt_list = seq_utils.get_nt_list(input_file)
     seq_utils.check_input_logic(nt_list)
-    
-   # for i in range(len(nt_list)):
-   #     print(vars(nt_list[i]))
-
-
 
     return nt_list
 
@@ -331,7 +325,7 @@ def handle_non_mutable_sequence(input_file, simulation_data, sim_options):
         sys.exit()
 
 
-def run_functions(input_file, sim_options, now):
+def run_functions(input_file, sim_options, curr_time):
     """
     This function runs the design process, which includes mutation, scoring, and selection.
 
@@ -346,10 +340,6 @@ def run_functions(input_file, sim_options, now):
 
     nt_list = initialize_simulation(input_file)
     seqence_score_list = generate_sequences(nt_list, input_file, sim_options)
-    for i in(range(len(nt_list))):
-        print(vars(nt_list[i]))
-    #quit()
-
 
     start_time = time.time()
     simulation_data = []
@@ -361,13 +351,16 @@ def run_functions(input_file, sim_options, now):
 
     stats = sio.Stats()
 
+    print('Designing sequences...')
+
     while time.time() - start_time < sim_options.timlim:
 
-        print('Designing sequences...\nETA', round((sim_options.timlim - (time.time() - start_time)), 0), 'seconds', end='\r')
+        remaining_time = round((sim_options.timlim - (time.time() - start_time)), 0)
+        print(f'ETA {remaining_time} seconds'.ljust(30), end='\r')
 
         stats.update_global_step()
-        seqence_score_list, stats = remc.mutate_sequence_re(seqence_score_list, nt_list, stats, sim_options, input_file)
 
+        seqence_score_list, stats = remc.mutate_sequence_re(seqence_score_list, nt_list, stats, sim_options, input_file)
         seqence_score_list, stats = remc.replica_exchange(seqence_score_list, stats, sim_options)
 
         for i in range(len(seqence_score_list)):
@@ -383,10 +376,10 @@ def run_functions(input_file, sim_options, now):
             break
     finish_time = time.time() - start_time
 
-    sio.parse_and_output_results(simulation_data, input_file, stats, finish_time, sim_options, now)
+    sio.parse_and_output_results(simulation_data, input_file, stats, finish_time, sim_options, curr_time)
 
 
-def redirect_stderr_to_file(filename):
+def redirect_stderr_to_file(file):
     """
     Redirects the standard error (stderr) stream to a file.
 
@@ -400,7 +393,7 @@ def redirect_stderr_to_file(filename):
     # Backup original stderr
     stderr_fileno = sys.stderr.fileno()
     stderr_save = os.dup(stderr_fileno)
-    stderr_log = open(filename, 'w', encoding='utf-8')
+    stderr_log = open(file, 'w', encoding='utf-8')
 
     # Redirect stderr to our log file
     os.dup2(stderr_log.fileno(), stderr_fileno)
@@ -491,7 +484,7 @@ def update_options(sim_options, input_file_obj):
 
     filename = os.path.basename(sim_options.infile)
 
-    sim_options.add_outname(sio.get_outname(filename, sim_options))
+    sim_options.add_outname(sio.get_outname(sim_options))
 
     if sim_options.tshelves == '':
         rep_temps_shelfs_opt = seq_utils.get_rep_temps(sim_options)
@@ -626,53 +619,52 @@ class DesignOptions:
 
 if __name__ == "__main__":
 
-    #log_filename = "tmp_log.txt"
-    #original_stderr, stderr_log = redirect_stderr_to_file(log_filename)
+    log_filename = "tmp_log.txt"
+    original_stderr, stderr_log = redirect_stderr_to_file(log_filename)
 
-    #try:
+    try:
 
-    if len(sys.argv) == 1:
+        if len(sys.argv) == 1:
+            print("DesiRNA")
+            print("usage: DesiRNA.py [-h] [-H]")
+            print("\nOptions:")
+            print("  -h  Display basic usage and options.")
+            print("  -H  Display detailed help, including advanced options.")
+            sys.exit(1)
+
         print("DesiRNA")
-        print("usage: DesiRNA.py [-h] [-H]")
-        print("\nOptions:")
-        print("  -h  Display basic usage and options.")
-        print("  -H  Display detailed help, including advanced options.")
-        sys.exit(1)
 
-    print("DesiRNA")
+        command = os.path.basename(sys.argv[0]) + ' ' + ' '.join(sys.argv[1:])
 
-    command = os.path.basename(sys.argv[0]) + ' ' + ' '.join(sys.argv[1:])
+        script_path = os.path.dirname(os.path.abspath(__file__))
 
-    script_path = os.path.dirname(os.path.abspath(__file__))
+        simulation_options = argument_parser()
 
-    simulation_options = argument_parser()
+        input_file_g = sio.read_input(simulation_options.infile)
 
-    input_file_g = sio.read_input(simulation_options.infile)
-    print(simulation_options.infile)
+        simulation_options, filename = update_options(simulation_options, input_file_g)
 
-    simulation_options, filename = update_options(simulation_options, input_file_g)
+        if simulation_options.in_seed != 0:
+            original_seed = 2137 + simulation_options.in_seed
+        else:
+            original_seed = random.random()
 
-    if simulation_options.in_seed != 0:
-        original_seed = 2137 + simulation_options.in_seed
-    else:
-        original_seed = random.random()
+        random.seed(original_seed)
 
-    random.seed(original_seed)
+        now = datetime.now()
+        now = now.strftime("%Y%m%d.%H%M%S")
 
-    now = datetime.now()
-    now = now.strftime("%Y%m%d.%H%M%S")
+        WORK_DIR = simulation_options.outname + "_" + str(now)
+        Path(WORK_DIR).mkdir(parents=True, exist_ok=True)
+        copy(simulation_options.infile, WORK_DIR + "/" + filename)
+        Path(WORK_DIR + "/trajectory_files").mkdir(parents=True, exist_ok=True)
+        os.chdir(WORK_DIR)
 
-    WORK_DIR = simulation_options.outname + "_" + str(now)
-    Path(WORK_DIR).mkdir(parents=True, exist_ok=True)
-    copy(simulation_options.infile, WORK_DIR + "/" + filename)
-    Path(WORK_DIR + "/trajectory_files").mkdir(parents=True, exist_ok=True)
-    os.chdir(WORK_DIR)
+        with open(simulation_options.outname + ".command", 'w', encoding='utf-8') as f:
+            print(command, file=f)
 
-    with open(simulation_options.outname + ".command", 'w', encoding='utf-8') as f:
-        print(command, file=f)
+        run_functions(input_file_g, simulation_options, now)
 
-    run_functions(input_file_g, simulation_options, now)
-    '''    
     except Exception as e:
         # Close the log, restore stderr, and raise the exception
         stderr_log.close()
@@ -691,4 +683,3 @@ if __name__ == "__main__":
         os.remove("../" + log_filename)
     except FileNotFoundError:
         pass
-    '''

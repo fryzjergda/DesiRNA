@@ -64,12 +64,10 @@ def score_sequence(seq, input_file, sim_options):
     if sim_options.oligo_state != "homodimer":
         scored_sequence = ScoreSeq(sequence=seq)
     else:
-        #seq = seq.split("&")[0]
-        #seq = seq + "&" + seq
+        # seq = seq.split("&")[0]
+        # seq = seq + "&" + seq
         scored_sequence = ScoreSeq(sequence=seq)
     pf_energy, mfe_structure, fold_comp = get_mfe_e_ss(seq, sim_options)
-    print(seq)
-    print(mfe_structure)
 
     scored_sequence.get_Epf(pf_energy)
     scored_sequence.get_mfe_ss(mfe_structure)
@@ -102,21 +100,7 @@ def score_sequence(seq, input_file, sim_options):
         scored_sequence.get_edesired2(sum(energies) / len(energies))
         scored_sequence.get_edesired2_minus_Epf(scored_sequence.Epf, scored_sequence.edesired2)
         scored_sequence.get_scoring_function_w_alt_ss()
-    '''
-    if input_file.alt_sec_struct != None:
-        energies = [fold_comp.eval_structure(alt_dbn) for alt_dbn in input_file.alt_sec_structs]
-        #subopt_e_ss = get_first_suboptimal_structure_and_energy(scored_sequence.sequence, fold_comp)
-        scored_sequence.get_edesired2(sum(energies) / len(energies))
-        #scored_sequence.get_edesired2(subopt_e_ss[1])
-        scored_sequence.get_edesired2_minus_Epf(scored_sequence.Epf, scored_sequence.edesired2)
-        #scored_sequence.get_edesired2_minus_Epf(subopt_e_ss[1], scored_sequence.edesired2)
-        scored_sequence.get_scoring_function_w_alt_ss()
-        #scored_sequence.get_alt_ss(subopt_e_ss)
-        #ssc_alt = SimScore(input_file.alt_sec_structs[0].replace("&", "Ee"), scored_sequence.alt_ss.replace("&", "Ee"))
-        #ssc_alt.find_basepairs()
-        #ssc_alt.cofusion_matrix()
-        #scored_sequence.get_mcc_alt(ssc_alt.mcc())
-    '''
+
     if (sim_options.subopt == "on") and (scored_sequence.mcc == 0):
         scored_sequence.get_subopt_e(get_first_suboptimal_structure_and_energy(seq, fold_comp, 1)[1])
         scored_sequence.get_esubopt_minus_Epf(scored_sequence.Epf, scored_sequence.subopt_e)
@@ -192,7 +176,7 @@ class ScoreSeq:
         self.Epf = 0
         self.edesired = 0
         self.mcc = 0
-        self.mcc_alt =0
+        self.mcc_alt = 0
         self.mfe_ss = None
         self.subopt_e = 0
         self.esubopt_minus_Epf = 0
@@ -471,7 +455,7 @@ def get_first_suboptimal_structure_and_energy(sequence, a, number_of_suboptimals
 
     for i in range(100, 5000, 100):
         a.subopt_cb(i, print_subopt_result, subopt_data)
-        if len(subopt_list) >= number_of_suboptimals+1:
+        if len(subopt_list) >= number_of_suboptimals + 1:
             break
         subopt_list = []
 
