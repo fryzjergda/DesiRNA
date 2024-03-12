@@ -64,8 +64,8 @@ def score_sequence(seq, input_file, sim_options):
     if sim_options.oligo_state != "homodimer":
         scored_sequence = ScoreSeq(sequence=seq)
     else:
-        seq = seq.split("&")[0]
-        seq = seq + "&" + seq
+        # seq = seq.split("&")[0]
+        # seq = seq + "&" + seq
         scored_sequence = ScoreSeq(sequence=seq)
     pf_energy, mfe_structure, fold_comp = get_mfe_e_ss(seq, sim_options)
 
@@ -102,7 +102,7 @@ def score_sequence(seq, input_file, sim_options):
         scored_sequence.get_scoring_function_w_alt_ss()
 
     if (sim_options.subopt == "on") and (scored_sequence.mcc == 0):
-        scored_sequence.get_subopt_e(get_first_suboptimal_structure_and_energy(seq, fold_comp)[1])
+        scored_sequence.get_subopt_e(get_first_suboptimal_structure_and_energy(seq, fold_comp, 1)[1])
         scored_sequence.get_esubopt_minus_Epf(scored_sequence.Epf, scored_sequence.subopt_e)
         scored_sequence.get_scoring_function_w_subopt()
 
@@ -147,7 +147,8 @@ def get_mfe_e_ss(seq, sim_options):
             structure = seq_utils.get_pk_struct(seq, structure, fc)
     elif sim_options.oligo_state in {"homodimer", "heterodimer"}:
         seqa_len = len(seq.split("&")[0])
-        structure_dim, energy = fc.mfe_dimer()
+        structure_dim = fc.mfe_dimer()[0]
+        energy = fc.pf_dimer()[-1]
         structure = structure_dim[:seqa_len] + "&" + structure_dim[seqa_len:]
     return energy, structure, fc
 
@@ -175,6 +176,7 @@ class ScoreSeq:
         self.Epf = 0
         self.edesired = 0
         self.mcc = 0
+        self.mcc_alt = 0
         self.mfe_ss = None
         self.subopt_e = 0
         self.esubopt_minus_Epf = 0
@@ -230,6 +232,15 @@ class ScoreSeq:
         ss (str): The mfe_ss value to be assigned.
         """
         self.mfe_ss = ss
+
+    def get_alt_ss(self, ss):
+        """
+        Set the minimum free energy secondary structure (mfe_ss) for this sequence.
+
+        Parameters:
+        ss (str): The mfe_ss value to be assigned.
+        """
+        self.alt_ss = ss[0]
 
     def get_edesired(self, e_target):
         """
@@ -314,6 +325,15 @@ class ScoreSeq:
         mcc (float): The MCC value to be assigned.
         """
         self.mcc = 1 - mcc
+
+    def get_mcc_alt(self, mcc_alt):
+        """
+        Set the Matthews correlation coefficient (MCC) for this sequence.
+
+        Parameters:
+        mcc (float): The MCC value to be assigned.
+        """
+        self.mcc_alt = 1 - mcc_alt
 
     def get_sln_Epf(self):
         """
@@ -413,7 +433,7 @@ class ScoreSeq:
         self.scoring_function += motif_bonus
 
 
-def get_first_suboptimal_structure_and_energy(sequence, a):
+def get_first_suboptimal_structure_and_energy(sequence, a, number_of_suboptimals):
     """
     Find the first suboptimal secondary structure and its energy for a given RNA sequence.
 
@@ -435,7 +455,7 @@ def get_first_suboptimal_structure_and_energy(sequence, a):
 
     for i in range(100, 5000, 100):
         a.subopt_cb(i, print_subopt_result, subopt_data)
-        if len(subopt_list) >= 2:
+        if len(subopt_list) >= number_of_suboptimals + 1:
             break
         subopt_list = []
 
@@ -445,7 +465,7 @@ def get_first_suboptimal_structure_and_energy(sequence, a):
         structure1 = "." * len(sequence)
         energy1 = 0
     else:
-        structure1 = subopt_list[1][0]
-        energy1 = subopt_list[1][1]
+        structure1 = subopt_list[number_of_suboptimals][0]
+        energy1 = subopt_list[number_of_suboptimals][1]
 
     return structure1, energy1

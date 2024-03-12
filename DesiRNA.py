@@ -20,7 +20,7 @@ Author: Tomasz Wirecki
 Version: 11.2023
 """
 
-import argparse as argparse
+import argparse
 import sys
 import random
 import csv
@@ -275,11 +275,10 @@ def initialize_simulation(input_file):
     input_file.set_target_pairs_tupl()
 
     if input_file.alt_sec_structs != None:
-        print(input_file.alt_sec_structs)
-        for i in range(0, len(input_file.alt_sec_structs)):
-            print("Checking brackets for alternative structure ", i + 1)
-            seq_utils.check_dot_bracket(input_file.alt_sec_structs[i])
         print("Alternative structures are ok.")
+        alt_pairs = seq_utils.get_pairs_for_graphs(input_file)
+        input_file.graphs = seq_utils.generate_graphs(alt_pairs)
+        seq_utils.update_graphs(input_file)
 
     seq_utils.check_seq_restr(input_file.seq_restr)
     seq_utils.check_length(input_file.sec_struct, input_file.seq_restr)
@@ -331,7 +330,7 @@ def handle_non_mutable_sequence(input_file, simulation_data, sim_options):
         sys.exit()
 
 
-def run_functions(input_file, sim_options, now):
+def run_functions(input_file, sim_options, curr_time):
     """
     This function runs the design process, which includes mutation, scoring, and selection.
 
@@ -357,13 +356,18 @@ def run_functions(input_file, sim_options, now):
 
     stats = sio.Stats()
 
+    print('Designing sequences...')
+
     while time.time() - start_time < sim_options.timlim:
+
         if sim_options.wt == "off":
-            print('ETA', round((sim_options.timlim - (time.time() - start_time)), 0), 'seconds', end='\r')
+            remaining_time = round((sim_options.timlim - (time.time() - start_time)), 0)
+            print(f'ETA {remaining_time} seconds'.ljust(30), end='\r')
+
 
         stats.update_global_step()
-        seqence_score_list, stats = remc.mutate_sequence_re(seqence_score_list, nt_list, stats, sim_options, input_file)
 
+        seqence_score_list, stats = remc.mutate_sequence_re(seqence_score_list, nt_list, stats, sim_options, input_file)
         seqence_score_list, stats = remc.replica_exchange(seqence_score_list, stats, sim_options)
 
         for i in range(len(seqence_score_list)):
@@ -379,10 +383,10 @@ def run_functions(input_file, sim_options, now):
             break
     finish_time = time.time() - start_time
 
-    sio.parse_and_output_results(simulation_data, input_file, stats, finish_time, sim_options, now)
+    sio.parse_and_output_results(simulation_data, input_file, stats, finish_time, sim_options, curr_time)
 
 
-def redirect_stderr_to_file(filename):
+def redirect_stderr_to_file(file):
     """
     Redirects the standard error (stderr) stream to a file.
 
@@ -396,7 +400,7 @@ def redirect_stderr_to_file(filename):
     # Backup original stderr
     stderr_fileno = sys.stderr.fileno()
     stderr_save = os.dup(stderr_fileno)
-    stderr_log = open(filename, 'w', encoding='utf-8')
+    stderr_log = open(file, 'w', encoding='utf-8')
 
     # Redirect stderr to our log file
     os.dup2(stderr_log.fileno(), stderr_fileno)
@@ -487,7 +491,7 @@ def update_options(sim_options, input_file_obj):
 
     filename = os.path.basename(sim_options.infile)
 
-    sim_options.add_outname(sio.get_outname(filename, sim_options))
+    sim_options.add_outname(sio.get_outname(sim_options))
 
     if sim_options.tshelves == '':
         rep_temps_shelfs_opt = seq_utils.get_rep_temps(sim_options)
@@ -646,6 +650,7 @@ if __name__ == "__main__":
         simulation_options = argument_parser()
 
         input_file_g = sio.read_input(simulation_options.infile)
+
         if simulation_options.wt == "off":
             print(simulation_options.infile)
 
