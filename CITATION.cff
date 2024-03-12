@@ -1,0 +1,92 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  DesiRNA: structure-based design of RNA sequences with 
+  a Monte Carlo approach
+message: RNA sequence design software
+type: software
+authors:
+  - given-names: Tomasz K. Wirecki
+    email: twirecki@iimcb.gov.pl
+    affiliation: >-
+      International Institute of Molecular and Cell
+      Biology in Warsaw, Warsaw, Poland
+    orcid: "https://orcid.org/0000-0001-6539-3640 "
+  - given-names: Grzegorz Lach
+    email: gel@fuw.edu.pl
+    affiliation: >-
+      Institute of Theoretical Physics, Faculty of 
+      Physics (FUW), University of Warsaw, Poland
+    orcid: "https://orcid.org/0000-0003-4018-5217"
+  - given-names: Farhang Jaryani
+    affiliation: >-
+      International Institute of Molecular and Cell
+      Biology in Warsaw, Warsaw, Poland
+    orcid: "https://orcid.org/0000-0001-8374-6681"
+  - given-names: Nagendar Goud Badepally
+    email: nbadepally@iimcb.gov.pl
+    affiliation: >-
+      International Institute of Molecular and Cell
+      Biology in Warsaw, Warsaw, Poland
+    orcid: "https://orcid.org/0000-0003-4364-8811"
+  - given-names: S. Naeim Moafinejad
+    email: snmoafinejad@iimcb.gov.pl
+    affiliation: >-
+      International Institute of Molecular and Cell
+      Biology in Warsaw, Warsaw, Poland
+    orcid: "https://orcid.org/0000-0003-0397-2596"
+  - given-names: Gaja Klaudel
+    affiliation: >-
+      International Institute of Molecular and Cell
+      Biology in Warsaw, Warsaw, Poland
+  - given-names: Kalina Nec
+    email: knec@iimcb.gov.pl
+    affiliation: >-
+      International Institute of Molecular and Cell
+      Biology in Warsaw, Warsaw, Poland
+  - given-names: Eugene F. Baulin
+    email: ebaulin@iimcb.gov.pl
+    affiliation: >-
+      International Institute of Molecular and Cell
+      Biology in Warsaw, Warsaw, Poland
+    orcid: "https://orcid.org/0000-0003-4694-9783"
+  - given-names: Janusz M. Bujnicki
+    email: janusz@iimcb.gov.pl
+    affiliation: >-
+      International Institute of Molecular and Cell
+      Biology in Warsaw, Warsaw, Poland
+    orcid: "https://orcid.org/0000-0001-5758-9416"
+identifiers:
+  - type: doi
+    value: 10.1101/2023.06.04.543636
+  - type: url
+    value: >-
+      https://github.com/fryzjergda/DesiRNA
+    description: GitHub repository
+abstract: >-
+  RNA sequences underpin the formation of complex and diverse structures, 
+  subsequently governing their respective functional properties. Despite 
+  the pivotal role RNA sequences play in cellular mechanisms, creating 
+  optimized sequences that can predictably fold into desired structures 
+  remains a significant challenge. We have developed DesiRNA, a versatile 
+  Python-based software tool for RNA sequence design. This program considers 
+  a comprehensive array of constraints, ranging from secondary structures 
+  (including pseudoknots) and GC content, to the distribution of dinucleotides 
+  emulating natural RNAs. Additionally, it factors in the presence or 
+  absence of specific sequence motifs and prevents or promotes 
+  oligomerization, thereby ensuring a robust and flexible design process. 
+  DesiRNA utilizes the Monte Carlo algorithm for the selection and acceptance 
+  of mutation sites. In tests on the EteRNA benchmark, DesiRNA displayed high 
+  accuracy and computational efficiency, outperforming most existing RNA 
+  design programs.
+  
+  The DesiRNA software is freely available at
+  https://github.com/fryzjergda/DesiRNA
+keywords:
+  - rna
+  - sequence design
+  - Eterna benchmark
+  - python
+license: Apache-2.0
