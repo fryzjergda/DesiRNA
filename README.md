@@ -120,7 +120,7 @@ DesiRNA.py -f NAME
 
 - `-nd, --negative_design {off,on}`: Use negative design approach (default: off).
 - `-acgu_content, --ACGU_content`: Provide user-defined ACGU content, comma-separated values e.g., ```-acgu_content 10,40,40,10```.
-- `-o, --oligomerization {off,enforce,avoid}`: Check if the designed sequence tends to oligomerize. User may enforce or avoid oligomerization. Slows down the simulation (default: `off`).
+- `-o, --avoid_oligomerization {off,on}`: Check if the designed sequence tends to oligomerize. User may enforce or avoid oligomerization. Slows down the simulation (default: `off`).
 - `-d, --dimer {off,on}`: Design of a homodimer complex, of two strands. Requires input file complying with RNA-RNA complex format (default: `off`).
 - `-tm, --target_mutations {off,on}`: Targeted mutations (default: on).
 - `-tm_perc_max, --target_mutations_percentage_max`: Highest percentage of targeted mutations for the lowest temperature replica (default: 0.7).
