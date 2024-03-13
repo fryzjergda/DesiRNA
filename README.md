@@ -1,6 +1,6 @@
-<div style="display: flex; align-items: center;">
-    <img src="img/logo.png" alt="Logo" style="width: 200px; height: 200px;">
-    <img src="img/logo2.png" alt="Logo 2" style="width: auto; height: auto;">
+<div style="display: flex;">
+    <img src="img/logo.png" alt="Logo" style="width: 200px;">
+    <img src="img/logo2.png" alt="Logo 2" style="width: 200px;">
 </div>
 
 
