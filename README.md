@@ -1,3 +1,5 @@
+![](img/logo.png)
+
 # DesiRNA
 
 DesiRNA is a state-of-the-art RNA sequence design tool, that stands out for its speed, lightweight nature, ease of installation, and user-friendly interface.
