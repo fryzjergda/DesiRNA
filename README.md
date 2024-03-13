@@ -1,6 +1,6 @@
 <div style="display: flex;">
     <img src="img/logo.png" alt="Logo" style="width: 200px;">
-    <img src="img/logo2.png" alt="Logo 2" style="height: 200px;">
+    <img src="img/logo2.png" alt="Logo 2" style="height: 150px;">
 </div>
 
 
