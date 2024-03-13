@@ -12,7 +12,7 @@ developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repo
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
-[![CI (conda)](https://github.com/n-szulc/fingeRNAt/actions/workflows/thefirst.yml/badge.svg)](https://github.com/n-szulc/fingeRNAt/actions/workflows/thefirst.yml)
+[![Installable via Conda](https://img.shields.io/badge/installable%20via-Conda-brightgreen)](https://your-conda-installation-instructions-url)
 
 ### Features
 - **Super Fast:** Utilizes Replica Exchange Monte Carlo for efficient computations.
