@@ -72,6 +72,9 @@ rm -rf *_R10_e100*
 
 if [ "$failed_tests" = false ]; then
     echo "All tests passed!"
+    exit 0
 else
     echo "Some tests failed!"
+    exit 1
+    
 fi
