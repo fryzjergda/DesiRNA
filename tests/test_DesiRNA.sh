@@ -46,16 +46,27 @@ function run_test() {
 #    echo $(find "$output_dir" -name "*stats")
 
     # Check if the output stats file exists and contains the expected phrase
+    #if [ -f "$output_stats_file" ] && grep -q "$expected_phrase" "$output_stats_file"; then
+    #    echo -e "Test with input $input_file and options -t $t_option -acgu $acgu_option -p $p_option -tmin $tmin_option -tmax $tmax_option -sf $sf_option -nd $nd_option -acgu_content $acgu_content_option -o $oligo_option -d $dimer_option -tm $tm_option -tm_perc_max $tm_perc_max_option -tm_perc_min $tm_perc_min_option -re_seq $re_seq_option -sws $sws_option\n\nPASSED\n"
+    #    rm -rf "$output_dir" # Clean up the directory after the test
+    #else
+    #    echo -e "Test with input $input_file and options -t $t_option -acgu $acgu_option -p $p_option -tmin $tmin_option -tmax $tmax_option -sf $sf_option -nd $nd_option -acgu_content $acgu_content_option -o $oligo_option -d $dimer_option -tm $tm_option -tm_perc_max $tm_perc_max_option -tm_perc_min $tm_perc_min_option -re_seq $re_seq_option -sws $sws_option\n\nFAILED\n"
+    #fi
+
+# Check if the output stats file exists and contains the expected phrase
     if [ -f "$output_stats_file" ] && grep -q "$expected_phrase" "$output_stats_file"; then
         echo -e "Test with input $input_file and options -t $t_option -acgu $acgu_option -p $p_option -tmin $tmin_option -tmax $tmax_option -sf $sf_option -nd $nd_option -acgu_content $acgu_content_option -o $oligo_option -d $dimer_option -tm $tm_option -tm_perc_max $tm_perc_max_option -tm_perc_min $tm_perc_min_option -re_seq $re_seq_option -sws $sws_option\n\nPASSED\n"
         rm -rf "$output_dir" # Clean up the directory after the test
     else
         echo -e "Test with input $input_file and options -t $t_option -acgu $acgu_option -p $p_option -tmin $tmin_option -tmax $tmax_option -sf $sf_option -nd $nd_option -acgu_content $acgu_content_option -o $oligo_option -d $dimer_option -tm $tm_option -tm_perc_max $tm_perc_max_option -tm_perc_min $tm_perc_min_option -re_seq $re_seq_option -sws $sws_option\n\nFAILED\n"
+        failed_tests=true
     fi
 
     # Navigate back to the test directory
     cd - > /dev/null
 }
+
+failed_tests=false
 
 # Running tests with different inputs and options
 run_test "Standard_design_input.txt" "5" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "same" "on"
@@ -74,4 +85,10 @@ run_test "Standard_design_input.txt" "10" "off" "1999" "10" "150" "Ed-Epf:1.0" "
 run_test "Standard_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.8" "0.1" "same" "on"
 run_test "Standard_design_input.txt" "2" "off" "1999" "10" "150" "Ed-Epf:1.0" "off" "" "off" "off" "on" "0.7" "0.0" "different" "on"
 
-echo "All tests passed!"
+if [ "$failed_tests" = true ]; then
+    echo "Some tests failed!"
+    exit 1
+else
+    echo "All tests passed!"
+    exit 0
+fi

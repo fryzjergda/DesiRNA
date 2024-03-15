@@ -409,7 +409,7 @@ def sort_and_filter_simulation_data(simulation_data, sim_options):
     elif sim_options.subopt != "off":
         sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], d['esubopt_minus_Epf']), reverse=True)
     else:
-        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf'], -d['scoring_function']), reverse=True)
+        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'],  -d['edesired_minus_Epf'], -d['Epf'], -d['scoring_function']), reverse=True)
 
     return sorted_results[:sim_options.num_results]
 
@@ -435,20 +435,22 @@ def sort_and_filter_simulation_data_alternative(simulation_data, sim_options, in
 
     remove_duplicates = {item['sequence']: item for item in simulation_data}
     data_no_duplicates = list(remove_duplicates.values())
-    sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], -d['Epf'], -d['scoring_function']), reverse=True)
+    sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'],  -d['edesired_minus_Epf'], -d['Epf'], -d['scoring_function']), reverse=True)
 
     dat_alt_mcc = seq_utils.get_alt_mcc(sorted_results, input_file)
 
     mcc_list = []
     for i in range(len(input_file.alt_sec_structs)):
-        mcc_list.append("mcc_" + str(i + 1))
+        mcc_list.append("mcc_"+str(i+1))
 
     generate_trajectory_csv(dat_alt_mcc, sim_options.outname)
 
     sorted_results = sorted(seq_utils.round_floats(dat_alt_mcc),
-                            # key=lambda d: tuple([-d[mcc] for mcc in (['mcc'] + mcc_list)]+ [-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']]),
-                            key=lambda d: tuple([-d[mcc] for mcc in (['mcc'] + mcc_list)] + [-d['mcc'], -d['scoring_function']]),
-                            reverse=True)
+                        #key=lambda d: tuple([-d[mcc] for mcc in (['mcc'] + mcc_list)]+ [-d['mcc'], -d['edesired_minus_Epf'], -d['Epf']]),
+                        key=lambda d: tuple([-d[mcc] for mcc in (['mcc'] + mcc_list)]+ [-d['mcc'], -d['scoring_function']]),
+                        reverse=True)
+
+
 
     return sorted_results[:sim_options.num_results]
 
@@ -500,7 +502,7 @@ def check_if_design_solved(sorted_results, input_file, sim_options):
         oligo_txt = ""
 
     correct_result_txt = f">{input_file.name},{correct_bool},{correct_count},{sorted_results[0]['sequence']},{sorted_results[0]['mfe_ss']}{oligo_txt}"
-    return correct_result_txt, correct_bool, correct_count
+    return correct_result_txt, correct_bool
 
 
 def write_best_str_file(correct_result_txt, output_name):
@@ -516,7 +518,7 @@ def write_best_str_file(correct_result_txt, output_name):
         myfile.write(correct_result_txt)
 
 
-def generate_simulation_stats_text(stats, sorted_results, input_file, correct_bool, finish_time, sim_options):
+def generate_simulation_stats_text(stats, sorted_results, correct_bool, finish_time, sim_options):
     """
     Generates text summarizing the statistics of the simulation.
 
@@ -613,11 +615,11 @@ def parse_and_output_results(simulation_data, input_file, stats, finish_time, si
         sorted_results = sort_and_filter_simulation_data_alternative(simulation_data, sim_options, input_file)
     generate_csv_from_data(sorted_results, sim_options.outname)
 
-    correct_result_txt, correct_bool, correct = check_if_design_solved(sorted_results[:10], input_file, sim_options)
+    correct_result_txt, correct_bool = check_if_design_solved(sorted_results[:10], input_file, sim_options)
     write_best_str_file(correct_result_txt, sim_options.outname)
     plot_simulation_data_combined(simulation_data, input_file.alt_sec_struct, sim_options)
 
-    stats_txt = generate_simulation_stats_text(stats, sorted_results, input_file, correct_bool, finish_time, sim_options)
+    stats_txt = generate_simulation_stats_text(stats, sorted_results, correct_bool, finish_time, sim_options)
     print('\n' + stats_txt)
     write_stats_to_file(stats_txt, sim_options.outname)
 
@@ -626,7 +628,7 @@ def parse_and_output_results(simulation_data, input_file, stats, finish_time, si
     move_results(files_to_move, "trajectory_files/", sim_options.outname)
 
 
-def get_outname(infile, sim_options):
+def get_outnase(sim_options):
     """
     Generate an output name for a file based on the current parameters.
 

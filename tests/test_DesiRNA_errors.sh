@@ -23,15 +23,13 @@ function run_test {
     else
         echo "Test FAILED"
         echo "Output: $DesiRNA_output"
+        failed_tests=true
     fi
     echo ""
-
-    # If the test generates an output directory, find and remove it
-    if [[ $generates_dir == "yes" ]]; then
-        output_dir=$(find_latest_directory "${input_file%.txt}*")
-        rm -rf "$output_dir"
-    fi
+    
 }
+
+failed_tests=false
 
 # Test for -h option
 run_test "python3 ${BASE_DIR}/DesiRNA.py -h" "Standard Options:" "no"
@@ -70,3 +68,10 @@ run_test "python3 ${BASE_DIR}/DesiRNA.py -f ${BASE_DIR}/tests/Error_inputs/Error
 run_test "python3 ${BASE_DIR}/DesiRNA.py -f ${BASE_DIR}/tests/Error_inputs/Error_input_wrong_seq_restraints.txt -acgu on -acgu_content 20,40,40,10" "The ACGU content should sum up to 100, check your command." "no"
 
 rm tmp_log.txt
+rm -rf *_R10_e100*
+
+if [ "$failed_tests" = false ]; then
+    echo "All tests passed!"
+else
+    echo "Some tests failed!"
+fi
