@@ -628,10 +628,10 @@ class DesignOptions:
 
 if __name__ == "__main__":
 
-#    log_filename = "tmp_log.txt"
-#    original_stderr, stderr_log = redirect_stderr_to_file(log_filename)
+    log_filename = "tmp_log.txt"
+    original_stderr, stderr_log = redirect_stderr_to_file(log_filename)
 
- #   try:
+    try:
 
         if len(sys.argv) == 1:
             print("DesiRNA")
@@ -680,7 +680,7 @@ if __name__ == "__main__":
             print(command, file=f)
 
         run_functions(input_file_g, simulation_options, now)
-        '''
+        
     except Exception as e:
         # Close the log, restore stderr, and raise the exception
         stderr_log.close()
@@ -699,4 +699,4 @@ if __name__ == "__main__":
         os.remove("../" + log_filename)
     except FileNotFoundError:
         pass
-        '''
+        

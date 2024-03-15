@@ -38,7 +38,7 @@ run_test "python3 ${BASE_DIR}/DesiRNA.py -h" "Standard Options:" "no"
 run_test "python3 ${BASE_DIR}/DesiRNA.py -H" "Advanced Options:" "no"
 
 # Test for input file with not allowed characters in structures
-run_test "python3 ${BASE_DIR}/DesiRNA.py -f ${BASE_DIR}/tests/Edrror_inputs/Error_input_sec_struct_character.txt" "Not allowed characters in structures. Check input file." "yes"
+run_test "python3 ${BASE_DIR}/DesiRNA.py -f ${BASE_DIR}/tests/Error_inputs/Error_input_sec_struct_character.txt" "Not allowed characters in structures. Check input file." "yes"
 
 # Test for input file with no opening bracket
 run_test "python3 ${BASE_DIR}/DesiRNA.py -f ${BASE_DIR}/tests/Error_inputs/Error_input_no_opening_bracket.txt" "There is no opening bracket for nt position" "yes"

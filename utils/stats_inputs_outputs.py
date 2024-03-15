@@ -628,7 +628,7 @@ def parse_and_output_results(simulation_data, input_file, stats, finish_time, si
     move_results(files_to_move, "trajectory_files/", sim_options.outname)
 
 
-def get_outname(sim_options):
+def get_outnsame(sim_options):
     """
     Generate an output name for a file based on the current parameters.
 
