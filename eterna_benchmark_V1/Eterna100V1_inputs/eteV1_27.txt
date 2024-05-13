@@ -1,6 +1,0 @@
->name
-Ete_27
->seq_restr
-NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
->sec_struct
-.....(((((.(.(.((.(.(((((((((....))))))))))))))))))).....

@@ -1,6 +1,0 @@
->name
-Ete_59
->seq_restr
-NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
->sec_struct
-.....((((((.((((((((....))))))).)))((((((((((....)))))))))))))).....

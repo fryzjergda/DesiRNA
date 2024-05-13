@@ -1,6 +1,0 @@
->name
-Ete_90
->seq_restr
-NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
->sec_struct
-(....)..(....(...(..(.(..(...(((.(((...((((....)))).(((((..(.(((..(.((((..(.((((..(.((((((((.((((((.(((((.((((.((((..((((...)))).))).)))))).))))).)))))).)))))))..).))))..).))))..).)))..).))))).)))...(((.(((((.(..(((.(..((((.(..((((.(..(((((((.((((((.(((((.((((((.(((.((((((....))))))..)))).)))).))))).)))))).)))))))).)..)))).)..)))).)..))).)..))))).((((....))))...))).)))...)..).)..)...)....)..(....)
