@@ -381,7 +381,7 @@ def generate_best_fasta(simulation_data, sim_options, now):
         fastafile.write(fasta_txt)
 
 
-def sort_and_filter_simulation_data(simulation_data, sim_options):
+def sort_and_filter_simulation_data(simulation_data, sim_options, input_file):
     """
     Sorts and filters the simulation data based on specified criteria.
 
@@ -405,7 +405,12 @@ def sort_and_filter_simulation_data(simulation_data, sim_options):
     if sim_options.oligo != "off":
         sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['scoring_function'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
     elif sim_options.dimer != "off":
-        sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], d['oligo_fraction'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+        if input_file.sec_struct.split("&")[0] != input_file.sec_struct.split("&")[1]:
+
+            sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], d['oligo_fraction'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+        else:
+            sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['oligo_fraction'], -d['edesired_minus_Epf'], -d['Epf']), reverse=True)
+
     elif sim_options.subopt != "off":
         sorted_results = sorted(seq_utils.round_floats(data_no_duplicates), key=lambda d: (-d['mcc'], -d['edesired_minus_Epf'], d['esubopt_minus_Epf']), reverse=True)
     else:
@@ -610,7 +615,7 @@ def parse_and_output_results(simulation_data, input_file, stats, finish_time, si
     generate_best_fasta(simulation_data, sim_options, now)
 
     if input_file.graphs == None:
-        sorted_results = sort_and_filter_simulation_data(simulation_data, sim_options)
+        sorted_results = sort_and_filter_simulation_data(simulation_data, sim_options, input_file)
     else:
         sorted_results = sort_and_filter_simulation_data_alternative(simulation_data, sim_options, input_file)
     generate_csv_from_data(sorted_results, sim_options.outname)

@@ -1,0 +1,6 @@
+>name
+Ete_23
+>seq_restr
+NNNNNNNNNNNNNNNNN
+>sec_struct
+((....)).((....))

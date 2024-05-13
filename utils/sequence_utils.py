@@ -1099,8 +1099,13 @@ def mutate_sequence(sequence_obj, nt_list, sim_options, input_file):
 
     if nt2_pos != None:
         mut_position[nt2_pos] = "#"
+    
+    
+    if sim_options.oligo_state == "homodimer":
+        ss1_inp, ss2_inp =  input_file.sec_struct.split("&")
 
-    if (sim_options.oligo_state == "homodimer") and (nt2_pos != None):
+
+    if (sim_options.oligo_state == "homodimer") and (nt2_pos != None) and (ss1_inp != ss2_inp) :
         seq1o, seq2o = sequence.split("&")
         seq1m, seq2m = sequence_mutated.split("&")
 
@@ -1112,6 +1117,17 @@ def mutate_sequence(sequence_obj, nt_list, sim_options, input_file):
         seq2corr = seq2m[:seq1_diff] + seq1m[seq1_diff] + seq2m[seq1_diff + 1:]
 
         sequence_mutated = seq1corr + "&" + seq2corr
+    
+    if (sim_options.oligo_state == "homodimer") and (ss1_inp == ss2_inp):
+
+        seq1_old, seq2_old = sequence.split("&")
+        seq1m, seq2m = sequence_mutated.split("&")
+
+        if seq1m != seq1_old:
+            sequence_mutated = seq1m + "&" + seq1m
+        elif seq2m != seq2_old:
+            sequence_mutated = seq2m + "&" + seq2m
+
 
     sequence_mutated = es.score_sequence(sequence_mutated, input_file, sim_options)
     sequence_mutated.get_replica_num(sequence_obj.replica_num)

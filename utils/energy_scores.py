@@ -106,9 +106,15 @@ def score_sequence(seq, input_file, sim_options):
         scored_sequence.get_esubopt_minus_Epf(scored_sequence.Epf, scored_sequence.subopt_e)
         scored_sequence.get_scoring_function_w_subopt()
 
-    if sim_options.oligo_state == "homodimer" or sim_options.oligo_state == "heterodimer":
+    if sim_options.oligo_state == "heterodimer":
         scored_sequence.get_scoring_function_oligomer(fold_comp)
-
+    
+    if (sim_options.oligo_state == "homodimer") and (input_file.sec_struct.split("&")[0] != input_file.sec_struct.split("&")[1]):
+        scored_sequence.get_scoring_function_oligomer(fold_comp)
+    
+    if (sim_options.oligo_state == "homodimer") and (input_file.sec_struct.split("&")[0] == input_file.sec_struct.split("&")[1]):
+        scored_sequence.get_scoring_function_homomonomer(fold_comp)
+    
     if sim_options.oligo_state == "avoid":
         scored_sequence.get_scoring_function_monomer()
 
@@ -421,6 +427,17 @@ class ScoreSeq:
         """
         self.oligo_fraction = dme.oligo_fraction(self.sequence, fc)
         self.oligomer_bonus = dme.kTlog_oligo_fraction(self.oligo_fraction)
+        self.scoring_function = self.scoring_function + self.oligomer_bonus
+    
+    def get_scoring_function_homomonomer(self, fc):
+        """
+        Update the scoring function for this sequence by including the effect of oligomer fraction.
+
+        Parameters:
+        fc (RNA.fold_compound): The fold compound object for RNA secondary structure.
+        """
+        self.oligo_fraction = dme.oligo_fraction(self.sequence, fc)
+        self.oligomer_bonus = dme.kTlog_monomer_fraction(self.oligo_fraction)
         self.scoring_function = self.scoring_function + self.oligomer_bonus
 
     def update_scoring_function_w_motifs(self, motif_bonus):

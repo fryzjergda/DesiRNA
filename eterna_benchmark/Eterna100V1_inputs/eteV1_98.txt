@@ -1,0 +1,6 @@
+>name
+Ete_98
+>seq_restr
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+>sec_struct
+...(((((((...))))..((((...))))..((((...)))))))........(((((((...))))..((((...))))..((((...)))))))........(((((((...))))..((((...))))..((((...)))))))........(((((((...))))..((((...))))..((((...)))))))...
