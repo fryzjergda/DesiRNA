@@ -39,6 +39,13 @@ jobs:
           echo 'export CPPFLAGS="-I/usr/local/opt/gettext/include"' >> $GITHUB_ENV
           echo 'export DYLD_LIBRARY_PATH="/usr/local/opt/gettext/lib:$DYLD_LIBRARY_PATH"' >> $GITHUB_ENV
 
+      - name: Debug environment settings
+        if: runner.os == 'macos'
+        run: |
+          echo "Checking DYLD_LIBRARY_PATH:"
+          echo $DYLD_LIBRARY_PATH
+          ls -l /usr/local/opt/gettext/lib/
+          ls -l /usr/local/lib/libintl.8.dylib
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
