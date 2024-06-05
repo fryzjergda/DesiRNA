@@ -7,86 +7,40 @@ on:
     branches: [main, refactoring]
 
 jobs:
-  build:
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-20.04, macos-latest]
-        python-version: [3.7, 3.8, 3.9, 3.11]
+        include:
+          - os: ubuntu-22.04
+            python-version: [3.7, 3.8, 3.9, 3.10, 3.11, 3.12]
+          - os: ubuntu-20.04
+            python-version: [3.7, 3.8, 3.9, 3.10, 3.11, 3.12]
+          - os: macos-latest
+            python-version: [3.11, 3.12]
+
 
     steps:
-      - name: Increase Git Config core.longpaths
-        if: runner.os == 'Windows'
-        run: git config --system core.longpaths true
-
       - name: Checkout repository
         uses: actions/checkout@v2
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '20.x'
-          
-      - name: Check Homebrew installation and config
-        if: runner.os == 'macos'
-        run: |
-          which brew
-          brew --version
-          brew doctor
 
-      - name: Clean up Homebrew
-        if: runner.os == 'macos'
-        run: |
-          brew untap homebrew/cask
-          brew untap homebrew/core
-          brew uninstall --ignore-dependencies openssl@1.1 packer ruby@3.0
-          brew cleanup
-
-    
-      - name: Configure Homebrew and gettext
-        if: runner.os == 'macos'
-        run: |
-          brew install gettext
-          brew link --force gettext
-          GETTEXT_PATH=$(brew --prefix gettext)
-          sudo mkdir -p $GETTEXT_PATH/lib
-          sudo ln -sf $GETTEXT_PATH/lib/libintl.8.dylib /usr/local/lib/
-          echo "export PATH=\"$GETTEXT_PATH/bin:\$PATH\"" >> $GITHUB_ENV
-          echo "export LDFLAGS=\"-L$GETTEXT_PATH/lib\"" >> $GITHUB_ENV
-          echo "export CPPFLAGS=\"-I$GETTEXT_PATH/include\"" >> $GITHUB_ENV
-          echo "export DYLD_LIBRARY_PATH=\"$GETTEXT_PATH/lib:\$DYLD_LIBRARY_PATH\"" >> $GITHUB_ENV
-
-      - name: Debug environment settings
-        if: runner.os == 'macos'
-        run: |
-          echo "Checking DYLD_LIBRARY_PATH:"
-          echo $DYLD_LIBRARY_PATH
-          ls -l $GETTEXT_PATH/lib/
-          ls -l /usr/local/lib/libintl.8.dylib
-
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: x64  # Explicitly specify architecture if necessary
-
-
-      - name: Cache pip dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        shell: bash
-        
-      - name: Run DesiRNA tests
-        run: bash ./tests/test_DesiRNA.sh
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
 
-      - name: Run DesiRNA error handling tests
-        run: bash ./tests/test_DesiRNA_errors.sh
+      - name: Run tests
+        run: |
+          bash ./tests/test_DesiRNA.sh
+
+      - name: Additional tests
+        run: |
+          bash ./tests/test_DesiRNA_errors.sh
