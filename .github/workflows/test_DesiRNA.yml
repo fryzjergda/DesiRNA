@@ -33,12 +33,13 @@ jobs:
           brew --version
           brew doctor
 
-      - name: Install and configure gettext
+
+    
+      - name: Configure Homebrew and gettext
         if: runner.os == 'macos'
         run: |
           brew install gettext
           brew link --force gettext
-          # Adjust for potential alternate Homebrew installation paths
           GETTEXT_PATH=$(brew --prefix gettext)
           sudo mkdir -p $GETTEXT_PATH/lib
           sudo ln -sf $GETTEXT_PATH/lib/libintl.8.dylib /usr/local/lib/
@@ -52,10 +53,8 @@ jobs:
         run: |
           echo "Checking DYLD_LIBRARY_PATH:"
           echo $DYLD_LIBRARY_PATH
-          ls -l $(brew --prefix gettext)/lib/
+          ls -l $GETTEXT_PATH/lib/
           ls -l /usr/local/lib/libintl.8.dylib
-    
-
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
