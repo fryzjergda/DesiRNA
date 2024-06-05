@@ -13,43 +13,6 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-20.04, macos-latest]
         python-version: [3.7, 3.8, 3.9, 3.11]
-        include:
-          - os: ubuntu-22.04
-            python-version: 3.7
-            architecture: x64
-          - os: ubuntu-22.04
-            python-version: 3.8
-            architecture: x64
-          - os: ubuntu-22.04
-            python-version: 3.9
-            architecture: arm64
-          - os: ubuntu-22.04
-            python-version: 3.11
-            architecture: arm64
-          - os: ubuntu-20.04
-            python-version: 3.7
-            architecture: x64
-          - os: ubuntu-20.04
-            python-version: 3.8
-            architecture: x64
-          - os: ubuntu-20.04
-            python-version: 3.9
-            architecture: arm64
-          - os: ubuntu-20.04
-            python-version: 3.11
-            architecture: arm64
-          - os: macos-latest
-            python-version: 3.7
-            architecture: x64
-          - os: macos-latest
-            python-version: 3.8
-            architecture: x64
-          - os: macos-latest
-            python-version: 3.9
-            architecture: arm64
-          - os: macos-latest
-            python-version: 3.11
-            architecture: arm64
 
     steps:
       - name: Increase Git Config core.longpaths
@@ -59,11 +22,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Python ${{ matrix.python-version }} ${{ matrix.architecture }}
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: ${{ matrix.architecture }}
+          architecture: 'x64'  # Explicitly set the architecture to x64
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
@@ -83,7 +46,7 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         shell: bash
-
+        
       - name: Run DesiRNA tests
         run: bash ./tests/test_DesiRNA.sh
 
