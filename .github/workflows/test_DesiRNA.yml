@@ -26,26 +26,36 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '20.x'
+      - name: Check Homebrew installation and config
+        if: runner.os == 'macos'
+        run: |
+          which brew
+          brew --version
+          brew doctor
 
       - name: Install and configure gettext
         if: runner.os == 'macos'
         run: |
           brew install gettext
           brew link --force gettext
-          sudo mkdir -p /usr/local/lib
-          sudo ln -sf /usr/local/opt/gettext/lib/libintl.8.dylib /usr/local/lib/
-          echo 'export PATH="/usr/local/opt/gettext/bin:$PATH"' >> $GITHUB_ENV
-          echo 'export LDFLAGS="-L/usr/local/opt/gettext/lib"' >> $GITHUB_ENV
-          echo 'export CPPFLAGS="-I/usr/local/opt/gettext/include"' >> $GITHUB_ENV
-          echo 'export DYLD_LIBRARY_PATH="/usr/local/opt/gettext/lib:$DYLD_LIBRARY_PATH"' >> $GITHUB_ENV
+          # Adjust for potential alternate Homebrew installation paths
+          GETTEXT_PATH=$(brew --prefix gettext)
+          sudo mkdir -p $GETTEXT_PATH/lib
+          sudo ln -sf $GETTEXT_PATH/lib/libintl.8.dylib /usr/local/lib/
+          echo "export PATH=\"$GETTEXT_PATH/bin:\$PATH\"" >> $GITHUB_ENV
+          echo "export LDFLAGS=\"-L$GETTEXT_PATH/lib\"" >> $GITHUB_ENV
+          echo "export CPPFLAGS=\"-I$GETTEXT_PATH/include\"" >> $GITHUB_ENV
+          echo "export DYLD_LIBRARY_PATH=\"$GETTEXT_PATH/lib:\$DYLD_LIBRARY_PATH\"" >> $GITHUB_ENV
 
       - name: Debug environment settings
         if: runner.os == 'macos'
         run: |
           echo "Checking DYLD_LIBRARY_PATH:"
           echo $DYLD_LIBRARY_PATH
-          ls -l /usr/local/opt/gettext/lib/
+          ls -l $(brew --prefix gettext)/lib/
           ls -l /usr/local/lib/libintl.8.dylib
+    
+
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
