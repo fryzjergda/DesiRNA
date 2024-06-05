@@ -21,16 +21,19 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v2
-      
       - name: Install dependencies on macOS
         if: runner.os == 'macos'
         run: |
-          brew install gettext
+          if ! brew list --versions gettext > /dev/null; then
+            brew install gettext
+          fi
           brew link --force gettext
-          sudo ln -s /usr/local/opt/gettext/lib/libintl.8.dylib /usr/local/lib/libintl.8.dylib
+          sudo mkdir -p /usr/local/lib
+          sudo ln -sf /usr/local/opt/gettext/lib/libintl.8.dylib /usr/local/lib/
           echo 'export PATH="/usr/local/opt/gettext/bin:$PATH"' >> $GITHUB_ENV
           echo 'export LDFLAGS="-L/usr/local/opt/gettext/lib"' >> $GITHUB_ENV
           echo 'export CPPFLAGS="-I/usr/local/opt/gettext/include"' >> $GITHUB_ENV
+
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
