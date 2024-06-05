@@ -26,6 +26,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '20.x'
+          
       - name: Check Homebrew installation and config
         if: runner.os == 'macos'
         run: |
@@ -33,6 +34,13 @@ jobs:
           brew --version
           brew doctor
 
+      - name: Clean up Homebrew
+        if: runner.os == 'macos'
+        run: |
+          brew untap homebrew/cask
+          brew untap homebrew/core
+          brew uninstall --ignore-dependencies openssl@1.1 packer ruby@3.0
+          brew cleanup
 
     
       - name: Configure Homebrew and gettext
