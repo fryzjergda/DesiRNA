@@ -27,6 +27,19 @@ jobs:
         with:
           node-version: '20.x'
 
+      - name: Install and configure gettext
+        if: runner.os == 'macos'
+        run: |
+          brew install gettext
+          brew link --force gettext
+          sudo mkdir -p /usr/local/lib
+          sudo ln -sf /usr/local/opt/gettext/lib/libintl.8.dylib /usr/local/lib/
+          echo 'export PATH="/usr/local/opt/gettext/bin:$PATH"' >> $GITHUB_ENV
+          echo 'export LDFLAGS="-L/usr/local/opt/gettext/lib"' >> $GITHUB_ENV
+          echo 'export CPPFLAGS="-I/usr/local/opt/gettext/include"' >> $GITHUB_ENV
+          echo 'export DYLD_LIBRARY_PATH="/usr/local/opt/gettext/lib:$DYLD_LIBRARY_PATH"' >> $GITHUB_ENV
+
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
