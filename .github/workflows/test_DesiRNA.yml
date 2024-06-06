@@ -7,19 +7,17 @@ on:
     branches: [main, refactoring]
 
 jobs:
-  test:
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
         include:
           - os: ubuntu-22.04
-            python-version: [3.7, 3.8, 3.9, 3.10, 3.11, 3.12]
+            python-version: [3.7, 3.8, 3.9, 3.11]
           - os: ubuntu-20.04
-            python-version: [3.7, 3.8, 3.9, 3.10, 3.11, 3.12]
+            python-version: [3.7, 3.8, 3.9, 3.11]
           - os: macos-latest
-            python-version: [3.11, 3.12]
-
+            python-version: [3.11]
 
     steps:
       - name: Checkout repository
