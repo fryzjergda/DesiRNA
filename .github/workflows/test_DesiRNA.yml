@@ -6,19 +6,22 @@ on:
   pull_request:
     branches: [main, refactoring]
 
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-22.04
-            python-version: [3.7, 3.8, 3.9, 3.11]
-          - os: ubuntu-20.04
-            python-version: [3.7, 3.8, 3.9, 3.11]
+        os: [ubuntu-22.04, ubuntu-20.04, macos-latest]
+        python-version: [3.7, 3.8, 3.9, "3.10", 3.11]
+        exclude:
           - os: macos-latest
-            python-version: [3.11]
-
+            python-version: 3.7
+          - os: macos-latest
+            python-version: 3.8
+          - os: macos-latest
+            python-version: 3.9
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
