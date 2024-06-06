@@ -8,7 +8,7 @@
 
 DesiRNA is a state-of-the-art RNA sequence design tool, that stands out for its speed, lightweight nature, ease of installation, and user-friendly interface.
 
-[![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) ![python](https://img.shields.io/badge/Python%20tested-3.9.x%20%7C%203.8.x%20%7C%203.7.x%20%7C%203.6.x%20-blue)
+[![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) ![python](https://img.shields.io/badge/Python%20tested-3.12.x%20%7C%203.11.x%20%7C%203.10.x%20%7C%203.9.x%20%7C%203.8.x%20%7C%203.7.x%20%7C%203.6.x%20-blue)
 ![Tests](https://img.shields.io/github/actions/workflow/status/fryzjergda/DesiRNA/test_DesiRNA.yml?branch=main)
 
 [![Project Status: Active - The project has reached a stable, usable
@@ -430,7 +430,7 @@ For the full license text, please see the [LICENSE](LICENSE) file in the reposit
 
 If you have any questions, need support, or would like to collaborate, please feel free to reach out to us:
 
-- **Dr. Tomasz. K Wirecki**: [twirecki@iimcb.gov.pl](mailto:twirecki@iimcb.gov.pl)
+- **Dr. Tomasz K. Wirecki**: [twirecki@iimcb.gov.pl](mailto:twirecki@iimcb.gov.pl)
 - **Prof. Janusz M. Bujnicki**: [janusz@iimcb.gov.pl](mailto:janusz@iimcb.gov.pl)
 
 You can also learn more about our research and other projects on our lab's website: [GeneSilico Lab](https://genesilico.pl/)
