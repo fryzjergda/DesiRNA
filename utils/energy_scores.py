@@ -176,7 +176,7 @@ def get_probknot_pk(sequence):
     os.system(cmd)
     cmd = "ct2dot ProbKnot"+str(rand_num)+".ct"+" 1 ProbKnot"+str(rand_num)+".dot > /dev/null"
     os.system(cmd)
-    cmd = "efn2 ProbKnot"+str(rand_num)+".ct"+" ProbKnot"+str(rand_num)+".efn"
+    cmd = "efn2 ProbKnot"+str(rand_num)+".ct"+" ProbKnot"+str(rand_num)+".efn > /dev/null"
     os.system(cmd)
     f = open("ProbKnot"+str(rand_num)+".efn", 'r')
     line = f.readline()
