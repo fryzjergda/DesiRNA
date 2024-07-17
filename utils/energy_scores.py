@@ -18,6 +18,8 @@ This module is part of a larger suite of tools for RNA sequence design and analy
 """
 
 import RNA
+import random
+import os
 
 from utils import dimer_multichain_energy as dme
 from utils import sequence_utils as seq_utils
@@ -147,16 +149,53 @@ def get_mfe_e_ss(seq, sim_options):
     fc = RNA.fold_compound(seq, md)
 
     if sim_options.oligo_state in {"none", "avoid"}:
-        structure, energy = fc.pf()
-        structure = fc.mfe()[0]
+        #structure, energy = fc.pf()
+        #structure = fc.mfe()[0]
         if sim_options.pks == "on":
-            structure = seq_utils.get_pk_struct(seq, structure, fc)
+            structure, energy = get_probknot_pk(seq)
     elif sim_options.oligo_state in {"homodimer", "heterodimer"}:
         seqa_len = len(seq.split("&")[0])
         structure_dim = fc.mfe_dimer()[0]
         energy = fc.pf_dimer()[-1]
         structure = structure_dim[:seqa_len] + "&" + structure_dim[seqa_len:]
     return energy, structure, fc
+
+
+def get_probknot_pk(sequence):
+
+    rand_num = random.randint(1000000000, 9999999999)
+
+    sequence_f = "ProbKnot"+str(rand_num)+".seq"
+
+    f = open(sequence_f, 'w')
+    f.write(sequence)
+    f.close() 
+
+
+    cmd = "ProbKnot --sequence " + sequence_f + " ProbKnot"+str(rand_num)+".ct > /dev/null"
+    os.system(cmd)
+    cmd = "ct2dot ProbKnot"+str(rand_num)+".ct"+" 1 ProbKnot"+str(rand_num)+".dot > /dev/null"
+    os.system(cmd)
+    cmd = "efn2 ProbKnot"+str(rand_num)+".ct"+" ProbKnot"+str(rand_num)+".efn"
+    os.system(cmd)
+    f = open("ProbKnot"+str(rand_num)+".efn", 'r')
+    line = f.readline()
+    parts = line.split('Energy = ')
+    energy_value = parts[1].split(' ±')[0]
+    efn_ene = float(energy_value)
+    f.close
+    
+    f = open("ProbKnot"+str(rand_num)+".dot", 'r')
+    ss = f.read().splitlines()[2]
+    cmd = "rm ProbKnot"+str(rand_num)+".ct ProbKnot"+str(rand_num)+".dot ProbKnot"+str(rand_num)+".efn ProbKnot"+str(rand_num)+".seq"
+    os.system(cmd)
+    f.close()
+
+
+    return ss, efn_ene
+
+
+
 
 
 class ScoreSeq:
