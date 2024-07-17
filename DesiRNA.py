@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-DesiRNA.py
+DesiRNA.py - rnastructure b
 
 Usage:
 Run the script with command-line arguments to specify input files, parameters for sequence design, and configuration options. The script supports various options for detailed control over the RNA design process.
